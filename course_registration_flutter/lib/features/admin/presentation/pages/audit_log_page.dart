@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/presentation/app_labels.dart';
 import '../providers/admin_providers.dart';
 
 class AuditLogPage extends ConsumerWidget {
@@ -31,7 +32,7 @@ class AuditLogPage extends ConsumerWidget {
                         cells: [
                           DataCell(Text(item.createdAt.toLocal().toString())),
                           DataCell(Text(item.actorName)),
-                          DataCell(Text(item.action)),
+                          DataCell(Text(AppLabels.action(item.action))),
                           DataCell(
                             SizedBox(
                               width: 240,

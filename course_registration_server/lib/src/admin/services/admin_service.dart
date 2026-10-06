@@ -258,7 +258,10 @@ abstract final class AdminService {
         !InputValidator.optionalText(description, maxLength: 2000) ||
         credits < 1 ||
         credits > 10) {
-      throw _error('invalid_course', 'Thông tin môn học không hợp lệ.');
+      throw _error(
+        'invalid_course',
+        'Thông tin môn học không hợp lệ. Tín chỉ phải từ 1 đến 10.',
+      );
     }
     final value = await Course.db.insertRow(
       session,
@@ -303,7 +306,10 @@ abstract final class AdminService {
         !InputValidator.optionalText(description, maxLength: 2000) ||
         credits < 1 ||
         credits > 10) {
-      throw _error('invalid_course', 'Thông tin môn học không hợp lệ.');
+      throw _error(
+        'invalid_course',
+        'Thông tin môn học không hợp lệ. Tín chỉ phải từ 1 đến 10.',
+      );
     }
     final old = jsonEncode(value.toJson());
     final updated = await Course.db.updateRow(

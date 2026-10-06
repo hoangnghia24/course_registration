@@ -21,7 +21,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Admin Test Student'), findsOneWidget);
-    expect(find.text('Disable'), findsOneWidget);
+    expect(find.text('Vô hiệu hóa'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const Key('admin-user-search')),

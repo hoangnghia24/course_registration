@@ -870,31 +870,6 @@ class Endpoints extends _is.EndpointDispatch {
                     email: params['email'],
                   ),
         ),
-        'login': _is.MethodConnector(
-          name: 'login',
-          params: {
-            'email': _is.ParameterDescription(
-              name: 'email',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'password': _is.ParameterDescription(
-              name: 'password',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['emailIdp'] as _iuc1hd5t.EmailIdpEndpoint).login(
-                    session,
-                    email: params['email'],
-                    password: params['password'],
-                  ),
-        ),
         'verifyRegistrationCode': _is.MethodConnector(
           name: 'verifyRegistrationCode',
           params: {
@@ -942,6 +917,31 @@ class Endpoints extends _is.EndpointDispatch {
                   .finishRegistration(
                     session,
                     registrationToken: params['registrationToken'],
+                    password: params['password'],
+                  ),
+        ),
+        'login': _is.MethodConnector(
+          name: 'login',
+          params: {
+            'email': _is.ParameterDescription(
+              name: 'email',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'password': _is.ParameterDescription(
+              name: 'password',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['emailIdp'] as _iuc1hd5t.EmailIdpEndpoint).login(
+                    session,
+                    email: params['email'],
                     password: params['password'],
                   ),
         ),

@@ -49,46 +49,61 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
           final filtered = items.where(_matches).toList();
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        key: const Key('course-search'),
-                        controller: _search,
-                        onChanged: (_) => setState(() {}),
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.search),
-                          labelText: 'Tìm học phần',
-                        ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 420;
+                  final searchField = TextField(
+                    key: const Key('course-search'),
+                    controller: _search,
+                    onChanged: (_) => setState(() {}),
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      labelText: 'Tìm học phần',
+                    ),
+                  );
+                  final filter = DropdownButtonFormField<_SearchBy>(
+                    initialValue: _searchBy,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Tìm theo'),
+                    onChanged: (value) => setState(() => _searchBy = value!),
+                    items: const [
+                      DropdownMenuItem(
+                        value: _SearchBy.code,
+                        child: Text('Mã môn'),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    DropdownButton<_SearchBy>(
-                      value: _searchBy,
-                      onChanged: (value) => setState(() => _searchBy = value!),
-                      items: const [
-                        DropdownMenuItem(
-                          value: _SearchBy.code,
-                          child: Text('Mã môn'),
-                        ),
-                        DropdownMenuItem(
-                          value: _SearchBy.name,
-                          child: Text('Tên môn'),
-                        ),
-                        DropdownMenuItem(
-                          value: _SearchBy.credits,
-                          child: Text('Tín chỉ'),
-                        ),
-                        DropdownMenuItem(
-                          value: _SearchBy.major,
-                          child: Text('Theo ngành'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      DropdownMenuItem(
+                        value: _SearchBy.name,
+                        child: Text('Tên môn'),
+                      ),
+                      DropdownMenuItem(
+                        value: _SearchBy.credits,
+                        child: Text('Tín chỉ'),
+                      ),
+                      DropdownMenuItem(
+                        value: _SearchBy.major,
+                        child: Text('Theo ngành'),
+                      ),
+                    ],
+                  );
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                    child: compact
+                        ? Column(
+                            children: [
+                              searchField,
+                              const SizedBox(height: 10),
+                              filter,
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Expanded(child: searchField),
+                              const SizedBox(width: 12),
+                              SizedBox(width: 160, child: filter),
+                            ],
+                          ),
+                  );
+                },
               ),
               Expanded(
                 child: filtered.isEmpty
@@ -119,50 +134,70 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
   }
 
   Future<void> _showOpeningRequest() async {
-    final courses = await ref.read(trainingProgramProvider.future);
-    if (!mounted) return;
-    final selected = await showDialog<TrainingProgramCourseDto>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Chọn môn cần mở lớp'),
-        children: courses
-            .map(
-              (course) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, course),
-                child: Text('${course.courseCode} - ${course.courseName}'),
-              ),
-            )
-            .toList(),
-      ),
-    );
-    if (selected == null || !mounted) return;
-    final controller = TextEditingController();
-    final reason = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Lý do mở lớp'),
-        content: TextField(controller: controller, maxLines: 3),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Gửi yêu cầu'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (reason == null || reason.trim().isEmpty || !mounted) return;
-    await ref
-        .read(courseRegistrationRepositoryProvider)
-        .createOpeningRequest(selected.courseId, reason);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã gửi yêu cầu mở lớp.')),
+    try {
+      final courses = await ref.read(trainingProgramProvider.future);
+      if (!mounted) return;
+      final selected = await showDialog<TrainingProgramCourseDto>(
+        context: context,
+        builder: (context) => SimpleDialog(
+          title: const Text('Chọn môn cần mở lớp'),
+          children: courses
+              .map(
+                (course) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(context, course),
+                  child: Text('${course.courseCode} - ${course.courseName}'),
+                ),
+              )
+              .toList(),
+        ),
       );
+      if (selected == null || !mounted) return;
+      final controller = TextEditingController();
+      final reason = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          title: const Text('Lý do mở lớp'),
+          content: TextField(
+            controller: controller,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Lý do',
+              hintText: 'Nhập lý do đề nghị mở lớp',
+              alignLabelWithHint: true,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Gửi yêu cầu'),
+            ),
+          ],
+        ),
+      );
+      controller.dispose();
+      if (reason == null || reason.trim().isEmpty || !mounted) return;
+      await ref
+          .read(courseRegistrationRepositoryProvider)
+          .createOpeningRequest(selected.courseId, reason);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã gửi yêu cầu mở lớp.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể gửi yêu cầu mở lớp.')),
+        );
+      }
     }
   }
 }

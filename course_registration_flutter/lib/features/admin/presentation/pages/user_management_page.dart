@@ -2,6 +2,7 @@ import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/presentation/app_labels.dart';
 import '../providers/admin_providers.dart';
 
 class UserManagementPage extends ConsumerStatefulWidget {
@@ -27,9 +28,9 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       bottom: TabBar(
         controller: _tabs,
         tabs: const [
-          Tab(text: 'Student'),
-          Tab(text: 'Lecturer'),
-          Tab(text: 'Admin'),
+          Tab(text: 'Sinh viên'),
+          Tab(text: 'Giảng viên'),
+          Tab(text: 'Quản trị'),
         ],
       ),
     ),
@@ -80,40 +81,95 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                   item.email.toLowerCase().contains(_query)),
         )
         .toList();
-    return ListView.builder(
+    if (values.isEmpty) {
+      return const Center(child: Text('Không có người dùng phù hợp.'));
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
       itemCount: values.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final item = values[index];
-        return ListTile(
-          leading: Icon(
-            item.isActive ? Icons.account_circle : Icons.person_off,
-          ),
-          title: Text(item.fullName),
-          subtitle: Text('${item.roleCode ?? item.role.name} • ${item.email}'),
-          trailing: Wrap(
-            children: [
-              IconButton(
-                tooltip: 'Chỉnh sửa',
-                onPressed: () => _showUserDialog(user: item),
-                icon: const Icon(Icons.edit),
-              ),
-              if (item.isActive)
-                TextButton(
-                  onPressed: () async {
-                    await ref
-                        .read(adminRepositoryProvider)
-                        .disableUser(item.userId);
-                    ref.invalidate(userManagementProvider);
-                  },
-                  child: const Text('Disable'),
-                )
-              else
-                const Chip(label: Text('Disabled')),
-            ],
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      item.isActive ? Icons.account_circle : Icons.person_off,
+                      size: 30,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.fullName,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(item.email),
+                          Text(
+                            item.roleCode == null
+                                ? AppLabels.userRole(item.role)
+                                : '${AppLabels.userRole(item.role)} • ${item.roleCode}',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Wrap(
+                    spacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      IconButton(
+                        tooltip: 'Chỉnh sửa',
+                        onPressed: () => _showUserDialog(user: item),
+                        icon: const Icon(Icons.edit),
+                      ),
+                      if (item.isActive)
+                        TextButton(
+                          onPressed: () => _disableUser(item),
+                          child: const Text('Vô hiệu hóa'),
+                        )
+                      else
+                        const Chip(label: Text('Đã vô hiệu hóa')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  Future<void> _disableUser(AdminUserDto user) async {
+    try {
+      await ref.read(adminRepositoryProvider).disableUser(user.userId);
+      final _ = await ref.refresh(userManagementProvider.future);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã vô hiệu hóa ${user.fullName}.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể cập nhật người dùng.')),
+        );
+      }
+    }
   }
 
   Future<void> _showUserDialog({AdminUserDto? user}) async {
@@ -128,6 +184,10 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
           title: Text(user == null ? 'Tạo tài khoản' : 'Chỉnh sửa tài khoản'),
           content: Form(
             key: formKey,
@@ -143,7 +203,8 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                         ? null
                         : 'Email không hợp lệ',
                   ),
-                  if (user == null)
+                  const SizedBox(height: 12),
+                  if (user == null) ...[
                     TextFormField(
                       controller: password,
                       obscureText: true,
@@ -154,18 +215,22 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                           ? null
                           : 'Mật khẩu phải có ít nhất 8 ký tự',
                     ),
+                    const SizedBox(height: 12),
+                  ],
                   TextFormField(
                     controller: fullName,
                     decoration: const InputDecoration(labelText: 'Họ tên'),
                     validator: (value) =>
                         (value?.trim().isEmpty ?? true) ? 'Bắt buộc' : null,
                   ),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: user == null ? roleCode : phone,
                     decoration: InputDecoration(
                       labelText: user == null ? 'Mã vai trò' : 'Điện thoại',
                     ),
                   ),
+                  if (user == null) const SizedBox(height: 12),
                   if (user == null)
                     DropdownButtonFormField<UserRole>(
                       initialValue: role,
@@ -174,7 +239,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                           .map(
                             (value) => DropdownMenuItem(
                               value: value,
-                              child: Text(value.name),
+                              child: Text(AppLabels.userRole(value)),
                             ),
                           )
                           .toList(),
@@ -192,25 +257,33 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
             FilledButton(
               onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
-                final repository = ref.read(adminRepositoryProvider);
-                if (user == null) {
-                  await repository.createUser(
-                    email: email.text.trim(),
-                    password: password.text,
-                    fullName: fullName.text.trim(),
-                    role: role,
-                    roleCode: roleCode.text.trim().isEmpty
-                        ? null
-                        : roleCode.text.trim(),
-                  );
-                } else {
-                  await repository.updateUser(
-                    user.userId,
-                    fullName.text.trim(),
-                    phone.text.trim(),
-                  );
+                try {
+                  final repository = ref.read(adminRepositoryProvider);
+                  if (user == null) {
+                    await repository.createUser(
+                      email: email.text.trim(),
+                      password: password.text,
+                      fullName: fullName.text.trim(),
+                      role: role,
+                      roleCode: roleCode.text.trim().isEmpty
+                          ? null
+                          : roleCode.text.trim(),
+                    );
+                  } else {
+                    await repository.updateUser(
+                      user.userId,
+                      fullName.text.trim(),
+                      phone.text.trim(),
+                    );
+                  }
+                  if (context.mounted) Navigator.pop(context, true);
+                } catch (_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Không thể lưu tài khoản.')),
+                    );
+                  }
                 }
-                if (context.mounted) Navigator.pop(context, true);
               },
               child: const Text('Lưu'),
             ),
@@ -223,6 +296,23 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
     fullName.dispose();
     phone.dispose();
     roleCode.dispose();
-    if (saved == true) ref.invalidate(userManagementProvider);
+    if (saved == true) {
+      try {
+        final _ = await ref.refresh(userManagementProvider.future);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã lưu tài khoản.')),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đã lưu nhưng không thể tải lại dữ liệu.'),
+            ),
+          );
+        }
+      }
+    }
   }
 }

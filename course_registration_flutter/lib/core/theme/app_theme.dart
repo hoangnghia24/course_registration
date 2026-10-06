@@ -38,6 +38,10 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         fillColor: brightness == Brightness.light
             ? Colors.white
             : colors.surfaceContainerHighest,
@@ -53,7 +57,7 @@ abstract final class AppTheme {
           foregroundColor: colors.onPrimary,
           disabledBackgroundColor: colors.onSurface.withValues(alpha: 0.12),
           disabledForegroundColor: colors.onSurface.withValues(alpha: 0.38),
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(64, 52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

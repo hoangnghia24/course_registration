@@ -1,6 +1,7 @@
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../student/presentation/widgets/student_async_error.dart';
@@ -79,51 +80,20 @@ class CourseClassManagementPage extends ConsumerWidget {
     WidgetRef ref,
     LecturerCourseClassDto item,
   ) async {
-    final code = TextEditingController(text: item.classCode);
-    final capacity = TextEditingController(text: '${item.capacity}');
-    final save = await showDialog<bool>(
+    final value = await showDialog<(String, int)>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sửa lớp học phần'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: code,
-              decoration: const InputDecoration(labelText: 'Mã lớp'),
-            ),
-            TextField(
-              controller: capacity,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Sĩ số'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Lưu'),
-          ),
-        ],
-      ),
+      builder: (_) => _CourseClassEditDialog(item: item),
     );
-    if (save == true) {
-      await ref
-          .read(lecturerRepositoryProvider)
-          .updateClass(
-            courseClassId: item.courseClassId,
-            classCode: code.text,
-            capacity: int.tryParse(capacity.text) ?? item.capacity,
-            status: item.status,
-          );
-      ref.invalidate(courseClassProvider);
-    }
-    code.dispose();
-    capacity.dispose();
+    if (value == null || !context.mounted) return;
+    await ref
+        .read(lecturerRepositoryProvider)
+        .updateClass(
+          courseClassId: item.courseClassId,
+          classCode: value.$1,
+          capacity: value.$2,
+          status: item.status,
+        );
+    ref.invalidate(courseClassProvider);
   }
 
   Future<void> _delete(
@@ -134,4 +104,91 @@ class CourseClassManagementPage extends ConsumerWidget {
     await ref.read(lecturerRepositoryProvider).deleteClass(item.courseClassId);
     ref.invalidate(courseClassProvider);
   }
+}
+
+class _CourseClassEditDialog extends StatefulWidget {
+  const _CourseClassEditDialog({required this.item});
+
+  final LecturerCourseClassDto item;
+
+  @override
+  State<_CourseClassEditDialog> createState() =>
+      _CourseClassEditDialogState();
+}
+
+class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _code;
+  late final TextEditingController _capacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _code = TextEditingController(text: widget.item.classCode);
+    _capacity = TextEditingController(text: '${widget.item.capacity}');
+  }
+
+  @override
+  void dispose() {
+    _code.dispose();
+    _capacity.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Sửa lớp học phần'),
+    insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+    content: Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _code,
+              decoration: const InputDecoration(labelText: 'Mã lớp'),
+              validator: (value) =>
+                  (value?.trim().isEmpty ?? true) ? 'Bắt buộc' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _capacity,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: 'Sĩ số',
+                helperText:
+                    'Từ ${widget.item.registeredCount} đến 500 sinh viên',
+              ),
+              validator: (value) {
+                final capacity = int.tryParse(value ?? '');
+                if (capacity == null) return 'Vui lòng nhập sĩ số';
+                if (capacity < widget.item.registeredCount || capacity > 500) {
+                  return 'Sĩ số phải từ ${widget.item.registeredCount} đến 500';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Hủy'),
+      ),
+      FilledButton(
+        onPressed: () {
+          if (!_formKey.currentState!.validate()) return;
+          Navigator.pop(context, (
+            _code.text.trim(),
+            int.parse(_capacity.text),
+          ));
+        },
+        child: const Text('Lưu'),
+      ),
+    ],
+  );
 }

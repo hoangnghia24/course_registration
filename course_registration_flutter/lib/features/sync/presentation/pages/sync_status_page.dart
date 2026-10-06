@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/presentation/app_labels.dart';
 import '../../../../shared/services/providers.dart';
 
 class SyncStatusPage extends ConsumerWidget {
@@ -63,7 +64,7 @@ class SyncStatusPage extends ConsumerWidget {
                     .map(
                       (item) => ListTile(
                         leading: Icon(_icon(item.status)),
-                        title: Text(item.action),
+                        title: Text(AppLabels.action(item.action)),
                         subtitle: Text(
                           '${item.createdAt.toLocal()}\n${item.lastError ?? item.errorCode ?? ''}',
                         ),
@@ -78,7 +79,7 @@ class SyncStatusPage extends ConsumerWidget {
                                     .retryOperation(item.id),
                                 icon: const Icon(Icons.refresh),
                               )
-                            : Chip(label: Text(item.status)),
+                            : Chip(label: Text(AppLabels.syncStatus(item.status))),
                       ),
                     )
                     .toList(),

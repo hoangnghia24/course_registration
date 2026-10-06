@@ -40,7 +40,9 @@ class AdminDashboardPage extends ConsumerWidget {
                     crossAxisCount: constraints.maxWidth >= 900 ? 4 : 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: constraints.maxWidth < 600 ? 1.35 : 2,
+                    // Give the metric labels enough vertical room when Android
+                    // applies a non-integer device scale factor.
+                    childAspectRatio: constraints.maxWidth < 600 ? 1.25 : 2,
                     mainAxisSpacing: 8,
                     crossAxisSpacing: 8,
                     children: [

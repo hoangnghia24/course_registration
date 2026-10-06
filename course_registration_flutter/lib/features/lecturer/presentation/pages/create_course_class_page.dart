@@ -51,7 +51,7 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
                 .toList(),
             onChanged: (value) => _courseId = value,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           DropdownButtonFormField<UuidValue>(
             decoration: const InputDecoration(labelText: 'Chọn học kỳ'),
             items: semesters.value
@@ -64,19 +64,19 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
                 .toList(),
             onChanged: (value) => _semesterId = value,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextField(
             key: const Key('class-code'),
             controller: _code,
             decoration: const InputDecoration(labelText: 'Mã lớp'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextField(
             controller: _capacity,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Sĩ số tối đa'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -86,7 +86,7 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
                   decoration: const InputDecoration(labelText: 'Thứ'),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: TextField(
                   controller: _start,
@@ -94,7 +94,7 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
                   decoration: const InputDecoration(labelText: 'Tiết đầu'),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: TextField(
                   controller: _end,
@@ -104,7 +104,7 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextField(
             controller: _room,
             decoration: const InputDecoration(labelText: 'Phòng học'),

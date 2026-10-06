@@ -45,6 +45,17 @@ void main() {
           'invalid_course',
         );
         await _expectCode(
+          endpoints.admin.updateCourse(
+            admin,
+            courseId: seed.course.id!,
+            courseCode: seed.course.courseCode,
+            courseName: seed.course.courseName,
+            credits: 11,
+            courseType: seed.course.courseType,
+          ),
+          'invalid_course',
+        );
+        await _expectCode(
           endpoints.admin.createCourse(
             admin,
             courseCode: 'X' * 33,

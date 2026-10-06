@@ -2,6 +2,7 @@ import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/presentation/app_labels.dart';
 import '../../../student/presentation/widgets/student_async_error.dart';
 import '../providers/course_registration_providers.dart';
 
@@ -40,7 +41,9 @@ class MyRegisteredCoursesPage extends ConsumerWidget {
                           operation.errorMessage ??
                               'Lớp: ${operation.courseClassId}',
                         ),
-                        trailing: Chip(label: Text(operation.status)),
+                        trailing: Chip(
+                          label: Text(AppLabels.syncStatus(operation.status)),
+                        ),
                       ),
                     ),
                   for (final item in items)

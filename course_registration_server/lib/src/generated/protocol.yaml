@@ -30,9 +30,9 @@ admin:
   - grantPermission:
 emailIdp:
   - startRegistration:
-  - login:
   - verifyRegistrationCode:
   - finishRegistration:
+  - login:
   - startPasswordReset:
   - verifyPasswordResetCode:
   - finishPasswordReset:

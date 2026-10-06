@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/presentation/app_labels.dart';
 import '../providers/lecturer_providers.dart';
 
 class LecturerSchedulePage extends ConsumerWidget {
@@ -25,7 +26,7 @@ class LecturerSchedulePage extends ConsumerWidget {
                     'Thứ ${item.dayOfWeek} • Tiết ${item.startPeriod}-${item.endPeriod}',
                   ),
                   subtitle: Text(
-                    '${item.room} • ${item.status.name.toUpperCase()}',
+                    '${item.room} • ${AppLabels.teachingScheduleStatus(item.status)}',
                   ),
                 ),
               );
