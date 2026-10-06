@@ -1,0 +1,9 @@
+class: PendingClassApprovalDto
+fields:
+  courseClassId: UuidValue
+  classCode: String
+  courseCode: String
+  courseName: String
+  lecturerName: String
+  capacity: int
+  proposals: List<TeachingScheduleProposal>

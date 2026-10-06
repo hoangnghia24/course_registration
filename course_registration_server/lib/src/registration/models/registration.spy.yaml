@@ -1,0 +1,16 @@
+class: Registration
+table: registrations
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  student: Student?, relation(onDelete=Cascade)
+  courseClass: CourseClass?, relation(onDelete=Restrict)
+  registeredAt: DateTime, default=now
+  status: RegistrationStatus
+indexes:
+  registrations_student_class_unique:
+    fields: studentId, courseClassId
+    unique: true
+  registrations_student_status_idx:
+    fields: studentId, status
+  registrations_class_status_idx:
+    fields: courseClassId, status

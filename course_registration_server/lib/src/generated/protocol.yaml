@@ -1,0 +1,83 @@
+admin:
+  - getUsers:
+  - createUser:
+  - updateUser:
+  - disableUser:
+  - getCourses:
+  - createCourse:
+  - updateCourse:
+  - deleteCourse:
+  - getTrainingPrograms:
+  - getMajors:
+  - getProgramCourses:
+  - getPrerequisites:
+  - getEquivalents:
+  - createTrainingProgram:
+  - updateTrainingProgram:
+  - setProgramCourse:
+  - addPrerequisite:
+  - removePrerequisite:
+  - addEquivalent:
+  - removeEquivalent:
+  - getPendingClasses:
+  - approveClass:
+  - rejectClass:
+  - getOpeningRequests:
+  - decideOpeningRequest:
+  - getReports:
+  - getAuditLogs:
+  - getPermissions:
+  - grantPermission:
+emailIdp:
+  - startRegistration:
+  - login:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+studentAccess:
+  - ping:
+lecturerAccess:
+  - ping:
+adminAccess:
+  - ping:
+greeting:
+  - hello:
+lecturer:
+  - getMyProfile:
+  - getCourses:
+  - getSemesters:
+  - getMyCourseClasses:
+  - createCourseClass:
+  - updateCourseClass:
+  - deleteCourseClass:
+  - createTeachingSchedule:
+  - getMySchedule:
+  - getRegisteredStudents:
+  - getClassDemand:
+profile:
+  - current:
+  - ensureProfile:
+courseRegistration:
+  - getCurrentSemester:
+  - getOpenClasses:
+  - checkEligibility:
+  - registerCourse:
+  - cancelCourse:
+  - getMyCourses:
+  - createOpeningRequest:
+student:
+  - getProfile:
+  - getTrainingProgram:
+  - getTranscript:
+  - getGpa:
+sync:
+  - ping:
+  - pushOperations:
+  - pullChanges:
+  - getSyncStatus:
+  - retryOperation:

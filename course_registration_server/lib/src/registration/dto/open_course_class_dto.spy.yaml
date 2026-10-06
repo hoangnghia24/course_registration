@@ -1,0 +1,16 @@
+class: OpenCourseClassDto
+fields:
+  courseClassId: UuidValue
+  courseId: UuidValue
+  semesterId: UuidValue
+  classCode: String
+  courseCode: String
+  courseName: String
+  credits: int
+  lecturerName: String
+  capacity: int
+  registeredCount: int
+  remainingSeats: int
+  status: CourseClassStatus
+  inTrainingProgram: bool
+  schedules: List<ClassScheduleDto>

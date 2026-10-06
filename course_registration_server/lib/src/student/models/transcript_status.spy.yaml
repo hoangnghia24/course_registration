@@ -1,0 +1,6 @@
+enum: TranscriptStatus
+serialized: byName
+values:
+  - passed
+  - failed
+  - retake

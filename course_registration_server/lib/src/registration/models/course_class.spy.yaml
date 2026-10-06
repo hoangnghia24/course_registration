@@ -1,0 +1,19 @@
+class: CourseClass
+table: course_classes
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  course: Course?, relation(onDelete=Restrict)
+  lecturer: Lecturer?, relation(onDelete=Restrict)
+  semester: Semester?, relation(onDelete=Cascade)
+  classCode: String
+  capacity: int
+  registeredCount: int, default=0
+  status: CourseClassStatus
+indexes:
+  course_classes_code_semester_unique:
+    fields: classCode, semesterId
+    unique: true
+  course_classes_open_idx:
+    fields: semesterId, status
+  course_classes_course_idx:
+    fields: courseId

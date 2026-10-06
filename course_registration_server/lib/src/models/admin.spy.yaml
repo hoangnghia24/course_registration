@@ -1,0 +1,10 @@
+class: Admin
+table: admins
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  user: AppUser?, relation(onDelete=Cascade)
+  permissionLevel: int, defaultModel=1
+indexes:
+  admins_user_id_unique:
+    fields: userId
+    unique: true

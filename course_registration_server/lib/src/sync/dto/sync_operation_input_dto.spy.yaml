@@ -1,0 +1,9 @@
+class: SyncOperationInputDto
+fields:
+  operationId: UuidValue
+  entityType: String
+  entityId: String?
+  operationType: String
+  payload: String
+  clientId: String
+  baseVersion: int?

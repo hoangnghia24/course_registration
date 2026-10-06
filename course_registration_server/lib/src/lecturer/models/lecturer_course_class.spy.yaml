@@ -1,0 +1,13 @@
+class: LecturerCourseClass
+table: lecturer_course_classes
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  lecturer: Lecturer?, relation(onDelete=Cascade)
+  courseClass: CourseClass?, relation(onDelete=Cascade)
+  assignedAt: DateTime, default=now
+indexes:
+  lecturer_course_classes_unique:
+    fields: lecturerId, courseClassId
+    unique: true
+  lecturer_course_classes_lecturer_idx:
+    fields: lecturerId

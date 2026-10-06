@@ -1,0 +1,18 @@
+class: Lecturer
+table: lecturers
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  user: AppUser?, relation(onDelete=Cascade)
+  lecturerCode: String
+  facultyId: UuidValue?
+  academicDegree: String?
+  department: String?
+  academicTitle: String?
+  specialization: String?
+indexes:
+  lecturers_user_id_unique:
+    fields: userId
+    unique: true
+  lecturers_lecturer_code_unique:
+    fields: lecturerCode
+    unique: true

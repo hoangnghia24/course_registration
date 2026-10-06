@@ -1,0 +1,13 @@
+class: LecturerProfileDto
+fields:
+  lecturerId: UuidValue
+  lecturerCode: String
+  fullName: String
+  email: String
+  phone: String?
+  avatar: String?
+  department: String?
+  academicTitle: String?
+  academicDegree: String?
+  specialization: String?
+  facultyName: String?

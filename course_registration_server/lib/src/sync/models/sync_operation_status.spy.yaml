@@ -1,0 +1,9 @@
+enum: SyncOperationStatus
+values:
+  - PENDING
+  - SYNCING
+  - SYNCED
+  - FAILED
+  - CONFLICT
+  - CANCELLED
+  - AUTH_REQUIRED

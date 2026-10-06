@@ -1,0 +1,8 @@
+class: SyncOperationResultDto
+fields:
+  operationId: UuidValue
+  status: SyncOperationStatus
+  serverVersion: int?
+  resultPayload: String?
+  errorCode: String?
+  errorMessage: String?

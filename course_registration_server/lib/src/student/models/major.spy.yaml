@@ -1,0 +1,16 @@
+class: Major
+table: majors
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  faculty: Faculty?, relation(onDelete=Restrict)
+  name: String
+  code: String
+  description: String?
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  majors_code_unique:
+    fields: code
+    unique: true
+  majors_faculty_id_idx:
+    fields: facultyId

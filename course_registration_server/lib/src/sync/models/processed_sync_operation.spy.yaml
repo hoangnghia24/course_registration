@@ -1,0 +1,23 @@
+class: ProcessedSyncOperation
+table: processed_sync_operations
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  operationId: UuidValue
+  user: AppUser?, relation(onDelete=Restrict)
+  entityType: String
+  entityId: String?
+  operationType: String
+  payload: String
+  status: SyncOperationStatus
+  resultPayload: String?
+  errorCode: String?
+  errorMessage: String?
+  serverVersion: int, default=1
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  processed_sync_operations_operation_unique:
+    fields: operationId
+    unique: true
+  processed_sync_operations_user_idx:
+    fields: userId, createdAt

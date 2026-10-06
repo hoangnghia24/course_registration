@@ -1,0 +1,6 @@
+enum: CourseProgressStatus
+serialized: byName
+values:
+  - completed
+  - notStarted
+  - inProgress

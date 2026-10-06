@@ -1,0 +1,4 @@
+class: NamedCountDto
+fields:
+  name: String
+  count: int

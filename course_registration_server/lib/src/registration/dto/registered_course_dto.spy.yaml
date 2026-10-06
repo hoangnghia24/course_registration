@@ -1,0 +1,13 @@
+class: RegisteredCourseDto
+fields:
+  registrationId: UuidValue
+  courseClassId: UuidValue
+  semesterId: UuidValue
+  classCode: String
+  courseCode: String
+  courseName: String
+  credits: int
+  lecturerName: String
+  registeredAt: DateTime
+  status: RegistrationStatus
+  schedules: List<ClassScheduleDto>

@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SERVERPOD_CLI_VERSION: '4.0.3'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+
+      - name: Generate ephemeral test secrets
+        shell: bash
+        run: |
+          postgres_password="$(openssl rand -hex 24)"
+          redis_password="$(openssl rand -hex 24)"
+          echo "POSTGRES_TEST_PASSWORD=$postgres_password" >> "$GITHUB_ENV"
+          echo "REDIS_TEST_PASSWORD=$redis_password" >> "$GITHUB_ENV"
+          echo "SERVERPOD_PASSWORD_database=$postgres_password" >> "$GITHUB_ENV"
+          echo "SERVERPOD_PASSWORD_redis=$redis_password" >> "$GITHUB_ENV"
+
+      - name: Start containers
+        working-directory: course_registration_server
+        run: docker compose up --quiet-pull --build -d
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Install Serverpod CLI
+        run: dart pub global activate serverpod_cli $SERVERPOD_CLI_VERSION
+
+      - name: Run Serverpod generator
+        working-directory: course_registration_server
+        run: serverpod generate
+
+      - name: Run tests
+        working-directory: course_registration_server
+        run: dart test
+
+      - name: Stop containers
+        if: always()
+        working-directory: course_registration_server
+        run: docker compose down -v

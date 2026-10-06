@@ -1,0 +1,5 @@
+enum: RegistrationAction
+serialized: byName
+values:
+  - register
+  - cancel

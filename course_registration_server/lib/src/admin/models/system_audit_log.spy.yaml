@@ -1,0 +1,16 @@
+class: SystemAuditLog
+table: system_audit_logs
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  user: AppUser?, relation(onDelete=Restrict)
+  action: String
+  entity: String
+  entityId: UuidValue
+  oldValue: String?
+  newValue: String?
+  createdAt: DateTime, default=now
+indexes:
+  system_audit_logs_created_idx:
+    fields: createdAt
+  system_audit_logs_user_idx:
+    fields: userId, createdAt

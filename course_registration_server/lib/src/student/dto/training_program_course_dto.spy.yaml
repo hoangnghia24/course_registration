@@ -1,0 +1,10 @@
+class: TrainingProgramCourseDto
+fields:
+  courseId: UuidValue
+  courseCode: String
+  courseName: String
+  credits: int
+  semesterNumber: int
+  isRequired: bool
+  courseType: CourseType
+  progressStatus: CourseProgressStatus

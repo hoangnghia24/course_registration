@@ -1,0 +1,10 @@
+class: CourseCategory
+table: course_categories
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  name: String
+  description: String?
+indexes:
+  course_categories_name_unique:
+    fields: name
+    unique: true

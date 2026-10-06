@@ -1,0 +1,15 @@
+class: LecturerCourseClassDto
+fields:
+  courseClassId: UuidValue
+  courseId: UuidValue
+  semesterId: UuidValue
+  courseCode: String
+  courseName: String
+  semesterName: String
+  academicYear: int
+  classCode: String
+  capacity: int
+  registeredCount: int
+  status: CourseClassStatus
+  schedules: List<ClassScheduleDto>
+  proposals: List<TeachingScheduleProposal>

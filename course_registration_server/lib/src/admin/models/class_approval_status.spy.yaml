@@ -1,0 +1,6 @@
+enum: ClassApprovalStatus
+serialized: byName
+values:
+  - pending
+  - approved
+  - rejected

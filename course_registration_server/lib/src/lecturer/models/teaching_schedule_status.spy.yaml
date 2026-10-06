@@ -1,0 +1,6 @@
+enum: TeachingScheduleStatus
+serialized: byName
+values:
+  - pending
+  - approved
+  - rejected

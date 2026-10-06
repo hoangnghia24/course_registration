@@ -1,0 +1,17 @@
+class: StudentProfileDto
+fields:
+  studentId: UuidValue
+  fullName: String
+  email: String
+  phone: String?
+  avatar: String?
+  studentCode: String
+  majorName: String
+  facultyName: String
+  trainingProgramName: String
+  academicYear: int
+  enrollmentYear: int
+  currentSemester: int
+  gpa: double
+  totalCredits: int
+  programTotalCredits: int

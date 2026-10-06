@@ -1,0 +1,13 @@
+class: AnalyticsReportDto
+fields:
+  totalStudents: int
+  totalLecturers: int
+  totalCourses: int
+  openClasses: int
+  fullClasses: int
+  closedClasses: int
+  studentsByFaculty: List<NamedCountDto>
+  studentsByMajor: List<NamedCountDto>
+  courseDemand: List<ClassDemandDto>
+  failedCourses: List<NamedCountDto>
+  courseGpas: List<CourseGpaDto>

@@ -1,0 +1,12 @@
+class: TranscriptDto
+fields:
+  transcriptId: UuidValue
+  courseId: UuidValue
+  courseCode: String
+  courseName: String
+  credits: int
+  semester: String
+  score: double
+  letterGrade: String
+  status: TranscriptStatus
+  attemptNumber: int

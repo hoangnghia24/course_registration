@@ -1,0 +1,8 @@
+class: SyncChangeDto
+fields:
+  entityType: String
+  entityId: String
+  changeType: String
+  payload: String?
+  serverVersion: int
+  changedAt: DateTime

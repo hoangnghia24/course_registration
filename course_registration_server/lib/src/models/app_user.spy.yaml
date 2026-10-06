@@ -1,0 +1,20 @@
+class: AppUser
+table: users
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  authUserId: UuidValue
+  email: String
+  fullName: String
+  phone: String?
+  avatar: String?
+  role: UserRole, defaultModel=student
+  isActive: bool, default=true
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  users_auth_user_id_unique:
+    fields: authUserId
+    unique: true
+  users_email_unique:
+    fields: email
+    unique: true

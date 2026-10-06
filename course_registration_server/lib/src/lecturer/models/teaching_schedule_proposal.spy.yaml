@@ -1,0 +1,17 @@
+class: TeachingScheduleProposal
+table: teaching_schedule_proposals
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  lecturer: Lecturer?, relation(onDelete=Cascade)
+  courseClass: CourseClass?, relation(onDelete=Cascade)
+  dayOfWeek: int
+  startPeriod: int
+  endPeriod: int
+  room: String
+  status: TeachingScheduleStatus, defaultModel=pending
+  createdAt: DateTime, default=now
+indexes:
+  teaching_proposals_lecturer_idx:
+    fields: lecturerId, status
+  teaching_proposals_class_idx:
+    fields: courseClassId

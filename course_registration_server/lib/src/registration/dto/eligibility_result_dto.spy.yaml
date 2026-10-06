@@ -1,0 +1,14 @@
+class: EligibilityResultDto
+fields:
+  eligible: bool
+  prerequisitePassed: bool
+  scheduleAvailable: bool
+  withinCreditLimit: bool
+  inTrainingProgram: bool
+  equivalentAvailable: bool
+  capacityAvailable: bool
+  currentCredits: int
+  projectedCredits: int
+  minimumCredits: int
+  maximumCredits: int
+  messages: List<String>

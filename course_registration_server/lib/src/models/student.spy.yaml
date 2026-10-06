@@ -1,0 +1,20 @@
+class: Student
+table: students
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  user: AppUser?, relation(onDelete=Cascade)
+  studentCode: String
+  major: Major?, relation(optional, onDelete=SetNull)
+  trainingProgram: TrainingProgram?, relation(optional, onDelete=SetNull)
+  academicYear: int
+  enrollmentYear: int, default=0
+  currentSemester: int, default=1
+  gpa: double, defaultModel=0
+  totalCredits: int, defaultModel=0
+indexes:
+  students_user_id_unique:
+    fields: userId
+    unique: true
+  students_student_code_unique:
+    fields: studentCode
+    unique: true

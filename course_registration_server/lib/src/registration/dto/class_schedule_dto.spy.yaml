@@ -1,0 +1,6 @@
+class: ClassScheduleDto
+fields:
+  dayOfWeek: int
+  startPeriod: int
+  endPeriod: int
+  room: String

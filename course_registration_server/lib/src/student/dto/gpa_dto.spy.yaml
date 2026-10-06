@@ -1,0 +1,7 @@
+class: GpaDto
+fields:
+  semester: String?
+  semesterGpa: double?
+  cumulativeGpa: double
+  attemptedCredits: int
+  earnedCredits: int

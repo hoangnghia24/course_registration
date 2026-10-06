@@ -1,0 +1,12 @@
+class: RegistrationHistory
+table: registration_history
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  student: Student?, relation(onDelete=Cascade)
+  courseClass: CourseClass?, relation(onDelete=Restrict)
+  action: RegistrationAction
+  createdAt: DateTime, default=now
+  deviceInfo: String?
+indexes:
+  registration_history_student_idx:
+    fields: studentId, createdAt

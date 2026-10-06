@@ -1,0 +1,6 @@
+class: RegistrationResultDto
+fields:
+  success: bool
+  message: String
+  registration: RegisteredCourseDto?
+  errorCode: String?

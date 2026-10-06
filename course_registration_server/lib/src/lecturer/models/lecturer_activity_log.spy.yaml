@@ -1,0 +1,12 @@
+class: LecturerActivityLog
+table: lecturer_activity_logs
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  lecturer: Lecturer?, relation(onDelete=Cascade)
+  action: String
+  entity: String
+  entityId: UuidValue
+  createdAt: DateTime, default=now
+indexes:
+  lecturer_activity_logs_idx:
+    fields: lecturerId, createdAt

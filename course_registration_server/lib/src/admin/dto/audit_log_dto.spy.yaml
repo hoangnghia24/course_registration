@@ -1,0 +1,10 @@
+class: AuditLogDto
+fields:
+  id: UuidValue
+  actorName: String
+  action: String
+  entity: String
+  entityId: UuidValue
+  oldValue: String?
+  newValue: String?
+  createdAt: DateTime

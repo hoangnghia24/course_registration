@@ -1,0 +1,8 @@
+class: ClassStudentDto
+fields:
+  studentId: UuidValue
+  studentCode: String
+  fullName: String
+  majorName: String
+  email: String
+  registrationStatus: RegistrationStatus

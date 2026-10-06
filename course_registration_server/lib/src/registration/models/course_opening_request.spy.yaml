@@ -1,0 +1,12 @@
+class: CourseOpeningRequest
+table: course_opening_requests
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  student: Student?, relation(onDelete=Cascade)
+  course: Course?, relation(onDelete=Restrict)
+  reason: String
+  createdAt: DateTime, default=now
+  status: OpeningRequestStatus, defaultModel=pending
+indexes:
+  opening_requests_student_idx:
+    fields: studentId, status

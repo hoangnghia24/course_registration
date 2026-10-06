@@ -1,0 +1,55 @@
+# Files and directories created by pub
+.dart_tool/
+.packages
+
+# Pubspec overrides
+pubspec_overrides.yaml
+
+# Dart and Flutter generated files
+.pub-cache/
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.metadata
+**/coverage/
+**/coverage_*/
+**/*.iml
+
+# IDE and operating-system files
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+**/config/passwords.yaml
+**/config/*secret*.yaml
+**/config/*credentials*.yaml
+**/*.pem
+**/*.p12
+**/*.pfx
+**/*.key
+**/*.jks
+**/*.keystore
+**/key.properties
+**/google-services.json
+
+# Serverpod local services and runtime state
+**/.serverpod/
+**/serverpod.secret.yaml
+**/docker-compose.override.yml
+
+# Keep project documentation out of the public repository as requested
+docs/
+
+# Local exports and temporary files
+*.log
+*.tmp
+*.bak
+*.orig

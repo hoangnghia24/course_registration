@@ -1,0 +1,8 @@
+class: SyncStatusDto
+fields:
+  pending: int
+  syncing: int
+  synced: int
+  failed: int
+  conflict: int
+  lastProcessedAt: DateTime?

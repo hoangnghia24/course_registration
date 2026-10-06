@@ -1,0 +1,13 @@
+class: Faculty
+table: faculties
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  name: String
+  code: String
+  description: String?
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  faculties_code_unique:
+    fields: code
+    unique: true

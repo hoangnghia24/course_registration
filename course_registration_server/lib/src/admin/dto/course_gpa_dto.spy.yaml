@@ -1,0 +1,5 @@
+class: CourseGpaDto
+fields:
+  courseCode: String
+  courseName: String
+  averageGpa: double

@@ -1,0 +1,6 @@
+enum: CourseClassStatus
+serialized: byName
+values:
+  - open
+  - full
+  - closed

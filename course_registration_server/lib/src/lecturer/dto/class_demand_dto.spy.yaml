@@ -1,0 +1,7 @@
+class: ClassDemandDto
+fields:
+  courseId: UuidValue
+  courseCode: String
+  courseName: String
+  requestCount: int
+  recommendation: String

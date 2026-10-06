@@ -1,0 +1,14 @@
+class: SyncLog
+table: sync_logs
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  operationId: UuidValue
+  action: String
+  status: SyncOperationStatus
+  startedAt: DateTime
+  completedAt: DateTime?
+  errorCode: String?
+  errorMessage: String?
+indexes:
+  sync_logs_operation_idx:
+    fields: operationId, startedAt

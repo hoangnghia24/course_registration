@@ -1,0 +1,14 @@
+class: TrainingProgramCourse
+table: training_program_courses
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  trainingProgram: TrainingProgram?, relation(onDelete=Cascade)
+  course: Course?, relation(onDelete=Restrict)
+  semesterNumber: int
+  isRequired: bool
+indexes:
+  training_program_courses_unique:
+    fields: trainingProgramId, courseId
+    unique: true
+  training_program_courses_semester_idx:
+    fields: trainingProgramId, semesterNumber

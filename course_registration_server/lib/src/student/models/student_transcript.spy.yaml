@@ -1,0 +1,19 @@
+class: StudentTranscript
+table: student_transcripts
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  student: Student?, relation(onDelete=Cascade)
+  course: Course?, relation(onDelete=Restrict)
+  semester: String
+  score: double
+  letterGrade: String
+  status: TranscriptStatus
+  attemptNumber: int, defaultModel=1
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  student_transcripts_attempt_unique:
+    fields: studentId, courseId, attemptNumber
+    unique: true
+  student_transcripts_student_semester_idx:
+    fields: studentId, semester

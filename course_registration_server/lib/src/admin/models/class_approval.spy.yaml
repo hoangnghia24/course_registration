@@ -1,0 +1,15 @@
+class: ClassApproval
+table: class_approvals
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  courseClass: CourseClass?, relation(onDelete=Cascade)
+  admin: Admin?, relation(onDelete=Restrict)
+  status: ClassApprovalStatus, defaultModel=pending
+  comment: String?
+  createdAt: DateTime, default=now
+indexes:
+  class_approvals_class_unique:
+    fields: courseClassId
+    unique: true
+  class_approvals_status_idx:
+    fields: status

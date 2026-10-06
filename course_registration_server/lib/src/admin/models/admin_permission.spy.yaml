@@ -1,0 +1,11 @@
+class: AdminPermission
+table: admin_permissions
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  admin: Admin?, relation(onDelete=Cascade)
+  permissionName: String
+  createdAt: DateTime, default=now
+indexes:
+  admin_permissions_unique:
+    fields: adminId, permissionName
+    unique: true

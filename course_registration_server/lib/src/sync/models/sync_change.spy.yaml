@@ -1,0 +1,14 @@
+class: SyncChange
+table: sync_changes
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  targetUser: AppUser?, relation(onDelete=Cascade)
+  entityType: String
+  entityId: String
+  changeType: String
+  payload: String?
+  serverVersion: int
+  changedAt: DateTime, default=now
+indexes:
+  sync_changes_user_time_idx:
+    fields: targetUserId, changedAt

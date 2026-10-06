@@ -1,0 +1,16 @@
+class: Course
+table: courses
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  courseCode: String
+  courseName: String
+  credits: int
+  description: String?
+  courseType: CourseType
+  category: CourseCategory?, relation(optional, onDelete=SetNull)
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  courses_course_code_unique:
+    fields: courseCode
+    unique: true

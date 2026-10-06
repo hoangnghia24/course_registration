@@ -1,0 +1,10 @@
+class: AdminUserDto
+fields:
+  userId: UuidValue
+  authUserId: UuidValue
+  email: String
+  fullName: String
+  phone: String?
+  role: UserRole
+  isActive: bool
+  roleCode: String?

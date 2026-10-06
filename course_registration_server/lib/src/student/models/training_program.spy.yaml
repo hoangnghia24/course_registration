@@ -1,0 +1,15 @@
+class: TrainingProgram
+table: training_programs
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  major: Major?, relation(onDelete=Restrict)
+  name: String
+  academicYear: int
+  totalCredits: int
+  description: String?
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  training_programs_major_year_unique:
+    fields: majorId, academicYear
+    unique: true

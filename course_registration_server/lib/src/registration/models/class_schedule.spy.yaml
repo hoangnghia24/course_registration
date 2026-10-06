@@ -1,0 +1,12 @@
+class: ClassSchedule
+table: class_schedules
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  courseClass: CourseClass?, relation(onDelete=Cascade)
+  dayOfWeek: int
+  startPeriod: int
+  endPeriod: int
+  room: String
+indexes:
+  class_schedules_class_idx:
+    fields: courseClassId

@@ -1,0 +1,12 @@
+class: CourseEquivalent
+table: course_equivalents
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  courseId: UuidValue
+  equivalentId: UuidValue
+indexes:
+  course_equivalents_unique:
+    fields: courseId, equivalentId
+    unique: true
+  course_equivalents_equivalent_idx:
+    fields: equivalentId

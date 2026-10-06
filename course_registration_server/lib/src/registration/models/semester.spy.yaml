@@ -1,0 +1,15 @@
+class: Semester
+table: semesters
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  name: String
+  academicYear: int
+  startDate: DateTime
+  endDate: DateTime
+  status: SemesterStatus
+indexes:
+  semesters_name_year_unique:
+    fields: name, academicYear
+    unique: true
+  semesters_status_idx:
+    fields: status

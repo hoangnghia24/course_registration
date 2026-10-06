@@ -1,0 +1,10 @@
+class: CoursePrerequisite
+table: course_prerequisites
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  courseId: UuidValue
+  prerequisiteId: UuidValue
+indexes:
+  course_prerequisites_unique:
+    fields: courseId, prerequisiteId
+    unique: true

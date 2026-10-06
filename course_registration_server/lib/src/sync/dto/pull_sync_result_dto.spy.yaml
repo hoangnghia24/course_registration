@@ -1,0 +1,5 @@
+class: PullSyncResultDto
+fields:
+  changes: List<SyncChangeDto>
+  deletedEntities: List<String>
+  serverTimestamp: DateTime
