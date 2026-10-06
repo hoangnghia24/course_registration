@@ -70,7 +70,7 @@ class LecturerDashboardPage extends ConsumerWidget {
                   context.push('/lecturer/schedule');
                 }),
                 _Menu('Sinh viên', Icons.groups_outlined, () {
-                  context.push('/lecturer/classes');
+                  context.push('/lecturer/students');
                 }),
                 _Menu('Nhu cầu mở lớp', Icons.bar_chart, () {
                   context.push('/lecturer/demand');

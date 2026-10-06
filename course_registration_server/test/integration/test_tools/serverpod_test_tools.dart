@@ -358,7 +358,7 @@ class _AdminEndpoint {
     required String password,
     required String fullName,
     required _ioux7u11.UserRole role,
-    String? roleCode,
+    String? phone,
     int? academicYear,
     _is.UuidValue? majorId,
     _is.UuidValue? trainingProgramId,
@@ -379,7 +379,7 @@ class _AdminEndpoint {
             'password': password,
             'fullName': fullName,
             'role': role,
-            'roleCode': roleCode,
+            'phone': phone,
             'academicYear': academicYear,
             'majorId': majorId,
             'trainingProgramId': trainingProgramId,
@@ -467,6 +467,37 @@ class _AdminEndpoint {
     });
   }
 
+  _ida.Future<bool> enableUser(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue userId,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'enableUser',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'enableUser',
+          parameters: _ist.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<List<_i0cq0q6i.Course>> getCourses(
     _ist.TestSessionBuilder sessionBuilder, {
     int? page,
@@ -504,7 +535,6 @@ class _AdminEndpoint {
 
   _ida.Future<_i0cq0q6i.Course> createCourse(
     _ist.TestSessionBuilder sessionBuilder, {
-    required String courseCode,
     required String courseName,
     required int credits,
     required _i6yjtab1.CourseType courseType,
@@ -523,7 +553,6 @@ class _AdminEndpoint {
           endpointPath: 'admin',
           methodName: 'createCourse',
           parameters: _ist.testObjectToJson({
-            'courseCode': courseCode,
             'courseName': courseName,
             'credits': credits,
             'courseType': courseType,
@@ -1938,7 +1967,6 @@ class _LecturerEndpoint {
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue courseId,
     required _is.UuidValue semesterId,
-    required String classCode,
     required int capacity,
     required List<_ig0q9hbn.ClassScheduleDto> schedules,
   }) async {
@@ -1956,7 +1984,6 @@ class _LecturerEndpoint {
           parameters: _ist.testObjectToJson({
             'courseId': courseId,
             'semesterId': semesterId,
-            'classCode': classCode,
             'capacity': capacity,
             'schedules': schedules,
           }),
@@ -1978,7 +2005,6 @@ class _LecturerEndpoint {
   _ida.Future<_ibcbukpi.LecturerCourseClassDto> updateCourseClass(
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue courseClassId,
-    required String classCode,
     required int capacity,
     required _i2w6mn3n.CourseClassStatus status,
   }) async {
@@ -1995,7 +2021,6 @@ class _LecturerEndpoint {
           methodName: 'updateCourseClass',
           parameters: _ist.testObjectToJson({
             'courseClassId': courseClassId,
-            'classCode': classCode,
             'capacity': capacity,
             'status': status,
           }),
@@ -2110,6 +2135,71 @@ class _LecturerEndpoint {
     });
   }
 
+  _ida.Future<List<String>> getAvailableRooms(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'lecturer',
+            method: 'getAvailableRooms',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'lecturer',
+          methodName: 'getAvailableRooms',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<String>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ig0q9hbn.ClassScheduleDto>> getAvailableScheduleSlots(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue semesterId,
+    required String room,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'lecturer',
+            method: 'getAvailableScheduleSlots',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'lecturer',
+          methodName: 'getAvailableScheduleSlots',
+          parameters: _ist.testObjectToJson({
+            'semesterId': semesterId,
+            'room': room,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ig0q9hbn.ClassScheduleDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<List<_i130z107.ClassStudentDto>> getRegisteredStudents(
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue courseClassId,
@@ -2170,6 +2260,45 @@ class _LecturerEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<List<_ia38wpgm.ClassDemandDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<bool> updateStudentGrades(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue courseClassId,
+    required _is.UuidValue studentId,
+    required double midtermScore,
+    required double finalScore,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'lecturer',
+            method: 'updateStudentGrades',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'lecturer',
+          methodName: 'updateStudentGrades',
+          parameters: _ist.testObjectToJson({
+            'courseClassId': courseClassId,
+            'studentId': studentId,
+            'midtermScore': midtermScore,
+            'finalScore': finalScore,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

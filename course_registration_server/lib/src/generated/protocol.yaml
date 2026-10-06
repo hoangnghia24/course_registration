@@ -3,6 +3,7 @@ admin:
   - createUser:
   - updateUser:
   - disableUser:
+  - enableUser:
   - getCourses:
   - createCourse:
   - updateCourse:
@@ -57,8 +58,11 @@ lecturer:
   - deleteCourseClass:
   - createTeachingSchedule:
   - getMySchedule:
+  - getAvailableRooms:
+  - getAvailableScheduleSlots:
   - getRegisteredStudents:
   - getClassDemand:
+  - updateStudentGrades:
 profile:
   - current:
   - ensureProfile:

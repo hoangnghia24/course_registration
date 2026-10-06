@@ -63,7 +63,7 @@ abstract final class AdminService {
     required String password,
     required String fullName,
     required UserRole role,
-    String? roleCode,
+    String? phone,
     int? academicYear,
     UuidValue? majorId,
     UuidValue? trainingProgramId,
@@ -74,7 +74,7 @@ abstract final class AdminService {
         !InputValidator.requiredText(fullName, maxLength: 120) ||
         password.length < 8 ||
         password.length > 128 ||
-        !InputValidator.optionalText(roleCode, maxLength: 32) ||
+        !_validPhone(phone) ||
         (academicYear != null && !InputValidator.academicYear(academicYear))) {
       throw _error('invalid_user', 'Thông tin người dùng không hợp lệ.');
     }
@@ -111,6 +111,7 @@ abstract final class AdminService {
           authUserId: authUser.id,
           email: normalizedEmail,
           fullName: fullName.trim(),
+          phone: _normalizedPhone(phone),
           role: role,
           isActive: true,
         ),
@@ -118,14 +119,11 @@ abstract final class AdminService {
       );
       switch (role) {
         case UserRole.student:
-          if (roleCode == null || roleCode.trim().isEmpty) {
-            throw _error('invalid_role_code', 'Sinh viên cần MSSV.');
-          }
           await Student.db.insertRow(
             session,
             Student(
               userId: user.id!,
-              studentCode: roleCode.trim(),
+              studentCode: _automaticRoleCode(UserRole.student, user.id!),
               majorId: majorId,
               trainingProgramId: trainingProgramId,
               academicYear: academicYear ?? DateTime.now().year,
@@ -135,12 +133,12 @@ abstract final class AdminService {
             transaction: transaction,
           );
         case UserRole.lecturer:
-          if (roleCode == null || roleCode.trim().isEmpty) {
-            throw _error('invalid_role_code', 'Giảng viên cần mã giảng viên.');
-          }
           await Lecturer.db.insertRow(
             session,
-            Lecturer(userId: user.id!, lecturerCode: roleCode.trim()),
+            Lecturer(
+              userId: user.id!,
+              lecturerCode: _automaticRoleCode(UserRole.lecturer, user.id!),
+            ),
             transaction: transaction,
           );
         case UserRole.admin:
@@ -176,7 +174,7 @@ abstract final class AdminService {
       throw _error('user_not_found', 'Không tìm thấy người dùng.');
     }
     if (!InputValidator.requiredText(fullName, maxLength: 120) ||
-        !InputValidator.optionalText(phone, maxLength: 32)) {
+        !_validPhone(phone)) {
       throw _error('invalid_user', 'Thông tin người dùng không hợp lệ.');
     }
     final old = jsonEncode(user.toJson());
@@ -184,7 +182,7 @@ abstract final class AdminService {
       session,
       user.copyWith(
         fullName: fullName.trim(),
-        phone: phone,
+        phone: _normalizedPhone(phone),
         updatedAt: DateTime.now().toUtc(),
       ),
     );
@@ -226,6 +224,30 @@ abstract final class AdminService {
     return true;
   }
 
+  static Future<bool> enableUser(Session session, UuidValue userId) async {
+    final ctx = await context(session);
+    await AdminPermissionService.require(session, ctx.admin, 'MANAGE_USER');
+    final user = await AppUser.db.findById(session, userId);
+    if (user == null) {
+      throw _error('user_not_found', 'Không tìm thấy người dùng.');
+    }
+    if (user.isActive) return true;
+    await AppUser.db.updateRow(
+      session,
+      user.copyWith(isActive: true, updatedAt: DateTime.now().toUtc()),
+    );
+    await AuditService.log(
+      session,
+      actor: ctx.user,
+      action: 'ENABLE_USER',
+      entity: 'user',
+      entityId: userId,
+      oldValue: jsonEncode({'isActive': false}),
+      newValue: jsonEncode({'isActive': true}),
+    );
+    return true;
+  }
+
   static Future<List<Course>> getCourses(
     Session session, {
     int page = 1,
@@ -244,7 +266,6 @@ abstract final class AdminService {
 
   static Future<Course> createCourse(
     Session session, {
-    required String courseCode,
     required String courseName,
     required int credits,
     required CourseType courseType,
@@ -253,8 +274,7 @@ abstract final class AdminService {
   }) async {
     final ctx = await context(session);
     await AdminPermissionService.require(session, ctx.admin, 'MANAGE_COURSE');
-    if (!InputValidator.requiredText(courseCode, maxLength: 32) ||
-        !InputValidator.requiredText(courseName, maxLength: 200) ||
+    if (!InputValidator.requiredText(courseName, maxLength: 200) ||
         !InputValidator.optionalText(description, maxLength: 2000) ||
         credits < 1 ||
         credits > 10) {
@@ -266,7 +286,7 @@ abstract final class AdminService {
     final value = await Course.db.insertRow(
       session,
       Course(
-        courseCode: courseCode.trim(),
+        courseCode: _automaticCourseCode(),
         courseName: courseName.trim(),
         credits: credits,
         description: description,
@@ -976,6 +996,29 @@ abstract final class AdminService {
     entityId: id,
     newValue: jsonEncode(value),
   );
+
+  static bool _validPhone(String? value) {
+    final normalized = value?.trim() ?? '';
+    return normalized.isEmpty || RegExp(r'^\d{8,15}$').hasMatch(normalized);
+  }
+
+  static String? _normalizedPhone(String? value) {
+    final normalized = value?.trim() ?? '';
+    return normalized.isEmpty ? null : normalized;
+  }
+
+  static String _automaticRoleCode(UserRole role, UuidValue userId) {
+    final suffix = userId
+        .toString()
+        .replaceAll('-', '')
+        .substring(22)
+        .toUpperCase();
+    return '${role == UserRole.student ? 'SV' : 'GV'}$suffix';
+  }
+
+  static String _automaticCourseCode() =>
+      'MH${DateTime.now().toUtc().microsecondsSinceEpoch.toRadixString(36).toUpperCase()}';
+
   static AppException _error(String code, String message) =>
       AppException(code: code, message: message);
 }

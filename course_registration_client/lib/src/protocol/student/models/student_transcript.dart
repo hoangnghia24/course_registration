@@ -26,6 +26,8 @@ abstract class StudentTranscript
     required this.courseId,
     this.course,
     required this.semester,
+    this.midtermScore,
+    this.finalScore,
     required this.score,
     required this.letterGrade,
     required this.status,
@@ -43,6 +45,8 @@ abstract class StudentTranscript
     required _isc.UuidValue courseId,
     _ibp0tzhj.Course? course,
     required String semester,
+    double? midtermScore,
+    double? finalScore,
     required double score,
     required String letterGrade,
     required _ipjkcfjo.TranscriptStatus status,
@@ -73,6 +77,8 @@ abstract class StudentTranscript
               jsonSerialization['course'],
             ),
       semester: jsonSerialization['semester'] as String,
+      midtermScore: (jsonSerialization['midtermScore'] as num?)?.toDouble(),
+      finalScore: (jsonSerialization['finalScore'] as num?)?.toDouble(),
       score: (jsonSerialization['score'] as num).toDouble(),
       letterGrade: jsonSerialization['letterGrade'] as String,
       status: _ipjkcfjo.TranscriptStatus.fromJson(
@@ -103,6 +109,10 @@ abstract class StudentTranscript
 
   String semester;
 
+  double? midtermScore;
+
+  double? finalScore;
+
   double score;
 
   String letterGrade;
@@ -125,6 +135,8 @@ abstract class StudentTranscript
     _isc.UuidValue? courseId,
     _ibp0tzhj.Course? course,
     String? semester,
+    double? midtermScore,
+    double? finalScore,
     double? score,
     String? letterGrade,
     _ipjkcfjo.TranscriptStatus? status,
@@ -142,6 +154,8 @@ abstract class StudentTranscript
       'courseId': courseId.toJson(),
       if (course != null) 'course': course?.toJson(),
       'semester': semester,
+      if (midtermScore != null) 'midtermScore': midtermScore,
+      if (finalScore != null) 'finalScore': finalScore,
       'score': score,
       'letterGrade': letterGrade,
       'status': status.toJson(),
@@ -161,6 +175,8 @@ abstract class StudentTranscript
       'courseId': courseId.toJson(),
       if (course != null) 'course': course?.toJsonForProtocol(),
       'semester': semester,
+      if (midtermScore != null) 'midtermScore': midtermScore,
+      if (finalScore != null) 'finalScore': finalScore,
       'score': score,
       'letterGrade': letterGrade,
       'status': status.toJson(),
@@ -186,6 +202,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
     required _isc.UuidValue courseId,
     _ibp0tzhj.Course? course,
     required String semester,
+    double? midtermScore,
+    double? finalScore,
     required double score,
     required String letterGrade,
     required _ipjkcfjo.TranscriptStatus status,
@@ -199,6 +217,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
          courseId: courseId,
          course: course,
          semester: semester,
+         midtermScore: midtermScore,
+         finalScore: finalScore,
          score: score,
          letterGrade: letterGrade,
          status: status,
@@ -218,6 +238,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
     _isc.UuidValue? courseId,
     Object? course = _Undefined,
     String? semester,
+    Object? midtermScore = _Undefined,
+    Object? finalScore = _Undefined,
     double? score,
     String? letterGrade,
     _ipjkcfjo.TranscriptStatus? status,
@@ -234,6 +256,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
       courseId: courseId ?? this.courseId,
       course: course is _ibp0tzhj.Course? ? course : this.course?.copyWith(),
       semester: semester ?? this.semester,
+      midtermScore: midtermScore is double? ? midtermScore : this.midtermScore,
+      finalScore: finalScore is double? ? finalScore : this.finalScore,
       score: score ?? this.score,
       letterGrade: letterGrade ?? this.letterGrade,
       status: status ?? this.status,

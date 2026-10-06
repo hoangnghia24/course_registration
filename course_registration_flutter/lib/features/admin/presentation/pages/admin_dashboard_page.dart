@@ -147,7 +147,7 @@ class _AdminHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                '$totalUsers tài khoản đang được quản lý',
+                '$totalUsers tài khoản sinh viên và giảng viên',
                 style: const TextStyle(color: Colors.white70),
               ),
             ],

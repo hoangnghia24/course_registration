@@ -7,7 +7,7 @@ abstract interface class AdminRepository {
     required String password,
     required String fullName,
     required UserRole role,
-    String? roleCode,
+    String? phone,
   });
   Future<AdminUserDto> updateUser(
     UuidValue userId,
@@ -15,9 +15,9 @@ abstract interface class AdminRepository {
     String? phone,
   );
   Future<bool> disableUser(UuidValue userId);
+  Future<bool> enableUser(UuidValue userId);
   Future<List<Course>> getCourses();
   Future<Course> createCourse(
-    String code,
     String name,
     int credits,
     CourseType type,

@@ -35,9 +35,30 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('SV001'), findsOneWidget);
-    expect(find.text('Trần Văn An'), findsOneWidget);
-    expect(find.text('Kỹ thuật phần mềm'), findsOneWidget);
-    expect(find.text('an@example.edu'), findsOneWidget);
+    expect(find.textContaining('SV001'), findsOneWidget);
+    expect(find.textContaining('Trần Văn An'), findsOneWidget);
+    expect(find.textContaining('Kỹ thuật phần mềm'), findsOneWidget);
+    expect(find.textContaining('an@example.edu'), findsOneWidget);
+    expect(find.byTooltip('Nhập điểm'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Nhập điểm'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nhập điểm SV001'), findsOneWidget);
+    expect(find.text('Điểm giữa kỳ'), findsOneWidget);
+    expect(find.text('Điểm cuối kỳ'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Điểm giữa kỳ'),
+      '11',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Điểm cuối kỳ'),
+      '9',
+    );
+    await tester.tap(find.text('Lưu điểm'));
+    await tester.pump();
+
+    expect(find.text('Điểm phải từ 0 đến 10'), findsOneWidget);
   });
 }

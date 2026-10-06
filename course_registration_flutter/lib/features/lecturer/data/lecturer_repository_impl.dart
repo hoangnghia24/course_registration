@@ -80,18 +80,27 @@ class LecturerRepositoryImpl implements LecturerRepository {
   Future<List<Course>> getCourses() => _client.lecturer.getCourses();
   @override
   Future<List<Semester>> getSemesters() => _client.lecturer.getSemesters();
+  @override
+  Future<List<String>> getAvailableRooms() =>
+      _client.lecturer.getAvailableRooms();
+  @override
+  Future<List<ClassScheduleDto>> getAvailableScheduleSlots({
+    required UuidValue semesterId,
+    required String room,
+  }) => _client.lecturer.getAvailableScheduleSlots(
+    semesterId: semesterId,
+    room: room,
+  );
 
   @override
   Future<LecturerCourseClassDto> createClass({
     required UuidValue courseId,
     required UuidValue semesterId,
-    required String classCode,
     required int capacity,
     required List<ClassScheduleDto> schedules,
   }) => _client.lecturer.createCourseClass(
     courseId: courseId,
     semesterId: semesterId,
-    classCode: classCode,
     capacity: capacity,
     schedules: schedules,
   );
@@ -99,12 +108,10 @@ class LecturerRepositoryImpl implements LecturerRepository {
   @override
   Future<LecturerCourseClassDto> updateClass({
     required UuidValue courseClassId,
-    required String classCode,
     required int capacity,
     required CourseClassStatus status,
   }) => _client.lecturer.updateCourseClass(
     courseClassId: courseClassId,
-    classCode: classCode,
     capacity: capacity,
     status: status,
   );
@@ -112,6 +119,21 @@ class LecturerRepositoryImpl implements LecturerRepository {
   @override
   Future<void> deleteClass(UuidValue courseClassId) async {
     await _client.lecturer.deleteCourseClass(courseClassId: courseClassId);
+  }
+
+  @override
+  Future<void> updateStudentGrades({
+    required UuidValue courseClassId,
+    required UuidValue studentId,
+    required double midtermScore,
+    required double finalScore,
+  }) async {
+    await _client.lecturer.updateStudentGrades(
+      courseClassId: courseClassId,
+      studentId: studentId,
+      midtermScore: midtermScore,
+      finalScore: finalScore,
+    );
   }
 
   String _encode(List<dynamic> values) =>

@@ -20,7 +20,7 @@ class AdminEndpoint extends AdminGuard {
     required String password,
     required String fullName,
     required UserRole role,
-    String? roleCode,
+    String? phone,
     int? academicYear,
     UuidValue? majorId,
     UuidValue? trainingProgramId,
@@ -30,7 +30,7 @@ class AdminEndpoint extends AdminGuard {
     password: password,
     fullName: fullName,
     role: role,
-    roleCode: roleCode,
+    phone: phone,
     academicYear: academicYear,
     majorId: majorId,
     trainingProgramId: trainingProgramId,
@@ -48,6 +48,8 @@ class AdminEndpoint extends AdminGuard {
   );
   Future<bool> disableUser(Session session, {required UuidValue userId}) =>
       AdminService.disableUser(session, userId);
+  Future<bool> enableUser(Session session, {required UuidValue userId}) =>
+      AdminService.enableUser(session, userId);
 
   Future<List<Course>> getCourses(
     Session session, {
@@ -60,7 +62,6 @@ class AdminEndpoint extends AdminGuard {
   );
   Future<Course> createCourse(
     Session session, {
-    required String courseCode,
     required String courseName,
     required int credits,
     required CourseType courseType,
@@ -68,7 +69,6 @@ class AdminEndpoint extends AdminGuard {
     UuidValue? categoryId,
   }) => AdminService.createCourse(
     session,
-    courseCode: courseCode,
     courseName: courseName,
     credits: credits,
     courseType: courseType,

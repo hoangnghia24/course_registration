@@ -1,7 +1,9 @@
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
+import '../../../../core/network/error_handler.dart';
 import '../../../../core/presentation/app_labels.dart';
 import '../providers/admin_providers.dart';
 
@@ -138,11 +140,15 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                       ),
                       if (item.isActive)
                         TextButton(
-                          onPressed: () => _disableUser(item),
+                          onPressed: () => _setUserActive(item, false),
                           child: const Text('Vô hiệu hóa'),
                         )
                       else
-                        const Chip(label: Text('Đã vô hiệu hóa')),
+                        FilledButton.tonalIcon(
+                          onPressed: () => _setUserActive(item, true),
+                          icon: const Icon(Icons.person_add_alt_1),
+                          label: const Text('Kích hoạt lại'),
+                        ),
                     ],
                   ),
                 ),
@@ -154,148 +160,40 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
     );
   }
 
-  Future<void> _disableUser(AdminUserDto user) async {
+  Future<void> _setUserActive(AdminUserDto user, bool isActive) async {
     try {
-      await ref.read(adminRepositoryProvider).disableUser(user.userId);
+      final repository = ref.read(adminRepositoryProvider);
+      if (isActive) {
+        await repository.enableUser(user.userId);
+      } else {
+        await repository.disableUser(user.userId);
+      }
       final _ = await ref.refresh(userManagementProvider.future);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đã vô hiệu hóa ${user.fullName}.')),
+          SnackBar(
+            content: Text(
+              isActive
+                  ? 'Đã kích hoạt lại ${user.fullName}.'
+                  : 'Đã vô hiệu hóa ${user.fullName}.',
+            ),
+          ),
         );
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không thể cập nhật người dùng.')),
+          SnackBar(content: Text(ErrorHandler.message(error))),
         );
       }
     }
   }
 
   Future<void> _showUserDialog({AdminUserDto? user}) async {
-    final formKey = GlobalKey<FormState>();
-    final email = TextEditingController(text: user?.email);
-    final password = TextEditingController();
-    final fullName = TextEditingController(text: user?.fullName);
-    final phone = TextEditingController(text: user?.phone);
-    final roleCode = TextEditingController(text: user?.roleCode);
-    var role = user?.role ?? UserRole.student;
     final saved = await showDialog<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          title: Text(user == null ? 'Tạo tài khoản' : 'Chỉnh sửa tài khoản'),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: email,
-                    enabled: user == null,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (value) => (value?.contains('@') ?? false)
-                        ? null
-                        : 'Email không hợp lệ',
-                  ),
-                  const SizedBox(height: 12),
-                  if (user == null) ...[
-                    TextFormField(
-                      controller: password,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Mật khẩu ban đầu',
-                      ),
-                      validator: (value) => (value?.length ?? 0) >= 8
-                          ? null
-                          : 'Mật khẩu phải có ít nhất 8 ký tự',
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  TextFormField(
-                    controller: fullName,
-                    decoration: const InputDecoration(labelText: 'Họ tên'),
-                    validator: (value) =>
-                        (value?.trim().isEmpty ?? true) ? 'Bắt buộc' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: user == null ? roleCode : phone,
-                    decoration: InputDecoration(
-                      labelText: user == null ? 'Mã vai trò' : 'Điện thoại',
-                    ),
-                  ),
-                  if (user == null) const SizedBox(height: 12),
-                  if (user == null)
-                    DropdownButtonFormField<UserRole>(
-                      initialValue: role,
-                      decoration: const InputDecoration(labelText: 'Vai trò'),
-                      items: UserRole.values
-                          .map(
-                            (value) => DropdownMenuItem(
-                              value: value,
-                              child: Text(AppLabels.userRole(value)),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) => setDialogState(() => role = value!),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                try {
-                  final repository = ref.read(adminRepositoryProvider);
-                  if (user == null) {
-                    await repository.createUser(
-                      email: email.text.trim(),
-                      password: password.text,
-                      fullName: fullName.text.trim(),
-                      role: role,
-                      roleCode: roleCode.text.trim().isEmpty
-                          ? null
-                          : roleCode.text.trim(),
-                    );
-                  } else {
-                    await repository.updateUser(
-                      user.userId,
-                      fullName.text.trim(),
-                      phone.text.trim(),
-                    );
-                  }
-                  if (context.mounted) Navigator.pop(context, true);
-                } catch (_) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Không thể lưu tài khoản.')),
-                    );
-                  }
-                }
-              },
-              child: const Text('Lưu'),
-            ),
-          ],
-        ),
-      ),
+      builder: (_) => _UserDialog(user: user),
     );
-    email.dispose();
-    password.dispose();
-    fullName.dispose();
-    phone.dispose();
-    roleCode.dispose();
     if (saved == true) {
       try {
         final _ = await ref.refresh(userManagementProvider.future);
@@ -312,6 +210,174 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
             ),
           );
         }
+      }
+    }
+  }
+}
+
+class _UserDialog extends ConsumerStatefulWidget {
+  const _UserDialog({this.user});
+
+  final AdminUserDto? user;
+
+  @override
+  ConsumerState<_UserDialog> createState() => _UserDialogState();
+}
+
+class _UserDialogState extends ConsumerState<_UserDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _email;
+  late final TextEditingController _password;
+  late final TextEditingController _fullName;
+  late final TextEditingController _phone;
+  late UserRole _role;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _email = TextEditingController(text: widget.user?.email);
+    _password = TextEditingController();
+    _fullName = TextEditingController(text: widget.user?.fullName);
+    _phone = TextEditingController(text: widget.user?.phone);
+    _role = widget.user?.role ?? UserRole.student;
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    _fullName.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+    title: Text(
+      widget.user == null ? 'Tạo tài khoản' : 'Chỉnh sửa tài khoản',
+    ),
+    content: Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _email,
+              enabled: widget.user == null,
+              decoration: const InputDecoration(labelText: 'Email'),
+              validator: (value) =>
+                  (value?.contains('@') ?? false) ? null : 'Email không hợp lệ',
+            ),
+            const SizedBox(height: 12),
+            if (widget.user == null) ...[
+              TextFormField(
+                controller: _password,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Mật khẩu ban đầu',
+                ),
+                validator: (value) => (value?.length ?? 0) >= 8
+                    ? null
+                    : 'Mật khẩu phải có ít nhất 8 ký tự',
+              ),
+              const SizedBox(height: 12),
+            ],
+            TextFormField(
+              controller: _fullName,
+              decoration: const InputDecoration(labelText: 'Họ tên'),
+              validator: (value) =>
+                  (value?.trim().isEmpty ?? true) ? 'Bắt buộc' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('admin-user-phone'),
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Số điện thoại',
+                helperText: 'Gồm 8–15 chữ số',
+              ),
+              validator: (value) {
+                final normalized = value?.trim() ?? '';
+                if (normalized.isNotEmpty &&
+                    (normalized.length < 8 || normalized.length > 15)) {
+                  return 'Số điện thoại phải có từ 8–15 chữ số';
+                }
+                return null;
+              },
+            ),
+            if (widget.user == null) const SizedBox(height: 12),
+            if (widget.user == null)
+              DropdownButtonFormField<UserRole>(
+                initialValue: _role,
+                decoration: const InputDecoration(
+                  labelText: 'Vai trò',
+                  helperText: 'ID tài khoản và mã vai trò được tạo tự động',
+                ),
+                items: UserRole.values
+                    .map(
+                      (value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(AppLabels.userRole(value)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _saving
+                    ? null
+                    : (value) => setState(() => _role = value!),
+              ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.pop(context, false),
+        child: const Text('Hủy'),
+      ),
+      FilledButton(
+        onPressed: _saving ? null : _save,
+        child: _saving
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Lưu'),
+      ),
+    ],
+  );
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final repository = ref.read(adminRepositoryProvider);
+      if (widget.user == null) {
+        await repository.createUser(
+          email: _email.text.trim(),
+          password: _password.text,
+          fullName: _fullName.text.trim(),
+          role: _role,
+          phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+        );
+      } else {
+        await repository.updateUser(
+          widget.user!.userId,
+          _fullName.text.trim(),
+          _phone.text.trim(),
+        );
+      }
+      if (mounted) Navigator.pop(context, true);
+    } catch (error) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ErrorHandler.message(error))),
+        );
       }
     }
   }

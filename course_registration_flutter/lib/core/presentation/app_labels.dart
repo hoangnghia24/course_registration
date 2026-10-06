@@ -42,6 +42,7 @@ abstract final class AppLabels {
     'CREATE_USER' => 'Tạo tài khoản',
     'UPDATE_USER' => 'Cập nhật tài khoản',
     'DISABLE_USER' => 'Vô hiệu hóa tài khoản',
+    'ENABLE_USER' => 'Kích hoạt lại tài khoản',
     'CREATE_COURSE' => 'Tạo môn học',
     'UPDATE_COURSE' => 'Cập nhật môn học',
     'DELETE_COURSE' => 'Xóa môn học',

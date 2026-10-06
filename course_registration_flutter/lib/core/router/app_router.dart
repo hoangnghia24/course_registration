@@ -19,6 +19,7 @@ import '../../features/lecturer/presentation/pages/create_course_class_page.dart
 import '../../features/lecturer/presentation/pages/lecturer_dashboard_page.dart';
 import '../../features/lecturer/presentation/pages/lecturer_profile_page.dart';
 import '../../features/lecturer/presentation/pages/lecturer_schedule_page.dart';
+import '../../features/lecturer/presentation/pages/lecturer_students_page.dart';
 import '../../features/registration/presentation/pages/course_registration_dashboard_page.dart';
 import '../../features/registration/presentation/pages/course_schedule_page.dart';
 import '../../features/registration/presentation/pages/course_search_page.dart';
@@ -123,6 +124,10 @@ abstract final class AppRouter {
         builder: (_, state) => ClassStudentListPage(
           courseClass: state.extra! as LecturerCourseClassDto,
         ),
+      ),
+      GoRoute(
+        path: '/lecturer/students',
+        builder: (_, _) => const LecturerStudentsPage(),
       ),
       GoRoute(
         path: '/lecturer/schedule',

@@ -31,3 +31,15 @@ AdminUserDto adminStudent() => AdminUserDto(
   isActive: true,
   roleCode: 'SV001',
 );
+
+AdminUserDto disabledAdminStudent() => AdminUserDto(
+  userId: UuidValue.withValidation('018f0000-0000-7000-8000-000000000103'),
+  authUserId: UuidValue.withValidation(
+    '018f0000-0000-7000-8000-000000000104',
+  ),
+  email: 'disabled@example.edu',
+  fullName: 'Disabled Test Student',
+  role: UserRole.student,
+  isActive: false,
+  roleCode: 'SV002',
+);

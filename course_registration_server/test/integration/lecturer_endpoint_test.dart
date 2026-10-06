@@ -63,12 +63,17 @@ void main() {
             {AppScopes.lecturer},
           ),
         );
+        final rooms = await endpoints.lecturer.getAvailableRooms(authenticated);
+        final slotsBefore = await endpoints.lecturer.getAvailableScheduleSlots(
+          authenticated,
+          semesterId: semester.id!,
+          room: 'A101',
+        );
 
         final created = await endpoints.lecturer.createCourseClass(
           authenticated,
           courseId: course.id!,
           semesterId: semester.id!,
-          classCode: 'P5-IT101-01',
           capacity: 50,
           schedules: [
             ClassScheduleDto(
@@ -79,6 +84,11 @@ void main() {
             ),
           ],
         );
+        final slotsAfter = await endpoints.lecturer.getAvailableScheduleSlots(
+          authenticated,
+          semesterId: semester.id!,
+          room: 'A101',
+        );
         final profile = await endpoints.lecturer.getMyProfile(authenticated);
         final classes = await endpoints.lecturer.getMyCourseClasses(
           authenticated,
@@ -86,16 +96,103 @@ void main() {
         final updated = await endpoints.lecturer.updateCourseClass(
           authenticated,
           courseClassId: created.courseClassId,
-          classCode: 'P5-IT101-01A',
           capacity: 60,
           status: CourseClassStatus.open,
         );
+        final studentUser = await AppUser.db.insertRow(
+          session,
+          AppUser(
+            authUserId: UuidValue.withValidation(
+              '018f0000-0000-7000-8000-000000000302',
+            ),
+            email: 'phase5-student@example.edu',
+            fullName: 'Trần Văn Học',
+            role: UserRole.student,
+          ),
+        );
+        final student = await Student.db.insertRow(
+          session,
+          Student(
+            userId: studentUser.id!,
+            studentCode: 'P5-SV001',
+            academicYear: 2026,
+          ),
+        );
+        await Registration.db.insertRow(
+          session,
+          Registration(
+            studentId: student.id!,
+            courseClassId: created.courseClassId,
+            status: RegistrationStatus.registered,
+          ),
+        );
+        final storedClass = await CourseClass.db.findById(
+          session,
+          created.courseClassId,
+        );
+        await CourseClass.db.updateRow(
+          session,
+          storedClass!.copyWith(registeredCount: 1),
+        );
+        await endpoints.lecturer.updateStudentGrades(
+          authenticated,
+          courseClassId: created.courseClassId,
+          studentId: student.id!,
+          midtermScore: 7,
+          finalScore: 9,
+        );
+        final classStudents = await endpoints.lecturer.getRegisteredStudents(
+          authenticated,
+          courseClassId: created.courseClassId,
+        );
+        final transcript = await StudentTranscript.db.findFirstRow(
+          session,
+          where: (table) =>
+              table.studentId.equals(student.id) &
+              table.courseId.equals(course.id),
+        );
 
         expect(profile.lecturerCode, 'P5-GV001');
-        expect(created.classCode, 'P5-IT101-01');
+        expect(rooms, contains('A101'));
+        expect(
+          slotsBefore,
+          contains(
+            isA<ClassScheduleDto>()
+                .having((item) => item.dayOfWeek, 'dayOfWeek', 2)
+                .having((item) => item.startPeriod, 'startPeriod', 1),
+          ),
+        );
+        expect(
+          slotsAfter,
+          isNot(
+            contains(
+              isA<ClassScheduleDto>()
+                  .having((item) => item.dayOfWeek, 'dayOfWeek', 2)
+                  .having((item) => item.startPeriod, 'startPeriod', 1),
+            ),
+          ),
+        );
+        expect(created.classCode, startsWith('LHP'));
         expect(created.proposals.single.status, TeachingScheduleStatus.pending);
         expect(classes.single.courseName, 'Lập trình cơ bản');
         expect(updated.capacity, 60);
+        expect(classStudents.single.midtermScore, 7);
+        expect(classStudents.single.finalScore, 9);
+        expect(transcript?.score, 3.28);
+        expect(transcript?.letterGrade, 'B');
+        await expectLater(
+          endpoints.lecturer.deleteCourseClass(
+            authenticated,
+            courseClassId: created.courseClassId,
+          ),
+          throwsA(
+            isA<AppException>().having(
+              (error) => error.code,
+              'code',
+              'class_has_students',
+            ),
+          ),
+        );
         final assignments = await LecturerCourseClass.db.find(
           session,
           where: (table) => table.lecturerId.equals(lecturer.id),

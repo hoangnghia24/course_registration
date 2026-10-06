@@ -85,21 +85,19 @@ void main() {
           lecturer,
           courseId: seed.course.id!,
           semesterId: seed.semester.id!,
-          classCode: 'P8-CREATED',
           capacity: 20,
           schedules: [
             ClassScheduleDto(
               dayOfWeek: 3,
               startPeriod: 4,
               endPeriod: 6,
-              room: 'P8-B',
+              room: 'B101',
             ),
           ],
         );
         final updated = await endpoints.lecturer.updateCourseClass(
           lecturer,
           courseClassId: created.courseClassId,
-          classCode: 'P8-UPDATED',
           capacity: 25,
           status: CourseClassStatus.closed,
         );
@@ -144,6 +142,15 @@ void main() {
           password: 'Initial-pass-123!',
           fullName: 'Created Admin',
           role: UserRole.admin,
+          phone: '0912345678',
+        );
+        final createdStudent = await endpoints.admin.createUser(
+          admin,
+          email: 'phase8-created-student@example.edu',
+          password: 'Initial-pass-123!',
+          fullName: 'Created Student',
+          role: UserRole.student,
+          phone: '0987654321',
         );
         final updatedUser = await endpoints.admin.updateUser(
           admin,
@@ -155,10 +162,13 @@ void main() {
           admin,
           userId: createdUser.userId,
         );
+        final enabled = await endpoints.admin.enableUser(
+          admin,
+          userId: createdUser.userId,
+        );
         final courses = await endpoints.admin.getCourses(admin);
         final createdCourse = await endpoints.admin.createCourse(
           admin,
-          courseCode: 'P8-ADMIN-COURSE',
           courseName: 'Admin API Course',
           credits: 3,
           courseType: CourseType.elective,
@@ -203,7 +213,17 @@ void main() {
 
         expect(users, isNotEmpty);
         expect(updatedUser.fullName, 'Updated Admin');
+        expect(createdUser.phone, '0912345678');
+        expect(createdStudent.roleCode, startsWith('SV'));
+        expect(createdStudent.phone, '0987654321');
         expect(disabled, isTrue);
+        expect(enabled, isTrue);
+        expect(
+          (await endpoints.admin.getUsers(
+            admin,
+          )).singleWhere((item) => item.userId == createdUser.userId).isActive,
+          isTrue,
+        );
         expect(courses, isNotEmpty);
         expect(updatedCourse.credits, 4);
         expect(deletedCourse, isTrue);

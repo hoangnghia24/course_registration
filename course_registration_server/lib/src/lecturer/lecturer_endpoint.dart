@@ -28,14 +28,12 @@ class LecturerEndpoint extends LecturerGuard {
     Session session, {
     required UuidValue courseId,
     required UuidValue semesterId,
-    required String classCode,
     required int capacity,
     required List<ClassScheduleDto> schedules,
   }) => LecturerService.createCourseClass(
     session,
     courseId: courseId,
     semesterId: semesterId,
-    classCode: classCode,
     capacity: capacity,
     schedules: schedules,
   );
@@ -43,13 +41,11 @@ class LecturerEndpoint extends LecturerGuard {
   Future<LecturerCourseClassDto> updateCourseClass(
     Session session, {
     required UuidValue courseClassId,
-    required String classCode,
     required int capacity,
     required CourseClassStatus status,
   }) => LecturerService.updateCourseClass(
     session,
     courseClassId: courseClassId,
-    classCode: classCode,
     capacity: capacity,
     status: status,
   );
@@ -75,6 +71,19 @@ class LecturerEndpoint extends LecturerGuard {
   Future<List<TeachingScheduleProposal>> getMySchedule(Session session) =>
       LecturerService.getMySchedule(session);
 
+  Future<List<String>> getAvailableRooms(Session session) =>
+      LecturerService.getAvailableRooms(session);
+
+  Future<List<ClassScheduleDto>> getAvailableScheduleSlots(
+    Session session, {
+    required UuidValue semesterId,
+    required String room,
+  }) => LecturerService.getAvailableScheduleSlots(
+    session,
+    semesterId: semesterId,
+    room: room,
+  );
+
   Future<List<ClassStudentDto>> getRegisteredStudents(
     Session session, {
     required UuidValue courseClassId,
@@ -89,4 +98,18 @@ class LecturerEndpoint extends LecturerGuard {
 
   Future<List<ClassDemandDto>> getClassDemand(Session session) =>
       LecturerService.getClassDemand(session);
+
+  Future<bool> updateStudentGrades(
+    Session session, {
+    required UuidValue courseClassId,
+    required UuidValue studentId,
+    required double midtermScore,
+    required double finalScore,
+  }) => LecturerService.updateStudentGrades(
+    session,
+    courseClassId: courseClassId,
+    studentId: studentId,
+    midtermScore: midtermScore,
+    finalScore: finalScore,
+  );
 }

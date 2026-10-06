@@ -839,6 +839,9 @@ class Protocol extends _isc.SerializationManager {
               .toList()
           as T;
     }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
     if (t == List<_i0ncgxlw.ClassStudentDto>) {
       return (data as List)
               .map((e) => deserialize<_i0ncgxlw.ClassStudentDto>(e))

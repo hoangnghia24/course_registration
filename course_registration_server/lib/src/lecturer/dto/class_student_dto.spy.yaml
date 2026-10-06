@@ -6,3 +6,5 @@ fields:
   majorName: String
   email: String
   registrationStatus: RegistrationStatus
+  midtermScore: double?
+  finalScore: double?

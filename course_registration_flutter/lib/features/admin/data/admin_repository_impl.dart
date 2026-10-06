@@ -18,13 +18,13 @@ class AdminRepositoryImpl implements AdminRepository {
     required String password,
     required String fullName,
     required UserRole role,
-    String? roleCode,
+    String? phone,
   }) => _client.admin.createUser(
     email: email,
     password: password,
     fullName: fullName,
     role: role,
-    roleCode: roleCode,
+    phone: phone,
   );
   @override
   Future<AdminUserDto> updateUser(
@@ -39,6 +39,9 @@ class AdminRepositoryImpl implements AdminRepository {
   @override
   Future<bool> disableUser(UuidValue userId) =>
       _client.admin.disableUser(userId: userId);
+  @override
+  Future<bool> enableUser(UuidValue userId) =>
+      _client.admin.enableUser(userId: userId);
 
   @override
   Future<List<Course>> getCourses() async {
@@ -55,12 +58,10 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<Course> createCourse(
-    String code,
     String name,
     int credits,
     CourseType type,
   ) => _client.admin.createCourse(
-    courseCode: code,
     courseName: name,
     credits: credits,
     courseType: type,

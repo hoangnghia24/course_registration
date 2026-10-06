@@ -1848,6 +1848,18 @@ class Protocol extends _is.DatabaseSerializationManager {
           dartType: 'String',
         ),
         _isp.ColumnDefinition(
+          name: 'midtermScore',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'finalScore',
+          columnType: _isp.ColumnType.doublePrecision,
+          isNullable: true,
+          dartType: 'double?',
+        ),
+        _isp.ColumnDefinition(
           name: 'score',
           columnType: _isp.ColumnType.doublePrecision,
           isNullable: false,
@@ -3403,6 +3415,9 @@ class Protocol extends _is.DatabaseSerializationManager {
               .map((e) => deserialize<_imgyj9ow.TeachingScheduleProposal>(e))
               .toList()
           as T;
+    }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
     if (t == List<_i130z107.ClassStudentDto>) {
       return (data as List)

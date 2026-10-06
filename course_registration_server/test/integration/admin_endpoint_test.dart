@@ -31,7 +31,6 @@ void main() {
 
       final course = await endpoints.admin.createCourse(
         authenticated,
-        courseCode: 'P6-ADM101',
         courseName: 'Quản trị hệ thống',
         credits: 3,
         courseType: CourseType.compulsory,
@@ -39,7 +38,7 @@ void main() {
       final reports = await endpoints.admin.getReports(authenticated);
       final logs = await endpoints.admin.getAuditLogs(authenticated);
 
-      expect(course.courseCode, 'P6-ADM101');
+      expect(course.courseCode, startsWith('MH'));
       expect(reports.totalCourses, greaterThanOrEqualTo(1));
       expect(logs.single.action, 'CREATE_COURSE');
       expect(logs.single.actorName, 'Quản trị hệ thống');

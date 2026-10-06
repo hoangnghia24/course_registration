@@ -28,7 +28,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Chỉnh sửa'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).at(2), '11');
+    await tester.enterText(find.byType(TextFormField).at(1), '11');
     await tester.tap(find.text('Lưu'));
     await tester.pump();
 
@@ -55,13 +55,45 @@ void main() {
 
     await tester.tap(find.byTooltip('Chỉnh sửa'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).at(2), '4');
+    await tester.enterText(find.byType(TextFormField).at(1), '4');
     await tester.tap(find.text('Lưu'));
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
     expect(repository.updateCalls, 1);
     expect(repository.course.credits, 4);
+  });
+
+  testWidgets('create course does not ask user for an ID or course code', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          courseManagementProvider.overrideWith((ref) async => [_course()]),
+        ],
+        child: const MaterialApp(home: CourseManagementPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Tạo môn học'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Mã môn'),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Tên môn'),
+      ),
+      findsOneWidget,
+    );
   });
 }
 
@@ -97,7 +129,7 @@ class _FakeAdminRepository implements AdminRepository {
     required String password,
     required String fullName,
     required UserRole role,
-    String? roleCode,
+    String? phone,
   }) => throw UnimplementedError();
   @override
   Future<AdminUserDto> updateUser(
@@ -108,8 +140,9 @@ class _FakeAdminRepository implements AdminRepository {
   @override
   Future<bool> disableUser(UuidValue userId) => throw UnimplementedError();
   @override
+  Future<bool> enableUser(UuidValue userId) => throw UnimplementedError();
+  @override
   Future<Course> createCourse(
-    String code,
     String name,
     int credits,
     CourseType type,

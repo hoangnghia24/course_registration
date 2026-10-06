@@ -2,13 +2,25 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../../generated/protocol.dart';
-import '../../core/input_validator.dart';
 import '../../core/pagination.dart';
 import '../../registration/services/eligibility_checkers.dart';
 import 'class_demand_service.dart';
 import 'lecturer_validators.dart';
 
 abstract final class LecturerService {
+  static const availableRooms = <String>[
+    'A101',
+    'A102',
+    'A201',
+    'A202',
+    'B101',
+    'B102',
+    'B201',
+    'B202',
+    'C301',
+    'C302',
+  ];
+
   static Future<LecturerProfileDto> getProfile(Session session) async {
     final lecturer = await _authorizedLecturer(session);
     final user = await AppUser.db.findById(session, lecturer.userId);
@@ -71,18 +83,14 @@ abstract final class LecturerService {
     Session session, {
     required UuidValue courseId,
     required UuidValue semesterId,
-    required String classCode,
     required int capacity,
     required List<ClassScheduleDto> schedules,
   }) async {
     final lecturer = await _authorizedLecturer(session);
-    if (!LecturerClassValidator.validForCreate(
-      classCode: classCode,
-      capacity: capacity,
-    )) {
+    if (capacity < 1 || capacity > 500) {
       throw AppException(
         code: 'invalid_class',
-        message: 'Mã lớp và sĩ số không hợp lệ.',
+        message: 'Sĩ số lớp không hợp lệ.',
       );
     }
     _validateSchedules(schedules);
@@ -113,7 +121,7 @@ abstract final class LecturerService {
           courseId: courseId,
           lecturerId: lecturer.id!,
           semesterId: semesterId,
-          classCode: classCode.trim(),
+          classCode: _automaticClassCode(),
           capacity: capacity,
           registeredCount: 0,
           status: CourseClassStatus.closed,
@@ -152,7 +160,6 @@ abstract final class LecturerService {
   static Future<LecturerCourseClassDto> updateCourseClass(
     Session session, {
     required UuidValue courseClassId,
-    required String classCode,
     required int capacity,
     required CourseClassStatus status,
   }) async {
@@ -165,11 +172,10 @@ abstract final class LecturerService {
         transaction: transaction,
         lock: true,
       );
-      if (!InputValidator.requiredText(classCode, maxLength: 32) ||
-          !LecturerClassValidator.validForUpdate(
-            capacity: capacity,
-            registeredCount: courseClass.registeredCount,
-          )) {
+      if (!LecturerClassValidator.validForUpdate(
+        capacity: capacity,
+        registeredCount: courseClass.registeredCount,
+      )) {
         throw AppException(
           code: 'invalid_capacity',
           message: 'Sĩ số tối đa không thể nhỏ hơn số sinh viên đã đăng ký.',
@@ -178,7 +184,6 @@ abstract final class LecturerService {
       final updated = await CourseClass.db.updateRow(
         session,
         courseClass.copyWith(
-          classCode: classCode.trim(),
           capacity: capacity,
           status: status,
         ),
@@ -287,6 +292,82 @@ abstract final class LecturerService {
     return values;
   }
 
+  static Future<List<String>> getAvailableRooms(Session session) async {
+    await _authorizedLecturer(session);
+    return availableRooms;
+  }
+
+  static Future<List<ClassScheduleDto>> getAvailableScheduleSlots(
+    Session session, {
+    required UuidValue semesterId,
+    required String room,
+  }) async {
+    final lecturer = await _authorizedLecturer(session);
+    if (!availableRooms.contains(room)) {
+      throw AppException(
+        code: 'invalid_room',
+        message: 'Phòng học không hợp lệ.',
+      );
+    }
+    final semesterClasses = await CourseClass.db.find(
+      session,
+      where: (table) => table.semesterId.equals(semesterId),
+    );
+    final classIds = semesterClasses.map((item) => item.id!).toSet();
+    final lecturerClassIds = semesterClasses
+        .where((item) => item.lecturerId == lecturer.id)
+        .map((item) => item.id!)
+        .toSet();
+    final classSchedules = classIds.isEmpty
+        ? <ClassSchedule>[]
+        : await ClassSchedule.db.find(
+            session,
+            where: (table) => table.courseClassId.inSet(classIds),
+          );
+    final proposals = classIds.isEmpty
+        ? <TeachingScheduleProposal>[]
+        : await TeachingScheduleProposal.db.find(
+            session,
+            where: (table) =>
+                table.courseClassId.inSet(classIds) &
+                table.status.notEquals(TeachingScheduleStatus.rejected),
+          );
+    final lecturerOccupied = <ScheduleSlot>[
+      ...classSchedules
+          .where((item) => lecturerClassIds.contains(item.courseClassId))
+          .map(_classScheduleSlot),
+      ...proposals
+          .where((item) => lecturerClassIds.contains(item.courseClassId))
+          .map(_proposalSlot),
+    ];
+    final roomOccupied = <ScheduleSlot>[
+      ...classSchedules
+          .where((item) => item.room == room)
+          .map(
+            _classScheduleSlot,
+          ),
+      ...proposals.where((item) => item.room == room).map(_proposalSlot),
+    ];
+    final result = <ClassScheduleDto>[];
+    const periods = [(1, 3), (4, 6), (7, 9), (10, 12)];
+    for (var day = 2; day <= 7; day++) {
+      for (final period in periods) {
+        final candidate = ClassScheduleDto(
+          dayOfWeek: day,
+          startPeriod: period.$1,
+          endPeriod: period.$2,
+          room: room,
+        );
+        final slot = _slot(candidate);
+        if (!TeachingConflictChecker.hasConflict([slot], lecturerOccupied) &&
+            !TeachingConflictChecker.hasConflict([slot], roomOccupied)) {
+          result.add(candidate);
+        }
+      }
+    }
+    return result;
+  }
+
   static Future<List<ClassStudentDto>> getRegisteredStudents(
     Session session, {
     required UuidValue courseClassId,
@@ -294,7 +375,7 @@ abstract final class LecturerService {
     int pageSize = 50,
   }) async {
     final lecturer = await _authorizedLecturer(session);
-    await _ownedClass(session, lecturer, courseClassId);
+    final courseClass = await _ownedClass(session, lecturer, courseClassId);
     final window = Pagination.window(page: page, pageSize: pageSize);
     final registrations = await Registration.db.find(
       session,
@@ -332,6 +413,24 @@ abstract final class LecturerService {
     final studentsById = {for (final item in students) item.id!: item};
     final usersById = {for (final item in users) item.id!: item};
     final majorsById = {for (final item in majors) item.id!: item};
+    final semester = await Semester.db.findById(
+      session,
+      courseClass.semesterId,
+    );
+    final semesterLabel = semester == null
+        ? null
+        : '${semester.name} ${semester.academicYear}';
+    final transcripts = semesterLabel == null
+        ? <StudentTranscript>[]
+        : await StudentTranscript.db.find(
+            session,
+            where: (table) =>
+                table.courseId.equals(courseClass.courseId) &
+                table.semester.equals(semesterLabel),
+          );
+    final transcriptsByStudent = {
+      for (final item in transcripts) item.studentId: item,
+    };
     final result = <ClassStudentDto>[];
     for (final registration in registrations) {
       final student = studentsById[registration.studentId];
@@ -349,11 +448,95 @@ abstract final class LecturerService {
           majorName: major?.name ?? 'Chưa cập nhật',
           email: user.email,
           registrationStatus: registration.status,
+          midtermScore: transcriptsByStudent[student.id]?.midtermScore,
+          finalScore: transcriptsByStudent[student.id]?.finalScore,
         ),
       );
     }
     result.sort((a, b) => a.studentCode.compareTo(b.studentCode));
     return result;
+  }
+
+  static Future<bool> updateStudentGrades(
+    Session session, {
+    required UuidValue courseClassId,
+    required UuidValue studentId,
+    required double midtermScore,
+    required double finalScore,
+  }) async {
+    final lecturer = await _authorizedLecturer(session);
+    if (midtermScore < 0 ||
+        midtermScore > 10 ||
+        finalScore < 0 ||
+        finalScore > 10) {
+      throw AppException(
+        code: 'invalid_grade',
+        message: 'Điểm phải nằm trong khoảng từ 0 đến 10.',
+      );
+    }
+    final courseClass = await _ownedClass(session, lecturer, courseClassId);
+    final registration = await Registration.db.findFirstRow(
+      session,
+      where: (table) =>
+          table.courseClassId.equals(courseClassId) &
+          table.studentId.equals(studentId) &
+          table.status.equals(RegistrationStatus.registered),
+    );
+    if (registration == null) {
+      throw AppException(
+        code: 'student_not_in_class',
+        message: 'Sinh viên không thuộc lớp học phần này.',
+      );
+    }
+    final semester = await Semester.db.findById(
+      session,
+      courseClass.semesterId,
+    );
+    if (semester == null) throw _incomplete('semester');
+    final semesterLabel = '${semester.name} ${semester.academicYear}';
+    final total = midtermScore * 0.4 + finalScore * 0.6;
+    final gpa = (total / 10 * 4 * 100).roundToDouble() / 100;
+    final letter = total >= 8.5
+        ? 'A'
+        : total >= 7
+        ? 'B'
+        : total >= 5.5
+        ? 'C'
+        : total >= 4
+        ? 'D'
+        : 'F';
+    final existing = await StudentTranscript.db.findFirstRow(
+      session,
+      where: (table) =>
+          table.studentId.equals(studentId) &
+          table.courseId.equals(courseClass.courseId) &
+          table.semester.equals(semesterLabel),
+    );
+    final value = StudentTranscript(
+      id: existing?.id,
+      studentId: studentId,
+      courseId: courseClass.courseId,
+      semester: semesterLabel,
+      midtermScore: midtermScore,
+      finalScore: finalScore,
+      score: gpa,
+      letterGrade: letter,
+      status: total >= 4 ? TranscriptStatus.passed : TranscriptStatus.failed,
+      attemptNumber: existing?.attemptNumber ?? 1,
+      createdAt: existing?.createdAt ?? DateTime.now().toUtc(),
+      updatedAt: DateTime.now().toUtc(),
+    );
+    final persisted = existing == null
+        ? await StudentTranscript.db.insertRow(session, value)
+        : await StudentTranscript.db.updateRow(session, value);
+    await _log(
+      session,
+      lecturer: lecturer,
+      action: 'UPDATE_GRADE',
+      entity: 'student_transcript',
+      entityId: persisted.id!,
+    );
+    return true;
   }
 
   static Future<List<ClassDemandDto>> getClassDemand(Session session) async {
@@ -481,6 +664,60 @@ abstract final class LecturerService {
     if (TeachingConflictChecker.hasConflict(candidates, existing)) {
       throw _conflict();
     }
+
+    final semesterClasses = await CourseClass.db.find(
+      session,
+      transaction: transaction,
+      where: (table) => table.semesterId.equals(semesterId),
+    );
+    final classIds = semesterClasses
+        .where((item) => item.id != excludedClassId)
+        .map((item) => item.id!)
+        .toSet();
+    if (classIds.isEmpty) return;
+    for (final schedule in schedules) {
+      final occupied = <ScheduleSlot>[];
+      final roomSchedules = await ClassSchedule.db.find(
+        session,
+        transaction: transaction,
+        where: (table) =>
+            table.courseClassId.inSet(classIds) &
+            table.room.equals(schedule.room),
+      );
+      occupied.addAll(
+        roomSchedules.map(
+          (item) => ScheduleSlot(
+            dayOfWeek: item.dayOfWeek,
+            startPeriod: item.startPeriod,
+            endPeriod: item.endPeriod,
+          ),
+        ),
+      );
+      final roomProposals = await TeachingScheduleProposal.db.find(
+        session,
+        transaction: transaction,
+        where: (table) =>
+            table.courseClassId.inSet(classIds) &
+            table.room.equals(schedule.room) &
+            table.status.notEquals(TeachingScheduleStatus.rejected),
+      );
+      occupied.addAll(
+        roomProposals.map(
+          (item) => ScheduleSlot(
+            dayOfWeek: item.dayOfWeek,
+            startPeriod: item.startPeriod,
+            endPeriod: item.endPeriod,
+          ),
+        ),
+      );
+      if (TeachingConflictChecker.hasConflict([_slot(schedule)], occupied)) {
+        throw AppException(
+          code: 'room_schedule_conflict',
+          message:
+              'Phòng ${schedule.room} đã được sử dụng trong thời gian này.',
+        );
+      }
+    }
   }
 
   static void _validateSchedules(List<ClassScheduleDto> schedules) {
@@ -492,7 +729,7 @@ abstract final class LecturerService {
               item.startPeriod < 1 ||
               item.endPeriod < item.startPeriod ||
               item.endPeriod > 20 ||
-              !InputValidator.requiredText(item.room, maxLength: 80),
+              !availableRooms.contains(item.room),
         )) {
       throw AppException(
         code: 'invalid_schedule',
@@ -506,6 +743,19 @@ abstract final class LecturerService {
     startPeriod: value.startPeriod,
     endPeriod: value.endPeriod,
   );
+
+  static ScheduleSlot _classScheduleSlot(ClassSchedule value) => ScheduleSlot(
+    dayOfWeek: value.dayOfWeek,
+    startPeriod: value.startPeriod,
+    endPeriod: value.endPeriod,
+  );
+
+  static ScheduleSlot _proposalSlot(TeachingScheduleProposal value) =>
+      ScheduleSlot(
+        dayOfWeek: value.dayOfWeek,
+        startPeriod: value.startPeriod,
+        endPeriod: value.endPeriod,
+      );
 
   static Future<TeachingScheduleProposal> _insertProposal(
     Session session, {
@@ -605,6 +855,9 @@ abstract final class LecturerService {
     code: 'teaching_schedule_conflict',
     message: 'Giảng viên đã có lịch dạy trong thời gian này.',
   );
+
+  static String _automaticClassCode() =>
+      'LHP${DateTime.now().toUtc().microsecondsSinceEpoch.toRadixString(36).toUpperCase()}';
 
   static AppException _incomplete(String field) => AppException(
     code: 'data_incomplete',

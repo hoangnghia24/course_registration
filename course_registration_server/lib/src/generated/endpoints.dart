@@ -165,8 +165,8 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<_ioux7u11.UserRole>(),
               nullable: false,
             ),
-            'roleCode': _is.ParameterDescription(
-              name: 'roleCode',
+            'phone': _is.ParameterDescription(
+              name: 'phone',
               type: _is.getType<String?>(),
               nullable: true,
             ),
@@ -197,7 +197,7 @@ class Endpoints extends _is.EndpointDispatch {
                     password: params['password'],
                     fullName: params['fullName'],
                     role: params['role'],
-                    roleCode: params['roleCode'],
+                    phone: params['phone'],
                     academicYear: params['academicYear'],
                     majorId: params['majorId'],
                     trainingProgramId: params['trainingProgramId'],
@@ -253,6 +253,25 @@ class Endpoints extends _is.EndpointDispatch {
                     userId: params['userId'],
                   ),
         ),
+        'enableUser': _is.MethodConnector(
+          name: 'enableUser',
+          params: {
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _ido5l6pj.AdminEndpoint).enableUser(
+                    session,
+                    userId: params['userId'],
+                  ),
+        ),
         'getCourses': _is.MethodConnector(
           name: 'getCourses',
           params: {
@@ -281,11 +300,6 @@ class Endpoints extends _is.EndpointDispatch {
         'createCourse': _is.MethodConnector(
           name: 'createCourse',
           params: {
-            'courseCode': _is.ParameterDescription(
-              name: 'courseCode',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
             'courseName': _is.ParameterDescription(
               name: 'courseName',
               type: _is.getType<String>(),
@@ -319,7 +333,6 @@ class Endpoints extends _is.EndpointDispatch {
               ) async =>
                   (endpoints['admin'] as _ido5l6pj.AdminEndpoint).createCourse(
                     session,
-                    courseCode: params['courseCode'],
                     courseName: params['courseName'],
                     credits: params['credits'],
                     courseType: params['courseType'],
@@ -1203,11 +1216,6 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<_is.UuidValue>(),
               nullable: false,
             ),
-            'classCode': _is.ParameterDescription(
-              name: 'classCode',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
             'capacity': _is.ParameterDescription(
               name: 'capacity',
               type: _is.getType<int>(),
@@ -1228,7 +1236,6 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     courseId: params['courseId'],
                     semesterId: params['semesterId'],
-                    classCode: params['classCode'],
                     capacity: params['capacity'],
                     schedules: params['schedules'],
                   ),
@@ -1239,11 +1246,6 @@ class Endpoints extends _is.EndpointDispatch {
             'courseClassId': _is.ParameterDescription(
               name: 'courseClassId',
               type: _is.getType<_is.UuidValue>(),
-              nullable: false,
-            ),
-            'classCode': _is.ParameterDescription(
-              name: 'classCode',
-              type: _is.getType<String>(),
               nullable: false,
             ),
             'capacity': _is.ParameterDescription(
@@ -1265,7 +1267,6 @@ class Endpoints extends _is.EndpointDispatch {
                   .updateCourseClass(
                     session,
                     courseClassId: params['courseClassId'],
-                    classCode: params['classCode'],
                     capacity: params['capacity'],
                     status: params['status'],
                   ),
@@ -1324,6 +1325,41 @@ class Endpoints extends _is.EndpointDispatch {
               ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
                   .getMySchedule(session),
         ),
+        'getAvailableRooms': _is.MethodConnector(
+          name: 'getAvailableRooms',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
+                  .getAvailableRooms(session),
+        ),
+        'getAvailableScheduleSlots': _is.MethodConnector(
+          name: 'getAvailableScheduleSlots',
+          params: {
+            'semesterId': _is.ParameterDescription(
+              name: 'semesterId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'room': _is.ParameterDescription(
+              name: 'room',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
+                  .getAvailableScheduleSlots(
+                    session,
+                    semesterId: params['semesterId'],
+                    room: params['room'],
+                  ),
+        ),
         'getRegisteredStudents': _is.MethodConnector(
           name: 'getRegisteredStudents',
           params: {
@@ -1364,6 +1400,43 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
                   .getClassDemand(session),
+        ),
+        'updateStudentGrades': _is.MethodConnector(
+          name: 'updateStudentGrades',
+          params: {
+            'courseClassId': _is.ParameterDescription(
+              name: 'courseClassId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'studentId': _is.ParameterDescription(
+              name: 'studentId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'midtermScore': _is.ParameterDescription(
+              name: 'midtermScore',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'finalScore': _is.ParameterDescription(
+              name: 'finalScore',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
+                  .updateStudentGrades(
+                    session,
+                    courseClassId: params['courseClassId'],
+                    studentId: params['studentId'],
+                    midtermScore: params['midtermScore'],
+                    finalScore: params['finalScore'],
+                  ),
         ),
       },
     );

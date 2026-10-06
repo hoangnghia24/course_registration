@@ -5,6 +5,8 @@ fields:
   student: Student?, relation(onDelete=Cascade)
   course: Course?, relation(onDelete=Restrict)
   semester: String
+  midtermScore: double?
+  finalScore: double?
   score: double
   letterGrade: String
   status: TranscriptStatus

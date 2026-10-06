@@ -37,7 +37,6 @@ void main() {
         await _expectCode(
           endpoints.admin.createCourse(
             admin,
-            courseCode: '',
             courseName: 'Invalid',
             credits: -1,
             courseType: CourseType.compulsory,
@@ -58,8 +57,7 @@ void main() {
         await _expectCode(
           endpoints.admin.createCourse(
             admin,
-            courseCode: 'X' * 33,
-            courseName: 'Oversized',
+            courseName: 'X' * 201,
             credits: 3,
             courseType: CourseType.compulsory,
           ),
@@ -90,7 +88,6 @@ void main() {
             lecturer,
             courseId: seed.course.id!,
             semesterId: seed.semester.id!,
-            classCode: '',
             capacity: -1,
             schedules: const [],
           ),
@@ -101,14 +98,13 @@ void main() {
             lecturer,
             courseId: seed.course.id!,
             semesterId: seed.semester.id!,
-            classCode: 'P8-INVALID-SCHEDULE',
             capacity: 20,
             schedules: [
               ClassScheduleDto(
                 dayOfWeek: 9,
                 startPeriod: 0,
                 endPeriod: 30,
-                room: 'X' * 81,
+                room: 'A101',
               ),
             ],
           ),
@@ -160,21 +156,19 @@ void main() {
           lecturer,
           courseId: seed.course.id!,
           semesterId: seed.semester.id!,
-          classCode: 'P8-AUDIT-CLASS',
           capacity: 20,
           schedules: [
             ClassScheduleDto(
               dayOfWeek: 6,
               startPeriod: 1,
               endPeriod: 3,
-              room: 'P8-AUDIT',
+              room: 'A202',
             ),
           ],
         );
         await endpoints.lecturer.updateCourseClass(
           lecturer,
           courseClassId: createdClass.courseClassId,
-          classCode: 'P8-AUDIT-CLASS-UPDATED',
           capacity: 25,
           status: CourseClassStatus.closed,
         );

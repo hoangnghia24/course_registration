@@ -35,3 +35,6 @@ final lecturerCoursesProvider = FutureProvider.autoDispose<List<Course>>(
 final lecturerSemestersProvider = FutureProvider.autoDispose<List<Semester>>(
   (ref) => ref.watch(lecturerRepositoryProvider).getSemesters(),
 );
+final availableRoomsProvider = FutureProvider.autoDispose<List<String>>(
+  (ref) => ref.watch(lecturerRepositoryProvider).getAvailableRooms(),
+);

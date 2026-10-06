@@ -60,7 +60,6 @@ void main() {
       await expectLater(
         endpoints.admin.createCourse(
           student,
-          courseCode: 'FORBIDDEN',
           courseName: 'Forbidden mutation',
           credits: 3,
           courseType: CourseType.compulsory,

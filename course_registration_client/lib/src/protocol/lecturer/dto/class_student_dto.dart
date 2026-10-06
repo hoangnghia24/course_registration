@@ -22,6 +22,8 @@ abstract class ClassStudentDto
     required this.majorName,
     required this.email,
     required this.registrationStatus,
+    this.midtermScore,
+    this.finalScore,
   });
 
   factory ClassStudentDto({
@@ -31,6 +33,8 @@ abstract class ClassStudentDto
     required String majorName,
     required String email,
     required _iqegjhnz.RegistrationStatus registrationStatus,
+    double? midtermScore,
+    double? finalScore,
   }) = _ClassStudentDtoImpl;
 
   factory ClassStudentDto.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -45,6 +49,8 @@ abstract class ClassStudentDto
       registrationStatus: _iqegjhnz.RegistrationStatus.fromJson(
         (jsonSerialization['registrationStatus'] as String),
       ),
+      midtermScore: (jsonSerialization['midtermScore'] as num?)?.toDouble(),
+      finalScore: (jsonSerialization['finalScore'] as num?)?.toDouble(),
     );
   }
 
@@ -60,6 +66,10 @@ abstract class ClassStudentDto
 
   _iqegjhnz.RegistrationStatus registrationStatus;
 
+  double? midtermScore;
+
+  double? finalScore;
+
   /// Returns a shallow copy of this [ClassStudentDto]
   /// with some or all fields replaced by the given arguments.
   @_isc.useResult
@@ -70,6 +80,8 @@ abstract class ClassStudentDto
     String? majorName,
     String? email,
     _iqegjhnz.RegistrationStatus? registrationStatus,
+    double? midtermScore,
+    double? finalScore,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -81,6 +93,8 @@ abstract class ClassStudentDto
       'majorName': majorName,
       'email': email,
       'registrationStatus': registrationStatus.toJson(),
+      if (midtermScore != null) 'midtermScore': midtermScore,
+      if (finalScore != null) 'finalScore': finalScore,
     };
   }
 
@@ -94,6 +108,8 @@ abstract class ClassStudentDto
       'majorName': majorName,
       'email': email,
       'registrationStatus': registrationStatus.toJson(),
+      if (midtermScore != null) 'midtermScore': midtermScore,
+      if (finalScore != null) 'finalScore': finalScore,
     };
   }
 
@@ -103,6 +119,8 @@ abstract class ClassStudentDto
   }
 }
 
+class _Undefined {}
+
 class _ClassStudentDtoImpl extends ClassStudentDto {
   _ClassStudentDtoImpl({
     required _isc.UuidValue studentId,
@@ -111,6 +129,8 @@ class _ClassStudentDtoImpl extends ClassStudentDto {
     required String majorName,
     required String email,
     required _iqegjhnz.RegistrationStatus registrationStatus,
+    double? midtermScore,
+    double? finalScore,
   }) : super._(
          studentId: studentId,
          studentCode: studentCode,
@@ -118,6 +138,8 @@ class _ClassStudentDtoImpl extends ClassStudentDto {
          majorName: majorName,
          email: email,
          registrationStatus: registrationStatus,
+         midtermScore: midtermScore,
+         finalScore: finalScore,
        );
 
   /// Returns a shallow copy of this [ClassStudentDto]
@@ -131,6 +153,8 @@ class _ClassStudentDtoImpl extends ClassStudentDto {
     String? majorName,
     String? email,
     _iqegjhnz.RegistrationStatus? registrationStatus,
+    Object? midtermScore = _Undefined,
+    Object? finalScore = _Undefined,
   }) {
     return ClassStudentDto(
       studentId: studentId ?? this.studentId,
@@ -139,6 +163,8 @@ class _ClassStudentDtoImpl extends ClassStudentDto {
       majorName: majorName ?? this.majorName,
       email: email ?? this.email,
       registrationStatus: registrationStatus ?? this.registrationStatus,
+      midtermScore: midtermScore is double? ? midtermScore : this.midtermScore,
+      finalScore: finalScore is double? ? finalScore : this.finalScore,
     );
   }
 }

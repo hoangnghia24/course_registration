@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/network/error_handler.dart';
 import '../../../student/presentation/widgets/student_async_error.dart';
 import '../providers/lecturer_providers.dart';
 
@@ -80,7 +81,7 @@ class CourseClassManagementPage extends ConsumerWidget {
     WidgetRef ref,
     LecturerCourseClassDto item,
   ) async {
-    final value = await showDialog<(String, int)>(
+    final value = await showDialog<int>(
       context: context,
       builder: (_) => _CourseClassEditDialog(item: item),
     );
@@ -89,8 +90,7 @@ class CourseClassManagementPage extends ConsumerWidget {
         .read(lecturerRepositoryProvider)
         .updateClass(
           courseClassId: item.courseClassId,
-          classCode: value.$1,
-          capacity: value.$2,
+          capacity: value,
           status: item.status,
         );
     ref.invalidate(courseClassProvider);
@@ -101,8 +101,61 @@ class CourseClassManagementPage extends ConsumerWidget {
     WidgetRef ref,
     LecturerCourseClassDto item,
   ) async {
-    await ref.read(lecturerRepositoryProvider).deleteClass(item.courseClassId);
-    ref.invalidate(courseClassProvider);
+    if (item.registeredCount > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Không thể xóa lớp'),
+          content: Text(
+            'Lớp ${item.classCode} đang có ${item.registeredCount} sinh viên học.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đã hiểu'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa lớp học phần?'),
+        content: Text(
+          'Bạn có chắc muốn xóa ${item.classCode} - ${item.courseName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa lớp'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await ref
+          .read(lecturerRepositoryProvider)
+          .deleteClass(item.courseClassId);
+      ref.invalidate(courseClassProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã xóa lớp học phần.')),
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ErrorHandler.message(error))),
+        );
+      }
+    }
   }
 }
 
@@ -112,25 +165,21 @@ class _CourseClassEditDialog extends StatefulWidget {
   final LecturerCourseClassDto item;
 
   @override
-  State<_CourseClassEditDialog> createState() =>
-      _CourseClassEditDialogState();
+  State<_CourseClassEditDialog> createState() => _CourseClassEditDialogState();
 }
 
 class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _code;
   late final TextEditingController _capacity;
 
   @override
   void initState() {
     super.initState();
-    _code = TextEditingController(text: widget.item.classCode);
     _capacity = TextEditingController(text: '${widget.item.capacity}');
   }
 
   @override
   void dispose() {
-    _code.dispose();
     _capacity.dispose();
     super.dispose();
   }
@@ -145,12 +194,7 @@ class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              controller: _code,
-              decoration: const InputDecoration(labelText: 'Mã lớp'),
-              validator: (value) =>
-                  (value?.trim().isEmpty ?? true) ? 'Bắt buộc' : null,
-            ),
+            Text('Mã lớp: ${widget.item.classCode} (tự động)'),
             const SizedBox(height: 12),
             TextFormField(
               controller: _capacity,
@@ -182,10 +226,7 @@ class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
       FilledButton(
         onPressed: () {
           if (!_formKey.currentState!.validate()) return;
-          Navigator.pop(context, (
-            _code.text.trim(),
-            int.parse(_capacity.text),
-          ));
+          Navigator.pop(context, int.parse(_capacity.text));
         },
         child: const Text('Lưu'),
       ),

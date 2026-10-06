@@ -27,6 +27,8 @@ abstract class StudentTranscript
     required this.courseId,
     this.course,
     required this.semester,
+    this.midtermScore,
+    this.finalScore,
     required this.score,
     required this.letterGrade,
     required this.status,
@@ -44,6 +46,8 @@ abstract class StudentTranscript
     required _is.UuidValue courseId,
     _ibp0tzhj.Course? course,
     required String semester,
+    double? midtermScore,
+    double? finalScore,
     required double score,
     required String letterGrade,
     required _ipjkcfjo.TranscriptStatus status,
@@ -74,6 +78,8 @@ abstract class StudentTranscript
               jsonSerialization['course'],
             ),
       semester: jsonSerialization['semester'] as String,
+      midtermScore: (jsonSerialization['midtermScore'] as num?)?.toDouble(),
+      finalScore: (jsonSerialization['finalScore'] as num?)?.toDouble(),
       score: (jsonSerialization['score'] as num).toDouble(),
       letterGrade: jsonSerialization['letterGrade'] as String,
       status: _ipjkcfjo.TranscriptStatus.fromJson(
@@ -106,6 +112,10 @@ abstract class StudentTranscript
 
   String semester;
 
+  double? midtermScore;
+
+  double? finalScore;
+
   double score;
 
   String letterGrade;
@@ -131,6 +141,8 @@ abstract class StudentTranscript
     _is.UuidValue? courseId,
     _ibp0tzhj.Course? course,
     String? semester,
+    double? midtermScore,
+    double? finalScore,
     double? score,
     String? letterGrade,
     _ipjkcfjo.TranscriptStatus? status,
@@ -148,6 +160,8 @@ abstract class StudentTranscript
       'courseId': courseId.toJson(),
       if (course != null) 'course': course?.toJson(),
       'semester': semester,
+      if (midtermScore != null) 'midtermScore': midtermScore,
+      if (finalScore != null) 'finalScore': finalScore,
       'score': score,
       'letterGrade': letterGrade,
       'status': status.toJson(),
@@ -167,6 +181,8 @@ abstract class StudentTranscript
       'courseId': courseId.toJson(),
       if (course != null) 'course': course?.toJsonForProtocol(),
       'semester': semester,
+      if (midtermScore != null) 'midtermScore': midtermScore,
+      if (finalScore != null) 'finalScore': finalScore,
       'score': score,
       'letterGrade': letterGrade,
       'status': status.toJson(),
@@ -220,6 +236,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
     required _is.UuidValue courseId,
     _ibp0tzhj.Course? course,
     required String semester,
+    double? midtermScore,
+    double? finalScore,
     required double score,
     required String letterGrade,
     required _ipjkcfjo.TranscriptStatus status,
@@ -233,6 +251,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
          courseId: courseId,
          course: course,
          semester: semester,
+         midtermScore: midtermScore,
+         finalScore: finalScore,
          score: score,
          letterGrade: letterGrade,
          status: status,
@@ -252,6 +272,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
     _is.UuidValue? courseId,
     Object? course = _Undefined,
     String? semester,
+    Object? midtermScore = _Undefined,
+    Object? finalScore = _Undefined,
     double? score,
     String? letterGrade,
     _ipjkcfjo.TranscriptStatus? status,
@@ -268,6 +290,8 @@ class _StudentTranscriptImpl extends StudentTranscript {
       courseId: courseId ?? this.courseId,
       course: course is _ibp0tzhj.Course? ? course : this.course?.copyWith(),
       semester: semester ?? this.semester,
+      midtermScore: midtermScore is double? ? midtermScore : this.midtermScore,
+      finalScore: finalScore is double? ? finalScore : this.finalScore,
       score: score ?? this.score,
       letterGrade: letterGrade ?? this.letterGrade,
       status: status ?? this.status,
@@ -297,6 +321,17 @@ class StudentTranscriptUpdateTable
 
   _is.ColumnValue<String, String> semester(String value) => _is.ColumnValue(
     table.semester,
+    value,
+  );
+
+  _is.ColumnValue<double, double> midtermScore(double? value) =>
+      _is.ColumnValue(
+        table.midtermScore,
+        value,
+      );
+
+  _is.ColumnValue<double, double> finalScore(double? value) => _is.ColumnValue(
+    table.finalScore,
     value,
   );
 
@@ -350,6 +385,14 @@ class StudentTranscriptTable extends _is.Table<_is.UuidValue?> {
       'semester',
       this,
     );
+    midtermScore = _is.ColumnDouble(
+      'midtermScore',
+      this,
+    );
+    finalScore = _is.ColumnDouble(
+      'finalScore',
+      this,
+    );
     score = _is.ColumnDouble(
       'score',
       this,
@@ -390,6 +433,10 @@ class StudentTranscriptTable extends _is.Table<_is.UuidValue?> {
   _ibp0tzhj.CourseTable? _course;
 
   late final _is.ColumnString semester;
+
+  late final _is.ColumnDouble midtermScore;
+
+  late final _is.ColumnDouble finalScore;
 
   late final _is.ColumnDouble score;
 
@@ -435,6 +482,8 @@ class StudentTranscriptTable extends _is.Table<_is.UuidValue?> {
     studentId,
     courseId,
     semester,
+    midtermScore,
+    finalScore,
     score,
     letterGrade,
     status,

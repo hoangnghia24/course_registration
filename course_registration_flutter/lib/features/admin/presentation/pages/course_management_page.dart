@@ -150,7 +150,7 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
     await _save(
       () => ref
           .read(adminRepositoryProvider)
-          .createCourse(value.$1, value.$2, value.$3, value.$4),
+          .createCourse(value.$1, value.$2, value.$3),
       success: 'Đã tạo môn học.',
     );
   }
@@ -163,10 +163,9 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
           .read(adminRepositoryProvider)
           .updateCourse(
             item.copyWith(
-              courseCode: value.$1,
-              courseName: value.$2,
-              credits: value.$3,
-              courseType: value.$4,
+              courseName: value.$1,
+              credits: value.$2,
+              courseType: value.$3,
             ),
           ),
       success: 'Đã cập nhật môn học.',
@@ -224,8 +223,8 @@ class _CourseManagementPageState extends ConsumerState<CourseManagementPage> {
     }
   }
 
-  Future<(String, String, int, CourseType)?> _dialog(Course? item) async {
-    return showDialog<(String, String, int, CourseType)>(
+  Future<(String, int, CourseType)?> _dialog(Course? item) async {
+    return showDialog<(String, int, CourseType)>(
       context: context,
       builder: (_) => _CourseDialog(item: item),
     );
@@ -243,7 +242,6 @@ class _CourseDialog extends StatefulWidget {
 
 class _CourseDialogState extends State<_CourseDialog> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _code;
   late final TextEditingController _name;
   late final TextEditingController _credits;
   late CourseType _type;
@@ -251,7 +249,6 @@ class _CourseDialogState extends State<_CourseDialog> {
   @override
   void initState() {
     super.initState();
-    _code = TextEditingController(text: widget.item?.courseCode);
     _name = TextEditingController(text: widget.item?.courseName);
     _credits = TextEditingController(text: '${widget.item?.credits ?? 3}');
     _type = widget.item?.courseType ?? CourseType.compulsory;
@@ -259,7 +256,6 @@ class _CourseDialogState extends State<_CourseDialog> {
 
   @override
   void dispose() {
-    _code.dispose();
     _name.dispose();
     _credits.dispose();
     super.dispose();
@@ -275,12 +271,6 @@ class _CourseDialogState extends State<_CourseDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              controller: _code,
-              decoration: const InputDecoration(labelText: 'Mã môn'),
-              validator: (value) => value!.trim().isEmpty ? 'Bắt buộc' : null,
-            ),
-            const SizedBox(height: 12),
             TextFormField(
               controller: _name,
               decoration: const InputDecoration(labelText: 'Tên môn'),
@@ -332,7 +322,6 @@ class _CourseDialogState extends State<_CourseDialog> {
         onPressed: () {
           if (!_formKey.currentState!.validate()) return;
           Navigator.pop(context, (
-            _code.text.trim(),
             _name.text.trim(),
             int.parse(_credits.text),
             _type,

@@ -8,18 +8,27 @@ abstract interface class LecturerRepository {
   Future<List<ClassDemandDto>> getDemand();
   Future<List<Course>> getCourses();
   Future<List<Semester>> getSemesters();
+  Future<List<String>> getAvailableRooms();
+  Future<List<ClassScheduleDto>> getAvailableScheduleSlots({
+    required UuidValue semesterId,
+    required String room,
+  });
   Future<LecturerCourseClassDto> createClass({
     required UuidValue courseId,
     required UuidValue semesterId,
-    required String classCode,
     required int capacity,
     required List<ClassScheduleDto> schedules,
   });
   Future<LecturerCourseClassDto> updateClass({
     required UuidValue courseClassId,
-    required String classCode,
     required int capacity,
     required CourseClassStatus status,
   });
   Future<void> deleteClass(UuidValue courseClassId);
+  Future<void> updateStudentGrades({
+    required UuidValue courseClassId,
+    required UuidValue studentId,
+    required double midtermScore,
+    required double finalScore,
+  });
 }

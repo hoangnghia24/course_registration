@@ -117,7 +117,7 @@ class EndpointAdmin extends EndpointAdminGuard {
     required String password,
     required String fullName,
     required _ib55lglj.UserRole role,
-    String? roleCode,
+    String? phone,
     int? academicYear,
     _isc.UuidValue? majorId,
     _isc.UuidValue? trainingProgramId,
@@ -129,7 +129,7 @@ class EndpointAdmin extends EndpointAdminGuard {
       'password': password,
       'fullName': fullName,
       'role': role,
-      'roleCode': roleCode,
+      'phone': phone,
       'academicYear': academicYear,
       'majorId': majorId,
       'trainingProgramId': trainingProgramId,
@@ -157,6 +157,13 @@ class EndpointAdmin extends EndpointAdminGuard {
         {'userId': userId},
       );
 
+  _ida.Future<bool> enableUser({required _isc.UuidValue userId}) =>
+      caller.callServerEndpoint<bool>(
+        'admin',
+        'enableUser',
+        {'userId': userId},
+      );
+
   _ida.Future<List<_ihzhjg22.Course>> getCourses({
     int? page,
     int? pageSize,
@@ -170,7 +177,6 @@ class EndpointAdmin extends EndpointAdminGuard {
   );
 
   _ida.Future<_ihzhjg22.Course> createCourse({
-    required String courseCode,
     required String courseName,
     required int credits,
     required _i3t21fbx.CourseType courseType,
@@ -180,7 +186,6 @@ class EndpointAdmin extends EndpointAdminGuard {
     'admin',
     'createCourse',
     {
-      'courseCode': courseCode,
       'courseName': courseName,
       'credits': credits,
       'courseType': courseType,
@@ -746,7 +751,6 @@ class EndpointLecturer extends EndpointLecturerGuard {
   _ida.Future<_ibein0b1.LecturerCourseClassDto> createCourseClass({
     required _isc.UuidValue courseId,
     required _isc.UuidValue semesterId,
-    required String classCode,
     required int capacity,
     required List<_iff0ymco.ClassScheduleDto> schedules,
   }) => caller.callServerEndpoint<_ibein0b1.LecturerCourseClassDto>(
@@ -755,7 +759,6 @@ class EndpointLecturer extends EndpointLecturerGuard {
     {
       'courseId': courseId,
       'semesterId': semesterId,
-      'classCode': classCode,
       'capacity': capacity,
       'schedules': schedules,
     },
@@ -763,7 +766,6 @@ class EndpointLecturer extends EndpointLecturerGuard {
 
   _ida.Future<_ibein0b1.LecturerCourseClassDto> updateCourseClass({
     required _isc.UuidValue courseClassId,
-    required String classCode,
     required int capacity,
     required _iv18i5eg.CourseClassStatus status,
   }) => caller.callServerEndpoint<_ibein0b1.LecturerCourseClassDto>(
@@ -771,7 +773,6 @@ class EndpointLecturer extends EndpointLecturerGuard {
     'updateCourseClass',
     {
       'courseClassId': courseClassId,
-      'classCode': classCode,
       'capacity': capacity,
       'status': status,
     },
@@ -804,6 +805,25 @@ class EndpointLecturer extends EndpointLecturerGuard {
         {},
       );
 
+  _ida.Future<List<String>> getAvailableRooms() =>
+      caller.callServerEndpoint<List<String>>(
+        'lecturer',
+        'getAvailableRooms',
+        {},
+      );
+
+  _ida.Future<List<_iff0ymco.ClassScheduleDto>> getAvailableScheduleSlots({
+    required _isc.UuidValue semesterId,
+    required String room,
+  }) => caller.callServerEndpoint<List<_iff0ymco.ClassScheduleDto>>(
+    'lecturer',
+    'getAvailableScheduleSlots',
+    {
+      'semesterId': semesterId,
+      'room': room,
+    },
+  );
+
   _ida.Future<List<_i0ncgxlw.ClassStudentDto>> getRegisteredStudents({
     required _isc.UuidValue courseClassId,
     int? page,
@@ -824,6 +844,22 @@ class EndpointLecturer extends EndpointLecturerGuard {
         'getClassDemand',
         {},
       );
+
+  _ida.Future<bool> updateStudentGrades({
+    required _isc.UuidValue courseClassId,
+    required _isc.UuidValue studentId,
+    required double midtermScore,
+    required double finalScore,
+  }) => caller.callServerEndpoint<bool>(
+    'lecturer',
+    'updateStudentGrades',
+    {
+      'courseClassId': courseClassId,
+      'studentId': studentId,
+      'midtermScore': midtermScore,
+      'finalScore': finalScore,
+    },
+  );
 }
 
 /// {@category Endpoint}
