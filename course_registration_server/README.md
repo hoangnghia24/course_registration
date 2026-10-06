@@ -18,6 +18,36 @@ dart run bin/main.dart --mode development
 Docker Compose là lựa chọn phụ cho môi trường cô lập. Các password của Compose
 được lấy từ biến môi trường; không ghi secret thật vào file YAML hoặc commit.
 
+## Cấu hình mật khẩu PostgreSQL
+
+Serverpod lấy mật khẩu database từ `config/passwords.yaml`. Khi clone repository,
+tạo file local từ mẫu nếu file này chưa tồn tại:
+
+```powershell
+if (-not (Test-Path config/passwords.yaml)) {
+  Copy-Item config/passwords.yaml.example config/passwords.yaml
+}
+```
+
+Đặt mật khẩu PostgreSQL của user `postgres` vào `development.database`:
+
+```yaml
+development:
+  database: 'MAT_KHAU_POSTGRESQL_CUA_BAN'
+```
+
+Giá trị này phải trùng với mật khẩu trong PostgreSQL. Để đổi mật khẩu database,
+chạy lệnh sau trong `psql`, rồi cập nhật lại `config/passwords.yaml` bằng cùng giá trị:
+
+```sql
+ALTER USER postgres WITH PASSWORD 'MAT_KHAU_MOI';
+```
+
+Thay toàn bộ placeholder secret còn lại bằng giá trị ngẫu nhiên và không commit
+`config/passwords.yaml`. Cấu hình development mặc định kết nối `localhost:5432`;
+Compose trong file này mở PostgreSQL ở host port `8090`, vì vậy cần đồng bộ lại cổng
+nếu chọn dùng Docker.
+
 ## Dữ liệu development
 
 Seed idempotent tạo dữ liệu học vụ và các tài khoản được cấp sẵn. Mật khẩu khởi

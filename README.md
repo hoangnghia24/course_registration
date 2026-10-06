@@ -79,6 +79,51 @@ database:
   user: postgres
 ```
 
+### Cập nhật mật khẩu PostgreSQL
+
+Serverpod đọc mật khẩu database từ `course_registration_server/config/passwords.yaml`,
+không đọc trực tiếp từ `development.yaml`. Nếu chưa có file secrets, tạo file local từ
+file mẫu (lệnh này không ghi đè file đã tồn tại):
+
+```powershell
+if (-not (Test-Path course_registration_server/config/passwords.yaml)) {
+  Copy-Item course_registration_server/config/passwords.yaml.example `
+    course_registration_server/config/passwords.yaml
+}
+```
+
+Mở `course_registration_server/config/passwords.yaml` và đặt mật khẩu của user
+PostgreSQL vào khóa `development.database`:
+
+```yaml
+development:
+  database: 'MAT_KHAU_POSTGRESQL_CUA_BAN'
+```
+
+Mật khẩu này phải trùng với mật khẩu của user `postgres` trong PostgreSQL. Nếu muốn
+đổi mật khẩu PostgreSQL, thực hiện trong `psql` trước:
+
+```sql
+ALTER USER postgres WITH PASSWORD 'MAT_KHAU_MOI';
+```
+
+Sau đó cập nhật lại `development.database` bằng cùng mật khẩu mới. Các khóa secret
+khác trong phần `development` (`serviceSecret`, `jwtHmacSha512PrivateKey`, ...)
+cũng phải được thay bằng chuỗi ngẫu nhiên; không để nguyên các placeholder
+`<GENERATE_RANDOM_VALUE>`. Không commit `passwords.yaml` hoặc mật khẩu thật lên Git.
+
+Kiểm tra mật khẩu và database trước khi chạy Serverpod:
+
+```powershell
+Test-NetConnection localhost -Port 5432
+psql -h localhost -p 5432 -U postgres -d course_registration_db
+```
+
+Nếu dùng Docker Compose, PostgreSQL được mở ở cổng host `8090` theo
+`course_registration_server/docker-compose.yaml`, trong khi `development.yaml` mặc
+định dùng cổng `5432`. Hãy dùng PostgreSQL native ở cổng 5432 để chạy theo hướng dẫn
+này, hoặc chủ động đồng bộ cổng Docker với cấu hình trước khi chạy ứng dụng.
+
 ## Seed dữ liệu development
 
 ```powershell
