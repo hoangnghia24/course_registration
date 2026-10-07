@@ -29,6 +29,8 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
   @override
   Widget build(BuildContext context) {
     final classes = ref.watch(availableOpenClassesProvider);
+    final registrationOpen =
+        ref.watch(registrationPeriodProvider).asData?.value.isOpen ?? false;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lớp học phần đang mở'),
@@ -113,6 +115,7 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                         itemCount: filtered.length,
                         itemBuilder: (context, index) => _CourseClassCard(
                           courseClass: filtered[index],
+                          registrationOpen: registrationOpen,
                         ),
                       ),
               ),
@@ -227,8 +230,12 @@ class _OpeningReasonDialogState extends State<_OpeningReasonDialog> {
 }
 
 class _CourseClassCard extends StatelessWidget {
-  const _CourseClassCard({required this.courseClass});
+  const _CourseClassCard({
+    required this.courseClass,
+    required this.registrationOpen,
+  });
   final OpenCourseClassDto courseClass;
+  final bool registrationOpen;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -259,7 +266,7 @@ class _CourseClassCard extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: FilledButton(
               key: Key('register-${courseClass.courseClassId}'),
-              onPressed: courseClass.remainingSeats > 0
+              onPressed: registrationOpen && courseClass.remainingSeats > 0
                   ? () => context.push(
                       '/student/registration/confirm',
                       extra: courseClass,

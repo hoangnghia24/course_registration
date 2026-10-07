@@ -182,30 +182,18 @@ void main() {
         expect(created.classCode, startsWith('LHP'));
         expect(created.proposals.single.status, TeachingScheduleStatus.pending);
         expect(classes.single.courseName, 'Lập trình cơ bản');
-        expect(updated.capacity, 60);
-        expect(updated.status, CourseClassStatus.closed);
-        expect(
-          updated.proposals.any(
-            (item) => item.status == TeachingScheduleStatus.pending,
-          ),
-          isTrue,
-        );
+        expect(updated.newCapacity, 60);
+        expect(updated.status, ClassAdjustmentStatus.pending);
         expect(classStudents.single.midtermScore, 7);
         expect(classStudents.single.finalScore, 9);
         expect(transcript?.score, 3.28);
         expect(transcript?.letterGrade, 'B');
-        await expectLater(
-          endpoints.lecturer.deleteCourseClass(
+        expect(
+          await endpoints.lecturer.deleteCourseClass(
             authenticated,
             courseClassId: created.courseClassId,
           ),
-          throwsA(
-            isA<AppException>().having(
-              (error) => error.code,
-              'code',
-              'class_has_students',
-            ),
-          ),
+          isTrue,
         );
         final assignments = await LecturerCourseClass.db.find(
           session,
@@ -215,10 +203,10 @@ void main() {
           session,
           where: (table) => table.lecturerId.equals(lecturer.id),
         );
-        expect(assignments, hasLength(1));
+        expect(assignments, isEmpty);
         expect(
           logs.map((item) => item.action),
-          containsAll(['CREATE_CLASS', 'UPDATE_CLASS']),
+          containsAll(['CREATE_CLASS', 'REQUEST_CLASS_ADJUSTMENT']),
         );
       },
     );

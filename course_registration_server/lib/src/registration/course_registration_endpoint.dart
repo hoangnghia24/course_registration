@@ -8,6 +8,14 @@ class CourseRegistrationEndpoint extends StudentGuard {
   Future<Semester> getCurrentSemester(Session session) =>
       CourseRegistrationService.getCurrentSemester(session);
 
+  Future<RegistrationPeriodDto> getRegistrationPeriod(
+    Session session, {
+    required UuidValue semesterId,
+  }) => CourseRegistrationService.getRegistrationPeriod(
+    session,
+    semesterId: semesterId,
+  );
+
   Future<List<OpenCourseClassDto>> getOpenClasses(
     Session session, {
     required UuidValue semesterId,

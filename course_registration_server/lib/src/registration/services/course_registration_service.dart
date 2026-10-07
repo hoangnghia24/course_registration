@@ -5,7 +5,7 @@ import '../../generated/protocol.dart';
 import '../../core/input_validator.dart';
 import '../../core/pagination.dart';
 import 'course_eligibility_service.dart';
-import 'eligibility_checkers.dart';
+import 'registration_period_service.dart';
 
 abstract final class CourseRegistrationService {
   static Future<Semester> getCurrentSemester(Session session) async {
@@ -13,25 +13,25 @@ abstract final class CourseRegistrationService {
       session,
       where: (table) => table.status.equals(SemesterStatus.open),
     );
-    final now = DateTime.now().toUtc();
-    final available = semesters
-        .where(
-          (semester) => RegistrationWindowPolicy.isOpen(
-            statusOpen: semester.status == SemesterStatus.open,
-            startDate: semester.startDate,
-            endDate: semester.endDate,
-            now: now,
-          ),
-        )
-        .toList();
-    if (available.isEmpty) {
+    if (semesters.isEmpty) {
       throw AppException(
         code: 'semester_not_open',
-        message: 'Hiện không có học kỳ mở đăng ký.',
+        message: 'Hiện không có học kỳ đang hoạt động.',
       );
     }
-    available.sort((a, b) => b.startDate.compareTo(a.startDate));
-    return available.first;
+    semesters.sort((a, b) => b.startDate.compareTo(a.startDate));
+    return semesters.first;
+  }
+
+  static Future<RegistrationPeriodDto> getRegistrationPeriod(
+    Session session, {
+    required UuidValue semesterId,
+  }) async {
+    await authorizedStudent(session);
+    return RegistrationPeriodService.getDto(
+      session,
+      semesterId: semesterId,
+    );
   }
 
   static Future<List<OpenCourseClassDto>> getOpenClasses(
@@ -247,23 +247,21 @@ abstract final class CourseRegistrationService {
         message: 'Lớp học không tồn tại.',
       );
     }
-    final semester = await Semester.db.findById(
+    final window = await RegistrationPeriodService.getWindow(
       session,
-      courseClass.semesterId,
+      semesterId: courseClass.semesterId,
       transaction: transaction,
     );
-    final canCancel =
-        semester != null &&
-        RegistrationWindowPolicy.isOpen(
-          statusOpen: semester.status == SemesterStatus.open,
-          startDate: semester.startDate,
-          endDate: semester.endDate,
-          now: DateTime.now().toUtc(),
-        );
-    if (!canCancel) {
+    final now = DateTime.now().toUtc();
+    if (!window.isOpenAt(now)) {
+      final message = window.semester.status != SemesterStatus.open
+          ? 'Học kỳ hiện không mở đăng ký học phần.'
+          : now.isBefore(window.startTime)
+          ? 'Thời gian đăng ký học phần chưa bắt đầu.'
+          : 'Thời gian đăng ký học phần đã kết thúc.';
       return RegistrationResultDto(
         success: false,
-        message: 'Học kỳ đã đóng, không thể hủy đăng ký.',
+        message: message,
         errorCode: 'COURSE_NOT_OPEN',
       );
     }
@@ -310,7 +308,13 @@ abstract final class CourseRegistrationService {
     if (result.messages.any((message) => message.contains('đã đăng ký'))) {
       return 'ALREADY_REGISTERED';
     }
-    if (result.messages.any((message) => message.contains('đã đóng'))) {
+    if (result.messages.any(
+      (message) =>
+          message.contains('đã đóng') ||
+          message.contains('không mở đăng ký') ||
+          message.contains('chưa bắt đầu') ||
+          message.contains('đã kết thúc'),
+    )) {
       return 'COURSE_NOT_OPEN';
     }
     if (!result.capacityAvailable) return 'CLASS_FULL';

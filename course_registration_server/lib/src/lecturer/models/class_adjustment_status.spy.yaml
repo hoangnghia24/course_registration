@@ -1,0 +1,6 @@
+enum: ClassAdjustmentStatus
+serialized: byName
+values:
+  - pending
+  - approved
+  - rejected

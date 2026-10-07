@@ -19,6 +19,14 @@ final currentSemesterProvider = FutureProvider.autoDispose<Semester>(
   (ref) => ref.watch(courseRegistrationRepositoryProvider).getCurrentSemester(),
 );
 
+final registrationPeriodProvider =
+    FutureProvider.autoDispose<RegistrationPeriodDto>((ref) async {
+      final semester = await ref.watch(currentSemesterProvider.future);
+      return ref
+          .watch(courseRegistrationRepositoryProvider)
+          .getRegistrationPeriod(semester.id!);
+    });
+
 final openClassesProvider =
     FutureProvider.autoDispose<List<OpenCourseClassDto>>((
       ref,

@@ -10,6 +10,7 @@ import '../../features/admin/presentation/pages/audit_log_page.dart';
 import '../../features/admin/presentation/pages/class_approval_page.dart';
 import '../../features/admin/presentation/pages/course_management_page.dart';
 import '../../features/admin/presentation/pages/report_dashboard_page.dart';
+import '../../features/admin/presentation/pages/registration_period_page.dart';
 import '../../features/admin/presentation/pages/training_program_admin_page.dart';
 import '../../features/admin/presentation/pages/user_management_page.dart';
 import '../../features/lecturer/presentation/pages/class_demand_page.dart';
@@ -158,6 +159,10 @@ abstract final class AppRouter {
       GoRoute(
         path: '/admin/approvals',
         builder: (_, _) => const ClassApprovalPage(),
+      ),
+      GoRoute(
+        path: '/admin/registration-period',
+        builder: (_, _) => const RegistrationPeriodPage(),
       ),
       GoRoute(
         path: '/admin/reports',

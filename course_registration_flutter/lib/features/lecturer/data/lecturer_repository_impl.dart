@@ -84,6 +84,10 @@ class LecturerRepositoryImpl implements LecturerRepository {
   Future<List<String>> getAvailableRooms() =>
       _client.lecturer.getAvailableRooms();
   @override
+  Future<RegistrationPeriodDto> getRegistrationPeriod(
+    UuidValue semesterId,
+  ) => _client.lecturer.getRegistrationPeriod(semesterId: semesterId);
+  @override
   Future<List<ClassScheduleDto>> getAvailableScheduleSlots({
     required UuidValue semesterId,
     required String room,
@@ -106,7 +110,7 @@ class LecturerRepositoryImpl implements LecturerRepository {
   );
 
   @override
-  Future<LecturerCourseClassDto> updateClass({
+  Future<ClassAdjustmentRequestDto> updateClass({
     required UuidValue courseClassId,
     required int capacity,
     required List<ClassScheduleDto> schedules,

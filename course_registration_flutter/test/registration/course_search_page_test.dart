@@ -18,6 +18,9 @@ void main() {
               courseClass,
             ],
           ),
+          registrationPeriodProvider.overrideWith(
+            (ref) async => _registrationPeriod(courseClass.semesterId),
+          ),
         ],
         child: const MaterialApp(home: CourseSearchPage()),
       ),
@@ -105,6 +108,9 @@ class _FakeRegistrationRepository implements CourseRegistrationRepository {
   @override
   Future<Semester> getCurrentSemester() => throw UnimplementedError();
   @override
+  Future<RegistrationPeriodDto> getRegistrationPeriod(UuidValue semesterId) =>
+      throw UnimplementedError();
+  @override
   Future<List<OpenCourseClassDto>> getOpenClasses(UuidValue semesterId) =>
       throw UnimplementedError();
   @override
@@ -120,6 +126,17 @@ class _FakeRegistrationRepository implements CourseRegistrationRepository {
   Future<RegistrationResultDto> cancelCourse(UuidValue registrationId) =>
       throw UnimplementedError();
 }
+
+RegistrationPeriodDto _registrationPeriod(UuidValue semesterId) =>
+    RegistrationPeriodDto(
+      semesterId: semesterId,
+      semesterName: 'Học kỳ 1',
+      academicYear: 2026,
+      startTime: DateTime.utc(2020),
+      endTime: DateTime.utc(2030),
+      configured: true,
+      isOpen: true,
+    );
 
 OpenCourseClassDto _courseClass() => OpenCourseClassDto(
   courseClassId: UuidValue.withValidation(

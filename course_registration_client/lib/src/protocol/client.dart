@@ -27,6 +27,8 @@ import 'package:course_registration_client/src/protocol/app_user.dart'
     as _igznxkwp;
 import 'package:course_registration_client/src/protocol/greetings/greeting.dart'
     as _iegjp1l2;
+import 'package:course_registration_client/src/protocol/lecturer/dto/class_adjustment_request_dto.dart'
+    as _ifivxqc8;
 import 'package:course_registration_client/src/protocol/lecturer/dto/class_demand_dto.dart'
     as _in85cpl6;
 import 'package:course_registration_client/src/protocol/lecturer/dto/class_student_dto.dart'
@@ -35,6 +37,8 @@ import 'package:course_registration_client/src/protocol/lecturer/dto/lecturer_co
     as _ibein0b1;
 import 'package:course_registration_client/src/protocol/lecturer/dto/lecturer_profile_dto.dart'
     as _iaxps9pc;
+import 'package:course_registration_client/src/protocol/lecturer/models/class_adjustment_status.dart'
+    as _ie9rcf1w;
 import 'package:course_registration_client/src/protocol/lecturer/models/teaching_schedule_proposal.dart'
     as _i81hb12m;
 import 'package:course_registration_client/src/protocol/registration/dto/class_schedule_dto.dart'
@@ -45,6 +49,8 @@ import 'package:course_registration_client/src/protocol/registration/dto/open_co
     as _ilyiw8j3;
 import 'package:course_registration_client/src/protocol/registration/dto/registered_course_dto.dart'
     as _irdda7pa;
+import 'package:course_registration_client/src/protocol/registration/dto/registration_period_dto.dart'
+    as _iofzf6to;
 import 'package:course_registration_client/src/protocol/registration/dto/registration_result_dto.dart'
     as _iuabtiyn;
 import 'package:course_registration_client/src/protocol/registration/models/course_equivalent.dart'
@@ -395,6 +401,49 @@ class EndpointAdmin extends EndpointAdminGuard {
     {
       'requestId': requestId,
       'approve': approve,
+    },
+  );
+
+  _ida.Future<List<_ifivxqc8.ClassAdjustmentRequestDto>> getAdjustmentRequests({
+    _ie9rcf1w.ClassAdjustmentStatus? status,
+  }) => caller.callServerEndpoint<List<_ifivxqc8.ClassAdjustmentRequestDto>>(
+    'admin',
+    'getAdjustmentRequests',
+    {'status': status},
+  );
+
+  _ida.Future<_ifivxqc8.ClassAdjustmentRequestDto> decideAdjustmentRequest({
+    required _isc.UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  }) => caller.callServerEndpoint<_ifivxqc8.ClassAdjustmentRequestDto>(
+    'admin',
+    'decideAdjustmentRequest',
+    {
+      'requestId': requestId,
+      'approve': approve,
+      'rejectReason': rejectReason,
+    },
+  );
+
+  _ida.Future<List<_iofzf6to.RegistrationPeriodDto>> getRegistrationPeriods() =>
+      caller.callServerEndpoint<List<_iofzf6to.RegistrationPeriodDto>>(
+        'admin',
+        'getRegistrationPeriods',
+        {},
+      );
+
+  _ida.Future<_iofzf6to.RegistrationPeriodDto> updateRegistrationPeriod({
+    required _isc.UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) => caller.callServerEndpoint<_iofzf6to.RegistrationPeriodDto>(
+    'admin',
+    'updateRegistrationPeriod',
+    {
+      'semesterId': semesterId,
+      'startTime': startTime,
+      'endTime': endTime,
     },
   );
 
@@ -762,11 +811,11 @@ class EndpointLecturer extends EndpointLecturerGuard {
     },
   );
 
-  _ida.Future<_ibein0b1.LecturerCourseClassDto> updateCourseClass({
+  _ida.Future<_ifivxqc8.ClassAdjustmentRequestDto> updateCourseClass({
     required _isc.UuidValue courseClassId,
     required int capacity,
     required List<_iff0ymco.ClassScheduleDto> schedules,
-  }) => caller.callServerEndpoint<_ibein0b1.LecturerCourseClassDto>(
+  }) => caller.callServerEndpoint<_ifivxqc8.ClassAdjustmentRequestDto>(
     'lecturer',
     'updateCourseClass',
     {
@@ -809,6 +858,14 @@ class EndpointLecturer extends EndpointLecturerGuard {
         'getAvailableRooms',
         {},
       );
+
+  _ida.Future<_iofzf6to.RegistrationPeriodDto> getRegistrationPeriod({
+    required _isc.UuidValue semesterId,
+  }) => caller.callServerEndpoint<_iofzf6to.RegistrationPeriodDto>(
+    'lecturer',
+    'getRegistrationPeriod',
+    {'semesterId': semesterId},
+  );
 
   _ida.Future<List<_iff0ymco.ClassScheduleDto>> getAvailableScheduleSlots({
     required _isc.UuidValue semesterId,
@@ -895,6 +952,14 @@ class EndpointCourseRegistration extends EndpointStudentGuard {
         'getCurrentSemester',
         {},
       );
+
+  _ida.Future<_iofzf6to.RegistrationPeriodDto> getRegistrationPeriod({
+    required _isc.UuidValue semesterId,
+  }) => caller.callServerEndpoint<_iofzf6to.RegistrationPeriodDto>(
+    'courseRegistration',
+    'getRegistrationPeriod',
+    {'semesterId': semesterId},
+  );
 
   _ida.Future<List<_ilyiw8j3.OpenCourseClassDto>> getOpenClasses({
     required _isc.UuidValue semesterId,

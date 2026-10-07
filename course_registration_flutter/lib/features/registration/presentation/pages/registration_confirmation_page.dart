@@ -14,6 +14,8 @@ class RegistrationConfirmationPage extends ConsumerWidget {
     final eligibility = ref.watch(
       eligibilityProvider(courseClass.courseClassId),
     );
+    final registrationOpen =
+        ref.watch(registrationPeriodProvider).asData?.value.isOpen ?? false;
     return Scaffold(
       appBar: AppBar(title: const Text('Xác nhận đăng ký')),
       body: eligibility.when(
@@ -58,7 +60,9 @@ class RegistrationConfirmationPage extends ConsumerWidget {
             const SizedBox(height: 16),
             FilledButton(
               key: const Key('confirm-registration'),
-              onPressed: result.eligible ? () => _register(context, ref) : null,
+              onPressed: result.eligible && registrationOpen
+                  ? () => _register(context, ref)
+                  : null,
               child: const Text('Xác nhận đăng ký'),
             ),
           ],

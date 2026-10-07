@@ -91,6 +91,11 @@ class AdminDashboardPage extends ConsumerWidget {
                   () => context.push('/admin/approvals'),
                 ),
                 _Menu(
+                  'Thời gian đăng ký',
+                  Icons.event_available_outlined,
+                  () => context.push('/admin/registration-period'),
+                ),
+                _Menu(
                   'Báo cáo',
                   Icons.analytics_outlined,
                   () => context.push('/admin/reports'),

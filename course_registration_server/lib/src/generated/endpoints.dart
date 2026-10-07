@@ -10,6 +10,8 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:course_registration_server/src/generated/lecturer/models/class_adjustment_status.dart'
+    as _iinax7tt;
 import 'package:course_registration_server/src/generated/registration/dto/class_schedule_dto.dart'
     as _ig0q9hbn;
 import 'package:course_registration_server/src/generated/student/models/course_type.dart'
@@ -777,6 +779,97 @@ class Endpoints extends _is.EndpointDispatch {
                     approve: params['approve'],
                   ),
         ),
+        'getAdjustmentRequests': _is.MethodConnector(
+          name: 'getAdjustmentRequests',
+          params: {
+            'status': _is.ParameterDescription(
+              name: 'status',
+              type: _is.getType<_iinax7tt.ClassAdjustmentStatus?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _ido5l6pj.AdminEndpoint)
+                  .getAdjustmentRequests(
+                    session,
+                    status: params['status'],
+                  ),
+        ),
+        'decideAdjustmentRequest': _is.MethodConnector(
+          name: 'decideAdjustmentRequest',
+          params: {
+            'requestId': _is.ParameterDescription(
+              name: 'requestId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'approve': _is.ParameterDescription(
+              name: 'approve',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+            'rejectReason': _is.ParameterDescription(
+              name: 'rejectReason',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _ido5l6pj.AdminEndpoint)
+                  .decideAdjustmentRequest(
+                    session,
+                    requestId: params['requestId'],
+                    approve: params['approve'],
+                    rejectReason: params['rejectReason'],
+                  ),
+        ),
+        'getRegistrationPeriods': _is.MethodConnector(
+          name: 'getRegistrationPeriods',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _ido5l6pj.AdminEndpoint)
+                  .getRegistrationPeriods(session),
+        ),
+        'updateRegistrationPeriod': _is.MethodConnector(
+          name: 'updateRegistrationPeriod',
+          params: {
+            'semesterId': _is.ParameterDescription(
+              name: 'semesterId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'startTime': _is.ParameterDescription(
+              name: 'startTime',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+            'endTime': _is.ParameterDescription(
+              name: 'endTime',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _ido5l6pj.AdminEndpoint)
+                  .updateRegistrationPeriod(
+                    session,
+                    semesterId: params['semesterId'],
+                    startTime: params['startTime'],
+                    endTime: params['endTime'],
+                  ),
+        ),
         'getReports': _is.MethodConnector(
           name: 'getReports',
           params: {},
@@ -1333,6 +1426,25 @@ class Endpoints extends _is.EndpointDispatch {
               ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
                   .getAvailableRooms(session),
         ),
+        'getRegistrationPeriod': _is.MethodConnector(
+          name: 'getRegistrationPeriod',
+          params: {
+            'semesterId': _is.ParameterDescription(
+              name: 'semesterId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
+                  .getRegistrationPeriod(
+                    session,
+                    semesterId: params['semesterId'],
+                  ),
+        ),
         'getAvailableScheduleSlots': _is.MethodConnector(
           name: 'getAvailableScheduleSlots',
           params: {
@@ -1488,6 +1600,27 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['courseRegistration']
                           as _i2breg4l.CourseRegistrationEndpoint)
                       .getCurrentSemester(session),
+        ),
+        'getRegistrationPeriod': _is.MethodConnector(
+          name: 'getRegistrationPeriod',
+          params: {
+            'semesterId': _is.ParameterDescription(
+              name: 'semesterId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['courseRegistration']
+                          as _i2breg4l.CourseRegistrationEndpoint)
+                      .getRegistrationPeriod(
+                        session,
+                        semesterId: params['semesterId'],
+                      ),
         ),
         'getOpenClasses': _is.MethodConnector(
           name: 'getOpenClasses',

@@ -1,0 +1,22 @@
+class: ClassAdjustmentRequest
+table: class_adjustment_requests
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  courseClass: CourseClass?, relation(onDelete=Cascade)
+  lecturer: Lecturer?, relation(onDelete=Cascade)
+  oldCapacity: int
+  newCapacity: int
+  oldSchedulesJson: String
+  newSchedulesJson: String
+  status: ClassAdjustmentStatus, defaultModel=pending
+  createdAt: DateTime, default=now
+  reviewedAt: DateTime?
+  reviewedBy: Admin?, relation(optional, onDelete=SetNull)
+  rejectReason: String?
+indexes:
+  class_adjustment_requests_class_status_idx:
+    fields: courseClassId, status
+  class_adjustment_requests_lecturer_idx:
+    fields: lecturerId, createdAt
+  class_adjustment_requests_status_idx:
+    fields: status, createdAt

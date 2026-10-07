@@ -38,3 +38,9 @@ final lecturerSemestersProvider = FutureProvider.autoDispose<List<Semester>>(
 final availableRoomsProvider = FutureProvider.autoDispose<List<String>>(
   (ref) => ref.watch(lecturerRepositoryProvider).getAvailableRooms(),
 );
+final lecturerRegistrationPeriodProvider = FutureProvider.autoDispose
+    .family<RegistrationPeriodDto, UuidValue>(
+      (ref, semesterId) => ref
+          .watch(lecturerRepositoryProvider)
+          .getRegistrationPeriod(semesterId),
+    );

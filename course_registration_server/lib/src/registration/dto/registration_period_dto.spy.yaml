@@ -1,0 +1,10 @@
+class: RegistrationPeriodDto
+fields:
+  registrationPeriodId: UuidValue?
+  semesterId: UuidValue
+  semesterName: String
+  academicYear: int
+  startTime: DateTime
+  endTime: DateTime
+  configured: bool
+  isOpen: bool

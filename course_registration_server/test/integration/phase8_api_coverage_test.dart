@@ -123,8 +123,8 @@ void main() {
         expect(courses, isNotEmpty);
         expect(semesters, isNotEmpty);
         expect(existing, isNotEmpty);
-        expect(updated.classCode, startsWith('LHP'));
-        expect(updated.status, CourseClassStatus.closed);
+        expect(updated.newCapacity, 25);
+        expect(updated.status, ClassAdjustmentStatus.pending);
         expect(schedule, isNotEmpty);
         expect(
           schedule.every(

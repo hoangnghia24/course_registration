@@ -38,7 +38,7 @@ class LecturerEndpoint extends LecturerGuard {
     schedules: schedules,
   );
 
-  Future<LecturerCourseClassDto> updateCourseClass(
+  Future<ClassAdjustmentRequestDto> updateCourseClass(
     Session session, {
     required UuidValue courseClassId,
     required int capacity,
@@ -73,6 +73,14 @@ class LecturerEndpoint extends LecturerGuard {
 
   Future<List<String>> getAvailableRooms(Session session) =>
       LecturerService.getAvailableRooms(session);
+
+  Future<RegistrationPeriodDto> getRegistrationPeriod(
+    Session session, {
+    required UuidValue semesterId,
+  }) => LecturerService.getRegistrationPeriod(
+    session,
+    semesterId: semesterId,
+  );
 
   Future<List<ClassScheduleDto>> getAvailableScheduleSlots(
     Session session, {

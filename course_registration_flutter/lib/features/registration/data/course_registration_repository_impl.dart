@@ -37,6 +37,13 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
   }
 
   @override
+  Future<RegistrationPeriodDto> getRegistrationPeriod(
+    UuidValue semesterId,
+  ) => _client.courseRegistration.getRegistrationPeriod(
+    semesterId: semesterId,
+  );
+
+  @override
   Future<List<OpenCourseClassDto>> getOpenClasses(
     UuidValue semesterId,
   ) async {

@@ -118,6 +118,37 @@ class AdminRepositoryImpl implements AdminRepository {
   }
 
   @override
+  Future<List<ClassAdjustmentRequestDto>> getAdjustmentRequests({
+    ClassAdjustmentStatus? status,
+  }) => _client.admin.getAdjustmentRequests(status: status);
+
+  @override
+  Future<ClassAdjustmentRequestDto> decideAdjustmentRequest({
+    required UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  }) => _client.admin.decideAdjustmentRequest(
+    requestId: requestId,
+    approve: approve,
+    rejectReason: rejectReason,
+  );
+
+  @override
+  Future<List<RegistrationPeriodDto>> getRegistrationPeriods() =>
+      _client.admin.getRegistrationPeriods();
+
+  @override
+  Future<RegistrationPeriodDto> updateRegistrationPeriod({
+    required UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) => _client.admin.updateRegistrationPeriod(
+    semesterId: semesterId,
+    startTime: startTime,
+    endTime: endTime,
+  );
+
+  @override
   Future<AnalyticsReportDto> getReports() async {
     try {
       final value = await _client.admin.getReports();

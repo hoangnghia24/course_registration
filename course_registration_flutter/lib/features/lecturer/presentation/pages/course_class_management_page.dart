@@ -34,6 +34,11 @@ class CourseClassManagementPage extends ConsumerWidget {
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
+            final period = ref
+                .watch(lecturerRegistrationPeriodProvider(item.semesterId))
+                .asData
+                ?.value;
+            final canChange = period?.isOpen ?? false;
             return Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -50,6 +55,16 @@ class CourseClassManagementPage extends ConsumerWidget {
                     Text('${item.registeredCount}/${item.capacity} sinh viên'),
                     const SizedBox(height: 6),
                     _ApprovalStatusChip(item: item),
+                    if (period != null && !period.isOpen)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          _periodMessage(period),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
                     Wrap(
                       children: [
                         TextButton(
@@ -60,11 +75,15 @@ class CourseClassManagementPage extends ConsumerWidget {
                           child: const Text('Chi tiết'),
                         ),
                         TextButton(
-                          onPressed: () => _edit(context, ref, item),
+                          onPressed: canChange
+                              ? () => _edit(context, ref, item)
+                              : null,
                           child: const Text('Sửa'),
                         ),
                         TextButton(
-                          onPressed: () => _delete(context, ref, item),
+                          onPressed: canChange
+                              ? () => _delete(context, ref, item)
+                              : null,
                           child: const Text('Xóa'),
                         ),
                       ],
@@ -122,30 +141,14 @@ class CourseClassManagementPage extends ConsumerWidget {
     WidgetRef ref,
     LecturerCourseClassDto item,
   ) async {
-    if (item.registeredCount > 0) {
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Không thể xóa lớp'),
-          content: Text(
-            'Lớp ${item.classCode} đang có ${item.registeredCount} sinh viên học.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Đã hiểu'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Xóa lớp học phần?'),
         content: Text(
-          'Bạn có chắc muốn xóa ${item.classCode} - ${item.courseName}?',
+          item.registeredCount == 0
+              ? 'Bạn có chắc muốn xóa ${item.classCode} - ${item.courseName}?'
+              : 'Lớp có ${item.registeredCount} sinh viên. Xóa lớp sẽ đồng thời gỡ toàn bộ đăng ký liên quan. Bạn có chắc chắn?',
         ),
         actions: [
           TextButton(
@@ -178,6 +181,23 @@ class CourseClassManagementPage extends ConsumerWidget {
       }
     }
   }
+
+  static String _periodMessage(RegistrationPeriodDto period) {
+    final now = DateTime.now().toUtc();
+    if (now.isBefore(period.startTime.toUtc())) {
+      return 'Chỉ được điều chỉnh từ ${_format(period.startTime.toLocal())}.';
+    }
+    if (now.isAfter(period.endTime.toUtc())) {
+      return 'Thời gian điều chỉnh đã kết thúc lúc ${_format(period.endTime.toLocal())}.';
+    }
+    return 'Học kỳ hiện không mở điều chỉnh lớp học phần.';
+  }
+
+  static String _format(DateTime value) =>
+      '${value.day.toString().padLeft(2, '0')}/'
+      '${value.month.toString().padLeft(2, '0')}/${value.year} '
+      '${value.hour.toString().padLeft(2, '0')}:'
+      '${value.minute.toString().padLeft(2, '0')}';
 }
 
 class _ApprovalStatusChip extends StatelessWidget {
@@ -187,6 +207,7 @@ class _ApprovalStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final adjustment = item.latestAdjustment;
     final pending = item.proposals.any(
       (value) => value.status == TeachingScheduleStatus.pending,
     );
@@ -195,7 +216,17 @@ class _ApprovalStatusChip extends StatelessWidget {
         item.proposals.every(
           (value) => value.status == TeachingScheduleStatus.rejected,
         );
-    final (label, color, icon) = pending
+    final (
+      label,
+      color,
+      icon,
+    ) = adjustment?.status == ClassAdjustmentStatus.pending
+        ? ('Chờ duyệt điều chỉnh', Colors.orange, Icons.hourglass_top)
+        : adjustment?.status == ClassAdjustmentStatus.rejected
+        ? ('Điều chỉnh bị từ chối', Colors.red, Icons.cancel_outlined)
+        : adjustment?.status == ClassAdjustmentStatus.approved
+        ? ('Điều chỉnh đã duyệt', Colors.green, Icons.check_circle_outline)
+        : pending
         ? ('Chờ phòng đào tạo duyệt', Colors.orange, Icons.hourglass_top)
         : rejected && item.status == CourseClassStatus.closed
         ? ('Yêu cầu bị từ chối', Colors.red, Icons.cancel_outlined)

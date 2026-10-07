@@ -1,0 +1,17 @@
+class: ClassAdjustmentRequestDto
+fields:
+  requestId: UuidValue
+  courseClassId: UuidValue
+  classCode: String
+  courseCode: String
+  courseName: String
+  lecturerName: String
+  oldCapacity: int
+  newCapacity: int
+  oldSchedules: List<ClassScheduleDto>
+  newSchedules: List<ClassScheduleDto>
+  status: ClassAdjustmentStatus
+  createdAt: DateTime
+  reviewedAt: DateTime?
+  reviewedByName: String?
+  rejectReason: String?

@@ -192,6 +192,39 @@ class AdminEndpoint extends AdminGuard {
     required bool approve,
   }) => AdminService.decideOpeningRequest(session, requestId, approve);
 
+  Future<List<ClassAdjustmentRequestDto>> getAdjustmentRequests(
+    Session session, {
+    ClassAdjustmentStatus? status,
+  }) => AdminService.getAdjustmentRequests(session, status: status);
+
+  Future<ClassAdjustmentRequestDto> decideAdjustmentRequest(
+    Session session, {
+    required UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  }) => AdminService.decideAdjustmentRequest(
+    session,
+    requestId: requestId,
+    approve: approve,
+    rejectReason: rejectReason,
+  );
+
+  Future<List<RegistrationPeriodDto>> getRegistrationPeriods(
+    Session session,
+  ) => AdminService.getRegistrationPeriods(session);
+
+  Future<RegistrationPeriodDto> updateRegistrationPeriod(
+    Session session, {
+    required UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) => AdminService.updateRegistrationPeriod(
+    session,
+    semesterId: semesterId,
+    startTime: startTime,
+    endTime: endTime,
+  );
+
   Future<AnalyticsReportDto> getReports(Session session) =>
       AdminService.getReports(session);
   Future<List<AuditLogDto>> getAuditLogs(

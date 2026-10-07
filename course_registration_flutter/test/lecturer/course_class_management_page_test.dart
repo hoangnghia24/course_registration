@@ -14,6 +14,9 @@ void main() {
       ProviderScope(
         overrides: [
           courseClassProvider.overrideWith((ref) async => [lecturerClass()]),
+          lecturerRegistrationPeriodProvider(
+            lecturerClass().semesterId,
+          ).overrideWith((ref) async => _period()),
         ],
         child: const MaterialApp(home: CourseClassManagementPage()),
       ),
@@ -27,13 +30,16 @@ void main() {
     expect(find.text('Đã duyệt'), findsOneWidget);
   });
 
-  testWidgets('deleting a class with students shows a clear warning', (
+  testWidgets('deleting a class warns that registrations are removed', (
     tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           courseClassProvider.overrideWith((ref) async => [lecturerClass()]),
+          lecturerRegistrationPeriodProvider(
+            lecturerClass().semesterId,
+          ).overrideWith((ref) async => _period()),
         ],
         child: const MaterialApp(home: CourseClassManagementPage()),
       ),
@@ -43,8 +49,8 @@ void main() {
     await tester.tap(find.text('Xóa'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Không thể xóa lớp'), findsOneWidget);
-    expect(find.textContaining('đang có 45 sinh viên học'), findsOneWidget);
+    expect(find.text('Xóa lớp học phần?'), findsOneWidget);
+    expect(find.textContaining('gỡ toàn bộ đăng ký liên quan'), findsOneWidget);
   });
 
   testWidgets('class changes are submitted as an approval request', (
@@ -84,16 +90,29 @@ class _FakeLecturerRepository implements LecturerRepository {
   List<ClassScheduleDto> updatedSchedules = const [];
 
   @override
-  Future<LecturerCourseClassDto> updateClass({
+  Future<ClassAdjustmentRequestDto> updateClass({
     required UuidValue courseClassId,
     required int capacity,
     required List<ClassScheduleDto> schedules,
   }) async {
     updatedCapacity = capacity;
     updatedSchedules = schedules;
-    return lecturerClass().copyWith(
-      capacity: capacity,
-      status: CourseClassStatus.closed,
+    final item = lecturerClass();
+    return ClassAdjustmentRequestDto(
+      requestId: UuidValue.withValidation(
+        '018f0000-0000-7000-8000-000000000299',
+      ),
+      courseClassId: courseClassId,
+      classCode: item.classCode,
+      courseCode: item.courseCode,
+      courseName: item.courseName,
+      lecturerName: 'Nguyễn Văn A',
+      oldCapacity: item.capacity,
+      newCapacity: capacity,
+      oldSchedules: item.schedules,
+      newSchedules: schedules,
+      status: ClassAdjustmentStatus.pending,
+      createdAt: DateTime.utc(2026, 10, 7),
     );
   }
 
@@ -117,6 +136,9 @@ class _FakeLecturerRepository implements LecturerRepository {
   @override
   Future<List<String>> getAvailableRooms() => throw UnimplementedError();
   @override
+  Future<RegistrationPeriodDto> getRegistrationPeriod(UuidValue semesterId) =>
+      Future.value(_period());
+  @override
   Future<List<ClassScheduleDto>> getAvailableScheduleSlots({
     required UuidValue semesterId,
     required String room,
@@ -139,3 +161,13 @@ class _FakeLecturerRepository implements LecturerRepository {
     required double finalScore,
   }) => throw UnimplementedError();
 }
+
+RegistrationPeriodDto _period() => RegistrationPeriodDto(
+  semesterId: lecturerClass().semesterId,
+  semesterName: 'Học kỳ 1',
+  academicYear: 2026,
+  startTime: DateTime.utc(2020),
+  endTime: DateTime.utc(2030),
+  configured: true,
+  isOpen: true,
+);

@@ -29,6 +29,8 @@ import 'package:course_registration_server/src/generated/app_user.dart'
     as _i2rbgpfw;
 import 'package:course_registration_server/src/generated/greetings/greeting.dart'
     as _iyp6hbf7;
+import 'package:course_registration_server/src/generated/lecturer/dto/class_adjustment_request_dto.dart'
+    as _ibiah85t;
 import 'package:course_registration_server/src/generated/lecturer/dto/class_demand_dto.dart'
     as _ia38wpgm;
 import 'package:course_registration_server/src/generated/lecturer/dto/class_student_dto.dart'
@@ -37,6 +39,8 @@ import 'package:course_registration_server/src/generated/lecturer/dto/lecturer_c
     as _ibcbukpi;
 import 'package:course_registration_server/src/generated/lecturer/dto/lecturer_profile_dto.dart'
     as _id53f0fd;
+import 'package:course_registration_server/src/generated/lecturer/models/class_adjustment_status.dart'
+    as _iinax7tt;
 import 'package:course_registration_server/src/generated/lecturer/models/teaching_schedule_proposal.dart'
     as _imgyj9ow;
 import 'package:course_registration_server/src/generated/registration/dto/class_schedule_dto.dart'
@@ -47,6 +51,8 @@ import 'package:course_registration_server/src/generated/registration/dto/open_c
     as _i23bizbs;
 import 'package:course_registration_server/src/generated/registration/dto/registered_course_dto.dart'
     as _ih5gikos;
+import 'package:course_registration_server/src/generated/registration/dto/registration_period_dto.dart'
+    as _i5w6e71e;
 import 'package:course_registration_server/src/generated/registration/dto/registration_result_dto.dart'
     as _iit4hukr;
 import 'package:course_registration_server/src/generated/registration/models/course_equivalent.dart'
@@ -1217,6 +1223,141 @@ class _AdminEndpoint {
     });
   }
 
+  _ida.Future<List<_ibiah85t.ClassAdjustmentRequestDto>> getAdjustmentRequests(
+    _ist.TestSessionBuilder sessionBuilder, {
+    _iinax7tt.ClassAdjustmentStatus? status,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getAdjustmentRequests',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getAdjustmentRequests',
+          parameters: _ist.testObjectToJson({'status': status}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ibiah85t.ClassAdjustmentRequestDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_ibiah85t.ClassAdjustmentRequestDto> decideAdjustmentRequest(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'decideAdjustmentRequest',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'decideAdjustmentRequest',
+          parameters: _ist.testObjectToJson({
+            'requestId': requestId,
+            'approve': approve,
+            'rejectReason': rejectReason,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ibiah85t.ClassAdjustmentRequestDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_i5w6e71e.RegistrationPeriodDto>> getRegistrationPeriods(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getRegistrationPeriods',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getRegistrationPeriods',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_i5w6e71e.RegistrationPeriodDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i5w6e71e.RegistrationPeriodDto> updateRegistrationPeriod(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'updateRegistrationPeriod',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'updateRegistrationPeriod',
+          parameters: _ist.testObjectToJson({
+            'semesterId': semesterId,
+            'startTime': startTime,
+            'endTime': endTime,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i5w6e71e.RegistrationPeriodDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<_i93wqe6t.AnalyticsReportDto> getReports(
     _ist.TestSessionBuilder sessionBuilder,
   ) async {
@@ -2000,7 +2141,7 @@ class _LecturerEndpoint {
     });
   }
 
-  _ida.Future<_ibcbukpi.LecturerCourseClassDto> updateCourseClass(
+  _ida.Future<_ibiah85t.ClassAdjustmentRequestDto> updateCourseClass(
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue courseClassId,
     required int capacity,
@@ -2029,7 +2170,7 @@ class _LecturerEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _ida.Future<_ibcbukpi.LecturerCourseClassDto>);
+                as _ida.Future<_ibiah85t.ClassAdjustmentRequestDto>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2156,6 +2297,37 @@ class _LecturerEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<List<String>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i5w6e71e.RegistrationPeriodDto> getRegistrationPeriod(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue semesterId,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'lecturer',
+            method: 'getRegistrationPeriod',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'lecturer',
+          methodName: 'getRegistrationPeriod',
+          parameters: _ist.testObjectToJson({'semesterId': semesterId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i5w6e71e.RegistrationPeriodDto>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2410,6 +2582,37 @@ class _CourseRegistrationEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_i4gr1wnu.Semester>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i5w6e71e.RegistrationPeriodDto> getRegistrationPeriod(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue semesterId,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'courseRegistration',
+            method: 'getRegistrationPeriod',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'courseRegistration',
+          methodName: 'getRegistrationPeriod',
+          parameters: _ist.testObjectToJson({'semesterId': semesterId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i5w6e71e.RegistrationPeriodDto>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

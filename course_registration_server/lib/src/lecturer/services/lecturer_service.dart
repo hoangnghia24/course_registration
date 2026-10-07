@@ -4,6 +4,8 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import '../../generated/protocol.dart';
 import '../../core/pagination.dart';
 import '../../registration/services/eligibility_checkers.dart';
+import '../../registration/services/registration_period_service.dart';
+import 'class_adjustment_service.dart';
 import 'class_demand_service.dart';
 import 'lecturer_validators.dart';
 
@@ -108,7 +110,7 @@ abstract final class LecturerService {
       if (course == null || semester == null) {
         throw _incomplete('course_or_semester');
       }
-      await _ensureNoConflict(
+      await ensureNoConflict(
         session,
         lecturer: lecturer,
         semesterId: semesterId,
@@ -157,7 +159,7 @@ abstract final class LecturerService {
     });
   }
 
-  static Future<LecturerCourseClassDto> updateCourseClass(
+  static Future<ClassAdjustmentRequestDto> updateCourseClass(
     Session session, {
     required UuidValue courseClassId,
     required int capacity,
@@ -173,6 +175,11 @@ abstract final class LecturerService {
         transaction: transaction,
         lock: true,
       );
+      await RegistrationPeriodService.requireOpen(
+        session,
+        semesterId: courseClass.semesterId,
+        transaction: transaction,
+      );
       if (!LecturerClassValidator.validForUpdate(
         capacity: capacity,
         registeredCount: courseClass.registeredCount,
@@ -182,7 +189,7 @@ abstract final class LecturerService {
           message: 'Sĩ số tối đa không thể nhỏ hơn số sinh viên đã đăng ký.',
         );
       }
-      await _ensureNoConflict(
+      await ensureNoConflict(
         session,
         lecturer: lecturer,
         semesterId: courseClass.semesterId,
@@ -190,46 +197,52 @@ abstract final class LecturerService {
         excludedClassId: courseClassId,
         transaction: transaction,
       );
-      final oldProposals = await TeachingScheduleProposal.db.find(
+      final pending = await ClassAdjustmentRequest.db.findFirstRow(
+        session,
+        transaction: transaction,
+        where: (table) =>
+            table.courseClassId.equals(courseClassId) &
+            table.status.equals(ClassAdjustmentStatus.pending),
+      );
+      if (pending != null) {
+        throw AppException(
+          code: 'adjustment_already_pending',
+          message: 'Lớp đã có một yêu cầu điều chỉnh đang chờ duyệt.',
+        );
+      }
+      final currentSchedules = await ClassSchedule.db.find(
         session,
         transaction: transaction,
         where: (table) => table.courseClassId.equals(courseClassId),
       );
-      for (final proposal in oldProposals) {
-        if (proposal.status != TeachingScheduleStatus.rejected) {
-          await TeachingScheduleProposal.db.updateRow(
-            session,
-            proposal.copyWith(status: TeachingScheduleStatus.rejected),
-            transaction: transaction,
-          );
-        }
-      }
-      for (final schedule in schedules) {
-        await _insertProposal(
-          session,
-          lecturer: lecturer,
-          courseClassId: courseClassId,
-          schedule: schedule,
-          transaction: transaction,
-        );
-      }
-      final updated = await CourseClass.db.updateRow(
+      final request = await ClassAdjustmentRequest.db.insertRow(
         session,
-        courseClass.copyWith(
-          capacity: capacity,
-          status: CourseClassStatus.closed,
+        ClassAdjustmentRequest(
+          courseClassId: courseClassId,
+          lecturerId: lecturer.id!,
+          oldCapacity: courseClass.capacity,
+          newCapacity: capacity,
+          oldSchedulesJson: ClassAdjustmentService.encodeSchedules(
+            currentSchedules.map(_scheduleDto).toList(growable: false),
+          ),
+          newSchedulesJson: ClassAdjustmentService.encodeSchedules(schedules),
+          status: ClassAdjustmentStatus.pending,
         ),
         transaction: transaction,
       );
       await _log(
         session,
         lecturer: lecturer,
-        action: 'UPDATE_CLASS',
-        entity: 'course_class',
-        entityId: updated.id!,
+        action: 'REQUEST_CLASS_ADJUSTMENT',
+        entity: 'class_adjustment_request',
+        entityId: request.id!,
         transaction: transaction,
       );
-      return _classDto(session, updated, transaction: transaction);
+      return ClassAdjustmentService.toDto(
+        session,
+        request,
+        transaction: transaction,
+      );
     });
   }
 
@@ -246,12 +259,21 @@ abstract final class LecturerService {
         transaction: transaction,
         lock: true,
       );
-      if (courseClass.registeredCount > 0) {
-        throw AppException(
-          code: 'class_has_students',
-          message: 'Không thể xóa lớp đã có sinh viên đăng ký.',
-        );
-      }
+      await RegistrationPeriodService.requireOpen(
+        session,
+        semesterId: courseClass.semesterId,
+        transaction: transaction,
+      );
+      await RegistrationHistory.db.deleteWhere(
+        session,
+        where: (table) => table.courseClassId.equals(courseClassId),
+        transaction: transaction,
+      );
+      await Registration.db.deleteWhere(
+        session,
+        where: (table) => table.courseClassId.equals(courseClassId),
+        transaction: transaction,
+      );
       await _log(
         session,
         lecturer: lecturer,
@@ -283,7 +305,12 @@ abstract final class LecturerService {
         courseClassId,
         transaction: transaction,
       );
-      await _ensureNoConflict(
+      await RegistrationPeriodService.requireOpen(
+        session,
+        semesterId: courseClass.semesterId,
+        transaction: transaction,
+      );
+      await ensureNoConflict(
         session,
         lecturer: lecturer,
         semesterId: courseClass.semesterId,
@@ -352,6 +379,17 @@ abstract final class LecturerService {
   static Future<List<String>> getAvailableRooms(Session session) async {
     await _authorizedLecturer(session);
     return availableRooms;
+  }
+
+  static Future<RegistrationPeriodDto> getRegistrationPeriod(
+    Session session, {
+    required UuidValue semesterId,
+  }) async {
+    await _authorizedLecturer(session);
+    return RegistrationPeriodService.getDto(
+      session,
+      semesterId: semesterId,
+    );
   }
 
   static Future<List<ClassScheduleDto>> getAvailableScheduleSlots(
@@ -657,7 +695,7 @@ abstract final class LecturerService {
     return courseClass;
   }
 
-  static Future<void> _ensureNoConflict(
+  static Future<void> ensureNoConflict(
     Session session, {
     required Lecturer lecturer,
     required UuidValue semesterId,
@@ -882,6 +920,12 @@ abstract final class LecturerService {
       transaction: transaction,
       where: (table) => table.courseClassId.equals(courseClass.id),
     );
+    final latestAdjustment = await ClassAdjustmentRequest.db.findFirstRow(
+      session,
+      transaction: transaction,
+      where: (table) => table.courseClassId.equals(courseClass.id),
+      orderBy: (table) => table.createdAt.desc(),
+    );
     return LecturerCourseClassDto(
       courseClassId: courseClass.id!,
       courseId: course.id!,
@@ -905,8 +949,22 @@ abstract final class LecturerService {
           )
           .toList(),
       proposals: proposals,
+      latestAdjustment: latestAdjustment == null
+          ? null
+          : await ClassAdjustmentService.toDto(
+              session,
+              latestAdjustment,
+              transaction: transaction,
+            ),
     );
   }
+
+  static ClassScheduleDto _scheduleDto(ClassSchedule value) => ClassScheduleDto(
+    dayOfWeek: value.dayOfWeek,
+    startPeriod: value.startPeriod,
+    endPeriod: value.endPeriod,
+    room: value.room,
+  );
 
   static AppException _conflict() => AppException(
     code: 'teaching_schedule_conflict',

@@ -173,6 +173,25 @@ class _FakeAdminRepository implements AdminRepository {
   Future<void> decideClass(UuidValue classId, bool approve, String? comment) =>
       throw UnimplementedError();
   @override
+  Future<List<ClassAdjustmentRequestDto>> getAdjustmentRequests({
+    ClassAdjustmentStatus? status,
+  }) => throw UnimplementedError();
+  @override
+  Future<ClassAdjustmentRequestDto> decideAdjustmentRequest({
+    required UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  }) => throw UnimplementedError();
+  @override
+  Future<List<RegistrationPeriodDto>> getRegistrationPeriods() =>
+      throw UnimplementedError();
+  @override
+  Future<RegistrationPeriodDto> updateRegistrationPeriod({
+    required UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) => throw UnimplementedError();
+  @override
   Future<AnalyticsReportDto> getReports() => throw UnimplementedError();
   @override
   Future<List<AuditLogDto>> getAuditLogs() => throw UnimplementedError();

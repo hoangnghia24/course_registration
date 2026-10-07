@@ -13,6 +13,8 @@ class MyRegisteredCoursesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final courses = ref.watch(myRegisteredCoursesProvider);
     final pending = ref.watch(pendingRegistrationsProvider).asData?.value ?? [];
+    final registrationOpen =
+        ref.watch(registrationPeriodProvider).asData?.value.isOpen ?? false;
     return Scaffold(
       appBar: AppBar(title: const Text('Học phần đã đăng ký')),
       body: courses.when(
@@ -55,7 +57,9 @@ class MyRegisteredCoursesPage extends ConsumerWidget {
                         ),
                         isThreeLine: true,
                         trailing: TextButton(
-                          onPressed: () => _cancel(context, ref, item),
+                          onPressed: registrationOpen
+                              ? () => _cancel(context, ref, item)
+                              : null,
                           child: const Text('Hủy'),
                         ),
                       ),

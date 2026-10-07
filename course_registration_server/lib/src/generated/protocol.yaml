@@ -25,6 +25,10 @@ admin:
   - rejectClass:
   - getOpeningRequests:
   - decideOpeningRequest:
+  - getAdjustmentRequests:
+  - decideAdjustmentRequest:
+  - getRegistrationPeriods:
+  - updateRegistrationPeriod:
   - getReports:
   - getAuditLogs:
   - getPermissions:
@@ -59,6 +63,7 @@ lecturer:
   - createTeachingSchedule:
   - getMySchedule:
   - getAvailableRooms:
+  - getRegistrationPeriod:
   - getAvailableScheduleSlots:
   - getRegisteredStudents:
   - getClassDemand:
@@ -68,6 +73,7 @@ profile:
   - ensureProfile:
 courseRegistration:
   - getCurrentSemester:
+  - getRegistrationPeriod:
   - getOpenClasses:
   - checkEligibility:
   - registerCourse:

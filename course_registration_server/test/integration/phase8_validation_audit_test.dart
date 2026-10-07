@@ -235,7 +235,11 @@ void main() {
         );
         expect(
           lecturerLogs.map((item) => item.action).toSet(),
-          containsAll(['CREATE_CLASS', 'UPDATE_CLASS', 'DELETE_CLASS']),
+          containsAll([
+            'CREATE_CLASS',
+            'REQUEST_CLASS_ADJUSTMENT',
+            'DELETE_CLASS',
+          ]),
         );
         expect(
           adminLogs.map((item) => item.action).toSet(),

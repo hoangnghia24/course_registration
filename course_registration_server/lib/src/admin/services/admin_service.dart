@@ -8,6 +8,9 @@ import '../../auth/app_scopes.dart';
 import '../../core/input_validator.dart';
 import '../../core/pagination.dart';
 import '../../generated/protocol.dart';
+import '../../lecturer/services/class_adjustment_service.dart';
+import '../../lecturer/services/lecturer_service.dart';
+import '../../registration/services/registration_period_service.dart';
 import 'admin_permission_service.dart';
 import 'analytics_service.dart';
 import 'approval_workflow.dart';
@@ -804,6 +807,286 @@ abstract final class AdminService {
     final ctx = await context(session);
     await AdminPermissionService.require(session, ctx.admin, 'APPROVE_CLASS');
     return CourseOpeningRequest.db.find(session);
+  }
+
+  static Future<List<ClassAdjustmentRequestDto>> getAdjustmentRequests(
+    Session session, {
+    ClassAdjustmentStatus? status,
+  }) async {
+    final ctx = await context(session);
+    await AdminPermissionService.require(session, ctx.admin, 'APPROVE_CLASS');
+    final requests = await ClassAdjustmentRequest.db.find(
+      session,
+      where: status == null ? null : (table) => table.status.equals(status),
+      orderBy: (table) => table.createdAt.desc(),
+    );
+    final result = <ClassAdjustmentRequestDto>[];
+    for (final request in requests) {
+      result.add(await ClassAdjustmentService.toDto(session, request));
+    }
+    return result;
+  }
+
+  static Future<ClassAdjustmentRequestDto> decideAdjustmentRequest(
+    Session session, {
+    required UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  }) async {
+    final ctx = await context(session);
+    await AdminPermissionService.require(session, ctx.admin, 'APPROVE_CLASS');
+    if (!approve &&
+        !InputValidator.requiredText(rejectReason ?? '', maxLength: 1000)) {
+      throw _error(
+        'reject_reason_required',
+        'Vui lòng nhập lý do từ chối yêu cầu điều chỉnh.',
+      );
+    }
+    return session.db.transaction((transaction) async {
+      final request = await ClassAdjustmentRequest.db.findById(
+        session,
+        requestId,
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+      if (request == null) {
+        throw _error('request_not_found', 'Không tìm thấy yêu cầu điều chỉnh.');
+      }
+      if (request.status != ClassAdjustmentStatus.pending) {
+        throw _error(
+          'request_already_reviewed',
+          'Yêu cầu điều chỉnh đã được xử lý trước đó.',
+        );
+      }
+      final courseClass = await CourseClass.db.findById(
+        session,
+        request.courseClassId,
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+      if (courseClass == null) {
+        throw _error('class_not_found', 'Lớp học phần không còn tồn tại.');
+      }
+      if (approve) {
+        final currentSchedules = await ClassSchedule.db.find(
+          session,
+          transaction: transaction,
+          where: (table) => table.courseClassId.equals(courseClass.id),
+        );
+        final currentDtos = currentSchedules
+            .map(
+              (value) => ClassScheduleDto(
+                dayOfWeek: value.dayOfWeek,
+                startPeriod: value.startPeriod,
+                endPeriod: value.endPeriod,
+                room: value.room,
+              ),
+            )
+            .toList(growable: false);
+        if (courseClass.capacity != request.oldCapacity ||
+            !ClassAdjustmentService.schedulesMatch(
+              currentDtos,
+              request.oldSchedulesJson,
+            )) {
+          throw _error(
+            'adjustment_stale',
+            'Lớp đã thay đổi sau khi yêu cầu được gửi. Hãy từ chối yêu cầu cũ và gửi lại.',
+          );
+        }
+        if (request.newCapacity < courseClass.registeredCount ||
+            request.newCapacity < 1 ||
+            request.newCapacity > 500) {
+          throw _error(
+            'invalid_capacity',
+            'Sĩ số đề nghị không còn phù hợp với số sinh viên hiện tại.',
+          );
+        }
+        final lecturer = await Lecturer.db.findById(
+          session,
+          courseClass.lecturerId,
+          transaction: transaction,
+        );
+        if (lecturer == null) {
+          throw _error('lecturer_not_found', 'Không tìm thấy giảng viên.');
+        }
+        final proposedSchedules = ClassAdjustmentService.decodeSchedules(
+          request.newSchedulesJson,
+        );
+        await LecturerService.ensureNoConflict(
+          session,
+          lecturer: lecturer,
+          semesterId: courseClass.semesterId,
+          schedules: proposedSchedules,
+          excludedClassId: courseClass.id,
+          transaction: transaction,
+        );
+        await ClassSchedule.db.deleteWhere(
+          session,
+          where: (table) => table.courseClassId.equals(courseClass.id),
+          transaction: transaction,
+        );
+        for (final schedule in proposedSchedules) {
+          await ClassSchedule.db.insertRow(
+            session,
+            ClassSchedule(
+              courseClassId: courseClass.id!,
+              dayOfWeek: schedule.dayOfWeek,
+              startPeriod: schedule.startPeriod,
+              endPeriod: schedule.endPeriod,
+              room: schedule.room,
+            ),
+            transaction: transaction,
+          );
+        }
+        final nextStatus = courseClass.status == CourseClassStatus.closed
+            ? CourseClassStatus.closed
+            : courseClass.registeredCount >= request.newCapacity
+            ? CourseClassStatus.full
+            : CourseClassStatus.open;
+        await CourseClass.db.updateRow(
+          session,
+          courseClass.copyWith(
+            capacity: request.newCapacity,
+            status: nextStatus,
+          ),
+          transaction: transaction,
+        );
+      }
+      final reviewed = await ClassAdjustmentRequest.db.updateRow(
+        session,
+        request.copyWith(
+          status: approve
+              ? ClassAdjustmentStatus.approved
+              : ClassAdjustmentStatus.rejected,
+          reviewedAt: DateTime.now().toUtc(),
+          reviewedById: ctx.admin.id!,
+          rejectReason: approve ? null : rejectReason!.trim(),
+        ),
+        transaction: transaction,
+      );
+      await AuditService.log(
+        session,
+        actor: ctx.user,
+        action: approve
+            ? 'APPROVE_CLASS_ADJUSTMENT'
+            : 'REJECT_CLASS_ADJUSTMENT',
+        entity: 'class_adjustment_request',
+        entityId: requestId,
+        oldValue: jsonEncode({
+          'capacity': request.oldCapacity,
+          'schedules': jsonDecode(request.oldSchedulesJson),
+        }),
+        newValue: jsonEncode({
+          'capacity': request.newCapacity,
+          'schedules': jsonDecode(request.newSchedulesJson),
+          'status': reviewed.status.name,
+          'rejectReason': reviewed.rejectReason,
+        }),
+        transaction: transaction,
+      );
+      return ClassAdjustmentService.toDto(
+        session,
+        reviewed,
+        transaction: transaction,
+      );
+    });
+  }
+
+  static Future<List<RegistrationPeriodDto>> getRegistrationPeriods(
+    Session session,
+  ) async {
+    final ctx = await context(session);
+    await AdminPermissionService.require(session, ctx.admin, 'MANAGE_COURSE');
+    final semesters = await Semester.db.find(
+      session,
+      orderBy: (table) => table.startDate.desc(),
+    );
+    final now = DateTime.now().toUtc();
+    final result = <RegistrationPeriodDto>[];
+    for (final semester in semesters) {
+      result.add(
+        await RegistrationPeriodService.getDto(
+          session,
+          semesterId: semester.id!,
+          now: now,
+        ),
+      );
+    }
+    return result;
+  }
+
+  static Future<RegistrationPeriodDto> updateRegistrationPeriod(
+    Session session, {
+    required UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    final ctx = await context(session);
+    await AdminPermissionService.require(session, ctx.admin, 'MANAGE_COURSE');
+    final startUtc = startTime.toUtc();
+    final endUtc = endTime.toUtc();
+    if (!startUtc.isBefore(endUtc)) {
+      throw _error(
+        'invalid_registration_period',
+        'Thời gian bắt đầu phải trước thời gian kết thúc.',
+      );
+    }
+    return session.db.transaction((transaction) async {
+      final semester = await Semester.db.findById(
+        session,
+        semesterId,
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+      if (semester == null) {
+        throw _error('semester_not_found', 'Không tìm thấy học kỳ.');
+      }
+      final existing = await RegistrationPeriod.db.findFirstRow(
+        session,
+        transaction: transaction,
+        where: (table) => table.semesterId.equals(semesterId),
+        lockMode: LockMode.forUpdate,
+      );
+      final now = DateTime.now().toUtc();
+      final saved = existing == null
+          ? await RegistrationPeriod.db.insertRow(
+              session,
+              RegistrationPeriod(
+                semesterId: semesterId,
+                startTime: startUtc,
+                endTime: endUtc,
+                updatedById: ctx.admin.id!,
+                createdAt: now,
+                updatedAt: now,
+              ),
+              transaction: transaction,
+            )
+          : await RegistrationPeriod.db.updateRow(
+              session,
+              existing.copyWith(
+                startTime: startUtc,
+                endTime: endUtc,
+                updatedById: ctx.admin.id,
+                updatedAt: now,
+              ),
+              transaction: transaction,
+            );
+      await AuditService.log(
+        session,
+        actor: ctx.user,
+        action: 'UPDATE_REGISTRATION_PERIOD',
+        entity: 'registration_period',
+        entityId: saved.id!,
+        oldValue: existing == null ? null : jsonEncode(existing.toJson()),
+        newValue: jsonEncode(saved.toJson()),
+        transaction: transaction,
+      );
+      return (await RegistrationPeriodService.getWindow(
+        session,
+        semesterId: semesterId,
+        transaction: transaction,
+      )).toDto(now);
+    });
   }
 
   static Future<CourseOpeningRequest> decideOpeningRequest(

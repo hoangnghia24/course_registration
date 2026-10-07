@@ -9,6 +9,7 @@ abstract interface class LecturerRepository {
   Future<List<Course>> getCourses();
   Future<List<Semester>> getSemesters();
   Future<List<String>> getAvailableRooms();
+  Future<RegistrationPeriodDto> getRegistrationPeriod(UuidValue semesterId);
   Future<List<ClassScheduleDto>> getAvailableScheduleSlots({
     required UuidValue semesterId,
     required String room,
@@ -19,7 +20,7 @@ abstract interface class LecturerRepository {
     required int capacity,
     required List<ClassScheduleDto> schedules,
   });
-  Future<LecturerCourseClassDto> updateClass({
+  Future<ClassAdjustmentRequestDto> updateClass({
     required UuidValue courseClassId,
     required int capacity,
     required List<ClassScheduleDto> schedules,

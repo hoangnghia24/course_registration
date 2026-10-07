@@ -13,3 +13,4 @@ fields:
   status: CourseClassStatus
   schedules: List<ClassScheduleDto>
   proposals: List<TeachingScheduleProposal>
+  latestAdjustment: ClassAdjustmentRequestDto?

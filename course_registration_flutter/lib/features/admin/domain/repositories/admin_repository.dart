@@ -31,6 +31,20 @@ abstract interface class AdminRepository {
   Future<List<CourseEquivalent>> getEquivalents();
   Future<List<PendingClassApprovalDto>> getPendingClasses();
   Future<void> decideClass(UuidValue classId, bool approve, String? comment);
+  Future<List<ClassAdjustmentRequestDto>> getAdjustmentRequests({
+    ClassAdjustmentStatus? status,
+  });
+  Future<ClassAdjustmentRequestDto> decideAdjustmentRequest({
+    required UuidValue requestId,
+    required bool approve,
+    String? rejectReason,
+  });
+  Future<List<RegistrationPeriodDto>> getRegistrationPeriods();
+  Future<RegistrationPeriodDto> updateRegistrationPeriod({
+    required UuidValue semesterId,
+    required DateTime startTime,
+    required DateTime endTime,
+  });
   Future<AnalyticsReportDto> getReports();
   Future<List<AuditLogDto>> getAuditLogs();
 }

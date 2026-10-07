@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
 import 'eligibility_checkers.dart';
+import 'registration_period_service.dart';
 
 class EligibilityEvaluation {
   const EligibilityEvaluation({
@@ -53,14 +54,21 @@ abstract final class CourseEligibilityService {
     }
 
     final messages = <String>[];
-    final semesterOpen = RegistrationWindowPolicy.isOpen(
-      statusOpen: semester.status == SemesterStatus.open,
-      startDate: semester.startDate,
-      endDate: semester.endDate,
-      now: DateTime.now().toUtc(),
+    final window = await RegistrationPeriodService.getWindow(
+      session,
+      semesterId: semester.id!,
+      transaction: transaction,
     );
-    if (!semesterOpen || courseClass.status == CourseClassStatus.closed) {
-      messages.add('Học kỳ hoặc lớp học đã đóng đăng ký.');
+    final now = DateTime.now().toUtc();
+    if (semester.status != SemesterStatus.open) {
+      messages.add('Học kỳ hiện không mở đăng ký học phần.');
+    } else if (now.isBefore(window.startTime)) {
+      messages.add('Thời gian đăng ký học phần chưa bắt đầu.');
+    } else if (now.isAfter(window.endTime)) {
+      messages.add('Thời gian đăng ký học phần đã kết thúc.');
+    }
+    if (courseClass.status == CourseClassStatus.closed) {
+      messages.add('Lớp học đã đóng đăng ký.');
     }
 
     final capacityAvailable = CapacityChecker.hasSeat(
@@ -223,7 +231,7 @@ abstract final class CourseEligibilityService {
 
     final eligible =
         messages.isEmpty &&
-        semesterOpen &&
+        window.isOpenAt(now) &&
         !duplicateCourse &&
         capacityAvailable &&
         withinCreditLimit &&

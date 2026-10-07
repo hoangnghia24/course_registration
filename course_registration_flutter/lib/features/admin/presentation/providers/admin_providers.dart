@@ -24,6 +24,16 @@ final approvalProvider =
     FutureProvider.autoDispose<List<PendingClassApprovalDto>>(
       (ref) => ref.watch(adminRepositoryProvider).getPendingClasses(),
     );
+final adjustmentRequestsProvider = FutureProvider.autoDispose
+    .family<List<ClassAdjustmentRequestDto>, ClassAdjustmentStatus?>(
+      (ref, status) => ref
+          .watch(adminRepositoryProvider)
+          .getAdjustmentRequests(status: status),
+    );
+final registrationPeriodsProvider =
+    FutureProvider.autoDispose<List<RegistrationPeriodDto>>(
+      (ref) => ref.watch(adminRepositoryProvider).getRegistrationPeriods(),
+    );
 final analyticsProvider = adminProvider;
 final auditLogProvider = FutureProvider.autoDispose<List<AuditLogDto>>(
   (ref) => ref.watch(adminRepositoryProvider).getAuditLogs(),

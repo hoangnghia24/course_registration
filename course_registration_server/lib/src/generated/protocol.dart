@@ -19,6 +19,8 @@ import 'package:course_registration_server/src/generated/admin/dto/pending_class
     as _iwn434hf;
 import 'package:course_registration_server/src/generated/admin/models/admin_permission.dart'
     as _iz7mx3pw;
+import 'package:course_registration_server/src/generated/lecturer/dto/class_adjustment_request_dto.dart'
+    as _ibiah85t;
 import 'package:course_registration_server/src/generated/lecturer/dto/class_demand_dto.dart'
     as _ia38wpgm;
 import 'package:course_registration_server/src/generated/lecturer/dto/class_student_dto.dart'
@@ -33,6 +35,8 @@ import 'package:course_registration_server/src/generated/registration/dto/open_c
     as _i23bizbs;
 import 'package:course_registration_server/src/generated/registration/dto/registered_course_dto.dart'
     as _ih5gikos;
+import 'package:course_registration_server/src/generated/registration/dto/registration_period_dto.dart'
+    as _i5w6e71e;
 import 'package:course_registration_server/src/generated/registration/models/course_equivalent.dart'
     as _iulejzlc;
 import 'package:course_registration_server/src/generated/registration/models/course_opening_request.dart'
@@ -79,10 +83,13 @@ import 'app_exception.dart' as _it4z223c;
 import 'app_user.dart' as _i2j2xfrn;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'lecturer.dart' as _itbetnwi;
+import 'lecturer/dto/class_adjustment_request_dto.dart' as _iq4gfhz6;
 import 'lecturer/dto/class_demand_dto.dart' as _iq0ly2ak;
 import 'lecturer/dto/class_student_dto.dart' as _io3zsf6b;
 import 'lecturer/dto/lecturer_course_class_dto.dart' as _iqyoloat;
 import 'lecturer/dto/lecturer_profile_dto.dart' as _ipt2hr1k;
+import 'lecturer/models/class_adjustment_request.dart' as _ipucqiai;
+import 'lecturer/models/class_adjustment_status.dart' as _iv9225wt;
 import 'lecturer/models/lecturer_activity_log.dart' as _im5rikfg;
 import 'lecturer/models/lecturer_course_class.dart' as _iokj3d6r;
 import 'lecturer/models/teaching_schedule_proposal.dart' as _irv87c2y;
@@ -91,6 +98,7 @@ import 'registration/dto/class_schedule_dto.dart' as _ib3wa59y;
 import 'registration/dto/eligibility_result_dto.dart' as _iaaclq68;
 import 'registration/dto/open_course_class_dto.dart' as _ipozmldp;
 import 'registration/dto/registered_course_dto.dart' as _ilcih2k6;
+import 'registration/dto/registration_period_dto.dart' as _i1fn64hq;
 import 'registration/dto/registration_result_dto.dart' as _ii8dcq83;
 import 'registration/models/class_schedule.dart' as _ivo6ya0v;
 import 'registration/models/course_class.dart' as _intqjpio;
@@ -102,6 +110,7 @@ import 'registration/models/opening_request_status.dart' as _i9ek3ou2;
 import 'registration/models/registration.dart' as _isg2rjz0;
 import 'registration/models/registration_action.dart' as _ick1ofaw;
 import 'registration/models/registration_history.dart' as _io6lhm66;
+import 'registration/models/registration_period.dart' as _i3fi4yfy;
 import 'registration/models/registration_status.dart' as _ienvemo7;
 import 'registration/models/semester.dart' as _iz7vluge;
 import 'registration/models/semester_status.dart' as _inuj73nk;
@@ -145,10 +154,13 @@ export 'app_exception.dart';
 export 'app_user.dart';
 export 'greetings/greeting.dart';
 export 'lecturer.dart';
+export 'lecturer/dto/class_adjustment_request_dto.dart';
 export 'lecturer/dto/class_demand_dto.dart';
 export 'lecturer/dto/class_student_dto.dart';
 export 'lecturer/dto/lecturer_course_class_dto.dart';
 export 'lecturer/dto/lecturer_profile_dto.dart';
+export 'lecturer/models/class_adjustment_request.dart';
+export 'lecturer/models/class_adjustment_status.dart';
 export 'lecturer/models/lecturer_activity_log.dart';
 export 'lecturer/models/lecturer_course_class.dart';
 export 'lecturer/models/teaching_schedule_proposal.dart';
@@ -157,6 +169,7 @@ export 'registration/dto/class_schedule_dto.dart';
 export 'registration/dto/eligibility_result_dto.dart';
 export 'registration/dto/open_course_class_dto.dart';
 export 'registration/dto/registered_course_dto.dart';
+export 'registration/dto/registration_period_dto.dart';
 export 'registration/dto/registration_result_dto.dart';
 export 'registration/models/class_schedule.dart';
 export 'registration/models/course_class.dart';
@@ -168,6 +181,7 @@ export 'registration/models/opening_request_status.dart';
 export 'registration/models/registration.dart';
 export 'registration/models/registration_action.dart';
 export 'registration/models/registration_history.dart';
+export 'registration/models/registration_period.dart';
 export 'registration/models/registration_status.dart';
 export 'registration/models/semester.dart';
 export 'registration/models/semester_status.dart';
@@ -320,6 +334,174 @@ class Protocol extends _is.DatabaseSerializationManager {
           ],
           type: 'btree',
           isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'class_adjustment_requests',
+      dartName: 'ClassAdjustmentRequest',
+      schema: 'public',
+      module: 'course_registration',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'courseClassId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lecturerId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'oldCapacity',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'newCapacity',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'oldSchedulesJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'newSchedulesJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:ClassAdjustmentStatus',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'reviewedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'reviewedById',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'rejectReason',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'class_adjustment_requests_fk_0',
+          columns: ['courseClassId'],
+          referenceTable: 'course_classes',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'class_adjustment_requests_fk_1',
+          columns: ['lecturerId'],
+          referenceTable: 'lecturers',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'class_adjustment_requests_fk_2',
+          columns: ['reviewedById'],
+          referenceTable: 'admins',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.setNull,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'class_adjustment_requests_class_status_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'courseClassId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'status',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'class_adjustment_requests_lecturer_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'lecturerId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'class_adjustment_requests_status_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'status',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
           isPrimary: false,
         ),
       ],
@@ -1622,6 +1804,114 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'registration_periods',
+      dartName: 'RegistrationPeriod',
+      schema: 'public',
+      module: 'course_registration',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'semesterId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'startTime',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'endTime',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedById',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'registration_periods_fk_0',
+          columns: ['semesterId'],
+          referenceTable: 'semesters',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'registration_periods_fk_1',
+          columns: ['updatedById'],
+          referenceTable: 'admins',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.setNull,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'registration_periods_semester_unique',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'semesterId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'registration_periods_window_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'startTime',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'endTime',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'registrations',
       dartName: 'Registration',
       schema: 'public',
@@ -2855,6 +3145,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _itbetnwi.Lecturer) {
       return _itbetnwi.Lecturer.fromJson(data) as T;
     }
+    if (t == _iq4gfhz6.ClassAdjustmentRequestDto) {
+      return _iq4gfhz6.ClassAdjustmentRequestDto.fromJson(data) as T;
+    }
     if (t == _iq0ly2ak.ClassDemandDto) {
       return _iq0ly2ak.ClassDemandDto.fromJson(data) as T;
     }
@@ -2866,6 +3159,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ipt2hr1k.LecturerProfileDto) {
       return _ipt2hr1k.LecturerProfileDto.fromJson(data) as T;
+    }
+    if (t == _ipucqiai.ClassAdjustmentRequest) {
+      return _ipucqiai.ClassAdjustmentRequest.fromJson(data) as T;
+    }
+    if (t == _iv9225wt.ClassAdjustmentStatus) {
+      return _iv9225wt.ClassAdjustmentStatus.fromJson(data) as T;
     }
     if (t == _im5rikfg.LecturerActivityLog) {
       return _im5rikfg.LecturerActivityLog.fromJson(data) as T;
@@ -2890,6 +3189,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ilcih2k6.RegisteredCourseDto) {
       return _ilcih2k6.RegisteredCourseDto.fromJson(data) as T;
+    }
+    if (t == _i1fn64hq.RegistrationPeriodDto) {
+      return _i1fn64hq.RegistrationPeriodDto.fromJson(data) as T;
     }
     if (t == _ii8dcq83.RegistrationResultDto) {
       return _ii8dcq83.RegistrationResultDto.fromJson(data) as T;
@@ -2923,6 +3225,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _io6lhm66.RegistrationHistory) {
       return _io6lhm66.RegistrationHistory.fromJson(data) as T;
+    }
+    if (t == _i3fi4yfy.RegistrationPeriod) {
+      return _i3fi4yfy.RegistrationPeriod.fromJson(data) as T;
     }
     if (t == _ienvemo7.RegistrationStatus) {
       return _ienvemo7.RegistrationStatus.fromJson(data) as T;
@@ -3065,6 +3370,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_itbetnwi.Lecturer?>()) {
       return (data != null ? _itbetnwi.Lecturer.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_iq4gfhz6.ClassAdjustmentRequestDto?>()) {
+      return (data != null
+              ? _iq4gfhz6.ClassAdjustmentRequestDto.fromJson(data)
+              : null)
+          as T;
+    }
     if (t == _is.getType<_iq0ly2ak.ClassDemandDto?>()) {
       return (data != null ? _iq0ly2ak.ClassDemandDto.fromJson(data) : null)
           as T;
@@ -3081,6 +3392,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_ipt2hr1k.LecturerProfileDto?>()) {
       return (data != null ? _ipt2hr1k.LecturerProfileDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ipucqiai.ClassAdjustmentRequest?>()) {
+      return (data != null
+              ? _ipucqiai.ClassAdjustmentRequest.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_iv9225wt.ClassAdjustmentStatus?>()) {
+      return (data != null
+              ? _iv9225wt.ClassAdjustmentStatus.fromJson(data)
+              : null)
           as T;
     }
     if (t == _is.getType<_im5rikfg.LecturerActivityLog?>()) {
@@ -3124,6 +3447,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_ilcih2k6.RegisteredCourseDto?>()) {
       return (data != null
               ? _ilcih2k6.RegisteredCourseDto.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_i1fn64hq.RegistrationPeriodDto?>()) {
+      return (data != null
+              ? _i1fn64hq.RegistrationPeriodDto.fromJson(data)
               : null)
           as T;
     }
@@ -3175,6 +3504,10 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null
               ? _io6lhm66.RegistrationHistory.fromJson(data)
               : null)
+          as T;
+    }
+    if (t == _is.getType<_i3fi4yfy.RegistrationPeriod?>()) {
+      return (data != null ? _i3fi4yfy.RegistrationPeriod.fromJson(data) : null)
           as T;
     }
     if (t == _is.getType<_ienvemo7.RegistrationStatus?>()) {
@@ -3380,6 +3713,18 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_ibiah85t.ClassAdjustmentRequestDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ibiah85t.ClassAdjustmentRequestDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i5w6e71e.RegistrationPeriodDto>) {
+      return (data as List)
+              .map((e) => deserialize<_i5w6e71e.RegistrationPeriodDto>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_irwy8n4a.AuditLogDto>) {
       return (data as List)
               .map((e) => deserialize<_irwy8n4a.AuditLogDto>(e))
@@ -3497,10 +3842,13 @@ class Protocol extends _is.DatabaseSerializationManager {
       _i2j2xfrn.AppUser => 'AppUser',
       _izw8z7ou.Greeting => 'Greeting',
       _itbetnwi.Lecturer => 'Lecturer',
+      _iq4gfhz6.ClassAdjustmentRequestDto => 'ClassAdjustmentRequestDto',
       _iq0ly2ak.ClassDemandDto => 'ClassDemandDto',
       _io3zsf6b.ClassStudentDto => 'ClassStudentDto',
       _iqyoloat.LecturerCourseClassDto => 'LecturerCourseClassDto',
       _ipt2hr1k.LecturerProfileDto => 'LecturerProfileDto',
+      _ipucqiai.ClassAdjustmentRequest => 'ClassAdjustmentRequest',
+      _iv9225wt.ClassAdjustmentStatus => 'ClassAdjustmentStatus',
       _im5rikfg.LecturerActivityLog => 'LecturerActivityLog',
       _iokj3d6r.LecturerCourseClass => 'LecturerCourseClass',
       _irv87c2y.TeachingScheduleProposal => 'TeachingScheduleProposal',
@@ -3509,6 +3857,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iaaclq68.EligibilityResultDto => 'EligibilityResultDto',
       _ipozmldp.OpenCourseClassDto => 'OpenCourseClassDto',
       _ilcih2k6.RegisteredCourseDto => 'RegisteredCourseDto',
+      _i1fn64hq.RegistrationPeriodDto => 'RegistrationPeriodDto',
       _ii8dcq83.RegistrationResultDto => 'RegistrationResultDto',
       _ivo6ya0v.ClassSchedule => 'ClassSchedule',
       _intqjpio.CourseClass => 'CourseClass',
@@ -3520,6 +3869,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _isg2rjz0.Registration => 'Registration',
       _ick1ofaw.RegistrationAction => 'RegistrationAction',
       _io6lhm66.RegistrationHistory => 'RegistrationHistory',
+      _i3fi4yfy.RegistrationPeriod => 'RegistrationPeriod',
       _ienvemo7.RegistrationStatus => 'RegistrationStatus',
       _iz7vluge.Semester => 'Semester',
       _inuj73nk.SemesterStatus => 'SemesterStatus',
@@ -3596,6 +3946,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Greeting';
       case _itbetnwi.Lecturer():
         return 'Lecturer';
+      case _iq4gfhz6.ClassAdjustmentRequestDto():
+        return 'ClassAdjustmentRequestDto';
       case _iq0ly2ak.ClassDemandDto():
         return 'ClassDemandDto';
       case _io3zsf6b.ClassStudentDto():
@@ -3604,6 +3956,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'LecturerCourseClassDto';
       case _ipt2hr1k.LecturerProfileDto():
         return 'LecturerProfileDto';
+      case _ipucqiai.ClassAdjustmentRequest():
+        return 'ClassAdjustmentRequest';
+      case _iv9225wt.ClassAdjustmentStatus():
+        return 'ClassAdjustmentStatus';
       case _im5rikfg.LecturerActivityLog():
         return 'LecturerActivityLog';
       case _iokj3d6r.LecturerCourseClass():
@@ -3620,6 +3976,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'OpenCourseClassDto';
       case _ilcih2k6.RegisteredCourseDto():
         return 'RegisteredCourseDto';
+      case _i1fn64hq.RegistrationPeriodDto():
+        return 'RegistrationPeriodDto';
       case _ii8dcq83.RegistrationResultDto():
         return 'RegistrationResultDto';
       case _ivo6ya0v.ClassSchedule():
@@ -3642,6 +4000,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'RegistrationAction';
       case _io6lhm66.RegistrationHistory():
         return 'RegistrationHistory';
+      case _i3fi4yfy.RegistrationPeriod():
+        return 'RegistrationPeriod';
       case _ienvemo7.RegistrationStatus():
         return 'RegistrationStatus';
       case _iz7vluge.Semester():
@@ -3770,6 +4130,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'Lecturer') {
       return deserialize<_itbetnwi.Lecturer>(data['data']);
     }
+    if (dataClassName == 'ClassAdjustmentRequestDto') {
+      return deserialize<_iq4gfhz6.ClassAdjustmentRequestDto>(data['data']);
+    }
     if (dataClassName == 'ClassDemandDto') {
       return deserialize<_iq0ly2ak.ClassDemandDto>(data['data']);
     }
@@ -3781,6 +4144,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'LecturerProfileDto') {
       return deserialize<_ipt2hr1k.LecturerProfileDto>(data['data']);
+    }
+    if (dataClassName == 'ClassAdjustmentRequest') {
+      return deserialize<_ipucqiai.ClassAdjustmentRequest>(data['data']);
+    }
+    if (dataClassName == 'ClassAdjustmentStatus') {
+      return deserialize<_iv9225wt.ClassAdjustmentStatus>(data['data']);
     }
     if (dataClassName == 'LecturerActivityLog') {
       return deserialize<_im5rikfg.LecturerActivityLog>(data['data']);
@@ -3805,6 +4174,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'RegisteredCourseDto') {
       return deserialize<_ilcih2k6.RegisteredCourseDto>(data['data']);
+    }
+    if (dataClassName == 'RegistrationPeriodDto') {
+      return deserialize<_i1fn64hq.RegistrationPeriodDto>(data['data']);
     }
     if (dataClassName == 'RegistrationResultDto') {
       return deserialize<_ii8dcq83.RegistrationResultDto>(data['data']);
@@ -3838,6 +4210,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'RegistrationHistory') {
       return deserialize<_io6lhm66.RegistrationHistory>(data['data']);
+    }
+    if (dataClassName == 'RegistrationPeriod') {
+      return deserialize<_i3fi4yfy.RegistrationPeriod>(data['data']);
     }
     if (dataClassName == 'RegistrationStatus') {
       return deserialize<_ienvemo7.RegistrationStatus>(data['data']);
@@ -3975,6 +4350,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _i2j2xfrn.AppUser.t;
       case _itbetnwi.Lecturer:
         return _itbetnwi.Lecturer.t;
+      case _ipucqiai.ClassAdjustmentRequest:
+        return _ipucqiai.ClassAdjustmentRequest.t;
       case _im5rikfg.LecturerActivityLog:
         return _im5rikfg.LecturerActivityLog.t;
       case _iokj3d6r.LecturerCourseClass:
@@ -3995,6 +4372,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _isg2rjz0.Registration.t;
       case _io6lhm66.RegistrationHistory:
         return _io6lhm66.RegistrationHistory.t;
+      case _i3fi4yfy.RegistrationPeriod:
+        return _i3fi4yfy.RegistrationPeriod.t;
       case _iz7vluge.Semester:
         return _iz7vluge.Semester.t;
       case _iwzlgl4r.Student:

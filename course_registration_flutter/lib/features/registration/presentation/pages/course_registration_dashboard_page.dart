@@ -1,3 +1,4 @@
+import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ class CourseRegistrationDashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final semester = ref.watch(currentSemesterProvider);
+    final period = ref.watch(registrationPeriodProvider).asData?.value;
     final courses = ref.watch(myRegisteredCoursesProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Đăng ký học phần')),
@@ -52,6 +54,8 @@ class CourseRegistrationDashboardPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 14),
                         Text('Tín chỉ đã đăng ký: $credits/25'),
+                        const SizedBox(height: 10),
+                        _PeriodMessage(period: period),
                         const SizedBox(height: 6),
                         LinearProgressIndicator(
                           value: (credits / 25).clamp(0, 1),
@@ -68,7 +72,9 @@ class CourseRegistrationDashboardPage extends ConsumerWidget {
                 _Action(
                   icon: Icons.search,
                   label: 'Đăng ký học phần',
-                  onTap: () => context.push('/student/registration/search'),
+                  onTap: period?.isOpen == true
+                      ? () => context.push('/student/registration/search')
+                      : null,
                 ),
                 _Action(
                   icon: Icons.playlist_add_check,
@@ -98,7 +104,7 @@ class _Action extends StatelessWidget {
   const _Action({required this.icon, required this.label, required this.onTap});
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -109,4 +115,39 @@ class _Action extends StatelessWidget {
       label: Align(alignment: Alignment.centerLeft, child: Text(label)),
     ),
   );
+}
+
+class _PeriodMessage extends StatelessWidget {
+  const _PeriodMessage({required this.period});
+
+  final RegistrationPeriodDto? period;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = period;
+    if (value == null) return const Text('Đang tải thời gian đăng ký...');
+    final now = DateTime.now().toUtc();
+    if (now.isBefore(value.startTime.toUtc())) {
+      return Text(
+        'Đăng ký học phần sẽ bắt đầu vào ${_format(value.startTime.toLocal())}.',
+      );
+    }
+    if (now.isAfter(value.endTime.toUtc())) {
+      return Text(
+        'Thời gian đăng ký học phần đã kết thúc lúc ${_format(value.endTime.toLocal())}.',
+      );
+    }
+    if (!value.isOpen) {
+      return const Text('Học kỳ hiện không mở đăng ký học phần.');
+    }
+    return Text(
+      'Đang trong thời gian đăng ký học phần. Kết thúc: ${_format(value.endTime.toLocal())}.',
+    );
+  }
+
+  static String _format(DateTime value) =>
+      '${value.day.toString().padLeft(2, '0')}/'
+      '${value.month.toString().padLeft(2, '0')}/${value.year} '
+      '${value.hour.toString().padLeft(2, '0')}:'
+      '${value.minute.toString().padLeft(2, '0')}';
 }

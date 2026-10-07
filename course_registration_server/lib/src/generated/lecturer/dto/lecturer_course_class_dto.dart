@@ -13,6 +13,7 @@
 import 'package:course_registration_server/src/generated/protocol.dart'
     as _i9p8z86v;
 import 'package:serverpod/serverpod.dart' as _is;
+import '../../lecturer/dto/class_adjustment_request_dto.dart' as _io7ztl6x;
 import '../../lecturer/models/teaching_schedule_proposal.dart' as _ir6p9ie4;
 import '../../registration/dto/class_schedule_dto.dart' as _ib1jm4me;
 import '../../registration/models/course_class_status.dart' as _i5mo64p9;
@@ -33,6 +34,7 @@ abstract class LecturerCourseClassDto
     required this.status,
     required this.schedules,
     required this.proposals,
+    this.latestAdjustment,
   });
 
   factory LecturerCourseClassDto({
@@ -49,6 +51,7 @@ abstract class LecturerCourseClassDto
     required _i5mo64p9.CourseClassStatus status,
     required List<_ib1jm4me.ClassScheduleDto> schedules,
     required List<_ir6p9ie4.TeachingScheduleProposal> proposals,
+    _io7ztl6x.ClassAdjustmentRequestDto? latestAdjustment,
   }) = _LecturerCourseClassDtoImpl;
 
   factory LecturerCourseClassDto.fromJson(
@@ -82,6 +85,12 @@ abstract class LecturerCourseClassDto
           .deserialize<List<_ir6p9ie4.TeachingScheduleProposal>>(
             jsonSerialization['proposals'],
           ),
+      latestAdjustment: jsonSerialization['latestAdjustment'] == null
+          ? null
+          : _i9p8z86v.Protocol()
+                .deserialize<_io7ztl6x.ClassAdjustmentRequestDto>(
+                  jsonSerialization['latestAdjustment'],
+                ),
     );
   }
 
@@ -111,6 +120,8 @@ abstract class LecturerCourseClassDto
 
   List<_ir6p9ie4.TeachingScheduleProposal> proposals;
 
+  _io7ztl6x.ClassAdjustmentRequestDto? latestAdjustment;
+
   /// Returns a shallow copy of this [LecturerCourseClassDto]
   /// with some or all fields replaced by the given arguments.
   @_is.useResult
@@ -128,6 +139,7 @@ abstract class LecturerCourseClassDto
     _i5mo64p9.CourseClassStatus? status,
     List<_ib1jm4me.ClassScheduleDto>? schedules,
     List<_ir6p9ie4.TeachingScheduleProposal>? proposals,
+    _io7ztl6x.ClassAdjustmentRequestDto? latestAdjustment,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -146,6 +158,8 @@ abstract class LecturerCourseClassDto
       'status': status.toJson(),
       'schedules': schedules.toJson(valueToJson: (v) => v.toJson()),
       'proposals': proposals.toJson(valueToJson: (v) => v.toJson()),
+      if (latestAdjustment != null)
+        'latestAdjustment': latestAdjustment?.toJson(),
     };
   }
 
@@ -166,6 +180,8 @@ abstract class LecturerCourseClassDto
       'status': status.toJson(),
       'schedules': schedules.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       'proposals': proposals.toJson(valueToJson: (v) => v.toJsonForProtocol()),
+      if (latestAdjustment != null)
+        'latestAdjustment': latestAdjustment?.toJsonForProtocol(),
     };
   }
 
@@ -174,6 +190,8 @@ abstract class LecturerCourseClassDto
     return _is.SerializationManager.encode(this);
   }
 }
+
+class _Undefined {}
 
 class _LecturerCourseClassDtoImpl extends LecturerCourseClassDto {
   _LecturerCourseClassDtoImpl({
@@ -190,6 +208,7 @@ class _LecturerCourseClassDtoImpl extends LecturerCourseClassDto {
     required _i5mo64p9.CourseClassStatus status,
     required List<_ib1jm4me.ClassScheduleDto> schedules,
     required List<_ir6p9ie4.TeachingScheduleProposal> proposals,
+    _io7ztl6x.ClassAdjustmentRequestDto? latestAdjustment,
   }) : super._(
          courseClassId: courseClassId,
          courseId: courseId,
@@ -204,6 +223,7 @@ class _LecturerCourseClassDtoImpl extends LecturerCourseClassDto {
          status: status,
          schedules: schedules,
          proposals: proposals,
+         latestAdjustment: latestAdjustment,
        );
 
   /// Returns a shallow copy of this [LecturerCourseClassDto]
@@ -224,6 +244,7 @@ class _LecturerCourseClassDtoImpl extends LecturerCourseClassDto {
     _i5mo64p9.CourseClassStatus? status,
     List<_ib1jm4me.ClassScheduleDto>? schedules,
     List<_ir6p9ie4.TeachingScheduleProposal>? proposals,
+    Object? latestAdjustment = _Undefined,
   }) {
     return LecturerCourseClassDto(
       courseClassId: courseClassId ?? this.courseClassId,
@@ -241,6 +262,9 @@ class _LecturerCourseClassDtoImpl extends LecturerCourseClassDto {
           schedules ?? this.schedules.map((e0) => e0.copyWith()).toList(),
       proposals:
           proposals ?? this.proposals.map((e0) => e0.copyWith()).toList(),
+      latestAdjustment: latestAdjustment is _io7ztl6x.ClassAdjustmentRequestDto?
+          ? latestAdjustment
+          : this.latestAdjustment?.copyWith(),
     );
   }
 }

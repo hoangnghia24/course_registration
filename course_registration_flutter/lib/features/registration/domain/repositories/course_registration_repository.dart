@@ -3,6 +3,8 @@ import 'package:course_registration_client/course_registration_client.dart';
 abstract interface class CourseRegistrationRepository {
   Future<Semester> getCurrentSemester();
 
+  Future<RegistrationPeriodDto> getRegistrationPeriod(UuidValue semesterId);
+
   Future<List<OpenCourseClassDto>> getOpenClasses(UuidValue semesterId);
 
   Future<List<RegisteredCourseDto>> getMyCourses(UuidValue semesterId);

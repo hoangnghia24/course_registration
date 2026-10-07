@@ -216,7 +216,16 @@ class ReportCache extends Table with CacheMetadata {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(driftDatabase(name: AppConstants.databaseName));
+  AppDatabase()
+    : super(
+        driftDatabase(
+          name: AppConstants.databaseName,
+          web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+            driftWorker: Uri.parse('drift_worker.js'),
+          ),
+        ),
+      );
   AppDatabase.forTesting(super.executor);
   @override
   int get schemaVersion => 6;
