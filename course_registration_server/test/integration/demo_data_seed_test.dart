@@ -38,7 +38,21 @@ void main() {
           await AdminPermission.db.count(session),
           greaterThanOrEqualTo(5),
         );
-        expect(await Course.db.count(session), 12);
+        expect(await Course.db.count(session), 41);
+        final program = await TrainingProgram.db.findFirstRow(session);
+        expect(program?.semesterCount, 8);
+        expect(program?.status, TrainingProgramStatus.active);
+        final mappings = await TrainingProgramCourse.db.find(session);
+        expect(mappings.map((item) => item.semesterNumber).toSet(), {
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+        });
         expect(await CourseClass.db.count(session), 8);
         expect(await Registration.db.count(session), 18);
         expect(await RegistrationHistory.db.count(session), 2);

@@ -92,6 +92,7 @@ abstract final class DemoDataSeed {
     if (existing != null) {
       await _resetDemoPasswords(session, emailIdp);
       await _repairDemoTranscriptScores(session);
+      await _upgradeDemoCurriculum(session);
       return false;
     }
 
@@ -130,9 +131,12 @@ abstract final class DemoDataSeed {
         session,
         TrainingProgram(
           majorId: major.id!,
+          code: 'CNTT-2026',
           name: 'Chương trình Công nghệ Thông tin khóa 2026',
           academicYear: 2026,
           totalCredits: 130,
+          semesterCount: 8,
+          status: TrainingProgramStatus.active,
           description: 'Chương trình đào tạo hệ chính quy 130 tín chỉ.',
         ),
         transaction: transaction,
@@ -755,7 +759,250 @@ abstract final class DemoDataSeed {
         transaction: transaction,
       );
     });
+    await _upgradeDemoCurriculum(session);
     return true;
+  }
+
+  static Future<void> _upgradeDemoCurriculum(Session session) async {
+    final program = await TrainingProgram.db.findFirstRow(
+      session,
+      where: (table) => table.academicYear.equals(2026),
+    );
+    final category = await CourseCategory.db.findFirstRow(
+      session,
+      where: (table) => table.name.equals('Khối kiến thức chuyên ngành'),
+    );
+    if (program?.id == null || category?.id == null) return;
+
+    await session.db.transaction((transaction) async {
+      await TrainingProgram.db.updateRow(
+        session,
+        program!.copyWith(
+          code: 'CNTT-2026',
+          totalCredits: 130,
+          semesterCount: 8,
+          status: TrainingProgramStatus.active,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+        transaction: transaction,
+      );
+      const additions =
+          <({String code, String name, int credits, int semester})>[
+            (code: 'CNTT201', name: 'Toán rời rạc', credits: 3, semester: 3),
+            (
+              code: 'CNTT202',
+              name: 'Kiến trúc máy tính',
+              credits: 3,
+              semester: 3,
+            ),
+            (
+              code: 'CNTT203',
+              name: 'Phân tích thiết kế hệ thống',
+              credits: 3,
+              semester: 3,
+            ),
+            (
+              code: 'CNTT204',
+              name: 'Xác suất thống kê',
+              credits: 3,
+              semester: 3,
+            ),
+            (
+              code: 'CNTT205',
+              name: 'Kỹ năng nghề nghiệp',
+              credits: 3,
+              semester: 3,
+            ),
+            (code: 'CNTT206', name: 'Lập trình mạng', credits: 3, semester: 4),
+            (
+              code: 'CNTT207',
+              name: 'Hệ quản trị cơ sở dữ liệu',
+              credits: 3,
+              semester: 4,
+            ),
+            (
+              code: 'CNTT208',
+              name: 'Kiểm thử phần mềm',
+              credits: 3,
+              semester: 4,
+            ),
+            (
+              code: 'CNTT209',
+              name: 'Điện toán đám mây',
+              credits: 3,
+              semester: 4,
+            ),
+            (
+              code: 'CNTT210',
+              name: 'Giao tiếp doanh nghiệp',
+              credits: 3,
+              semester: 4,
+            ),
+            (
+              code: 'CNTT211',
+              name: 'Phân tích dữ liệu',
+              credits: 3,
+              semester: 5,
+            ),
+            (
+              code: 'CNTT212',
+              name: 'Thiết kế trải nghiệm người dùng',
+              credits: 3,
+              semester: 5,
+            ),
+            (code: 'CNTT213', name: 'DevOps và CI/CD', credits: 3, semester: 5),
+            (
+              code: 'CNTT214',
+              name: 'Quản trị dự án phần mềm',
+              credits: 3,
+              semester: 5,
+            ),
+            (
+              code: 'CNTT215',
+              name: 'Pháp luật và đạo đức số',
+              credits: 3,
+              semester: 5,
+            ),
+            (code: 'CNTT216', name: 'Học máy', credits: 3, semester: 6),
+            (code: 'CNTT217', name: 'Dữ liệu lớn', credits: 3, semester: 6),
+            (
+              code: 'CNTT218',
+              name: 'An ninh ứng dụng',
+              credits: 3,
+              semester: 6,
+            ),
+            (
+              code: 'CNTT219',
+              name: 'Kiến trúc phần mềm',
+              credits: 3,
+              semester: 6,
+            ),
+            (
+              code: 'CNTT220',
+              name: 'Hệ thống phân tán',
+              credits: 3,
+              semester: 6,
+            ),
+            (
+              code: 'CNTT221',
+              name: 'Chuyên đề công nghệ 1',
+              credits: 3,
+              semester: 7,
+            ),
+            (
+              code: 'CNTT222',
+              name: 'Chuyên đề công nghệ 2',
+              credits: 3,
+              semester: 7,
+            ),
+            (
+              code: 'CNTT223',
+              name: 'Khởi nghiệp công nghệ',
+              credits: 3,
+              semester: 7,
+            ),
+            (
+              code: 'CNTT224',
+              name: 'Thực tập doanh nghiệp',
+              credits: 3,
+              semester: 7,
+            ),
+            (
+              code: 'CNTT225',
+              name: 'Nghiên cứu khoa học',
+              credits: 3,
+              semester: 7,
+            ),
+            (
+              code: 'CNTT226',
+              name: 'Đồ án chuyên ngành',
+              credits: 3,
+              semester: 8,
+            ),
+            (
+              code: 'CNTT227',
+              name: 'Thực tập tốt nghiệp',
+              credits: 5,
+              semester: 8,
+            ),
+            (
+              code: 'CNTT228',
+              name: 'Khóa luận tốt nghiệp 1',
+              credits: 6,
+              semester: 8,
+            ),
+            (
+              code: 'CNTT229',
+              name: 'Khóa luận tốt nghiệp 2',
+              credits: 6,
+              semester: 8,
+            ),
+          ];
+      for (final item in additions) {
+        var course = await Course.db.findFirstRow(
+          session,
+          transaction: transaction,
+          where: (table) => table.courseCode.equals(item.code),
+        );
+        course ??= await Course.db.insertRow(
+          session,
+          Course(
+            courseCode: item.code,
+            courseName: item.name,
+            credits: item.credits,
+            courseType: CourseType.compulsory,
+            categoryId: category!.id,
+          ),
+          transaction: transaction,
+        );
+        final mapped = await TrainingProgramCourse.db.findFirstRow(
+          session,
+          transaction: transaction,
+          where: (table) =>
+              table.trainingProgramId.equals(program.id) &
+              table.courseId.equals(course!.id),
+        );
+        if (mapped == null) {
+          await TrainingProgramCourse.db.insertRow(
+            session,
+            TrainingProgramCourse(
+              trainingProgramId: program.id!,
+              courseId: course.id!,
+              semesterNumber: item.semester,
+              isRequired: true,
+            ),
+            transaction: transaction,
+          );
+        }
+      }
+
+      final semester = await Semester.db.findFirstRow(
+        session,
+        transaction: transaction,
+        where: (table) => table.status.equals(SemesterStatus.open),
+      );
+      if (semester?.id != null) {
+        final period = await RegistrationPeriod.db.findFirstRow(
+          session,
+          transaction: transaction,
+          where: (table) => table.semesterId.equals(semester!.id),
+        );
+        if (period == null) {
+          await RegistrationPeriod.db.insertRow(
+            session,
+            RegistrationPeriod(
+              semesterId: semester!.id!,
+              startTime: semester.startDate,
+              endTime: semester.endDate,
+              lecturerStartTime: semester.startDate,
+              lecturerEndTime: semester.endDate,
+              status: RegistrationPeriodStatus.active,
+            ),
+            transaction: transaction,
+          );
+        }
+      }
+    });
   }
 
   static Future<AppUser> _createAccount(

@@ -1,0 +1,6 @@
+enum: RegistrationPeriodStatus
+serialized: byName
+values:
+  - draft
+  - active
+  - closed

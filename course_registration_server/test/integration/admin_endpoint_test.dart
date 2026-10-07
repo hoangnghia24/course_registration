@@ -21,7 +21,18 @@ void main() {
           role: UserRole.admin,
         ),
       );
-      await Admin.db.insertRow(session, Admin(userId: user.id!));
+      final admin = await Admin.db.insertRow(session, Admin(userId: user.id!));
+      await AdminPermission.db.insert(
+        session,
+        {'MANAGE_COURSE', 'VIEW_REPORT', 'VIEW_AUDIT'}
+            .map(
+              (permission) => AdminPermission(
+                adminId: admin.id!,
+                permissionName: permission,
+              ),
+            )
+            .toList(),
+      );
       final authenticated = sessionBuilder.copyWith(
         authentication: AuthenticationOverride.authenticationInfo(
           authUserId.toString(),

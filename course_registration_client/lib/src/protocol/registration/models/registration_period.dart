@@ -14,6 +14,7 @@ import 'package:course_registration_client/src/protocol/protocol.dart'
     as _iyxbdoua;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
 import '../../admin.dart' as _ikmszj0x;
+import '../../registration/models/registration_period_status.dart' as _ievbuj9v;
 import '../../registration/models/semester.dart' as _i975wtvt;
 
 abstract class RegistrationPeriod
@@ -24,11 +25,15 @@ abstract class RegistrationPeriod
     this.semester,
     required this.startTime,
     required this.endTime,
+    required this.lecturerStartTime,
+    required this.lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     this.updatedById,
     this.updatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now(),
+  }) : status = status ?? _ievbuj9v.RegistrationPeriodStatus.draft,
+       createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
   factory RegistrationPeriod({
@@ -37,6 +42,9 @@ abstract class RegistrationPeriod
     _i975wtvt.Semester? semester,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     _isc.UuidValue? updatedById,
     _ikmszj0x.Admin? updatedBy,
     DateTime? createdAt,
@@ -62,6 +70,17 @@ abstract class RegistrationPeriod
       endTime: _isc.DateTimeJsonExtension.fromJson(
         jsonSerialization['endTime'],
       ),
+      lecturerStartTime: _isc.DateTimeJsonExtension.fromJson(
+        jsonSerialization['lecturerStartTime'],
+      ),
+      lecturerEndTime: _isc.DateTimeJsonExtension.fromJson(
+        jsonSerialization['lecturerEndTime'],
+      ),
+      status: jsonSerialization['status'] == null
+          ? null
+          : _ievbuj9v.RegistrationPeriodStatus.fromJson(
+              (jsonSerialization['status'] as String),
+            ),
       updatedById: jsonSerialization['updatedById'] == null
           ? null
           : _isc.UuidValueJsonExtension.fromJson(
@@ -94,6 +113,12 @@ abstract class RegistrationPeriod
 
   DateTime endTime;
 
+  DateTime lecturerStartTime;
+
+  DateTime lecturerEndTime;
+
+  _ievbuj9v.RegistrationPeriodStatus status;
+
   _isc.UuidValue? updatedById;
 
   _ikmszj0x.Admin? updatedBy;
@@ -111,6 +136,9 @@ abstract class RegistrationPeriod
     _i975wtvt.Semester? semester,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     _isc.UuidValue? updatedById,
     _ikmszj0x.Admin? updatedBy,
     DateTime? createdAt,
@@ -125,6 +153,9 @@ abstract class RegistrationPeriod
       if (semester != null) 'semester': semester?.toJson(),
       'startTime': startTime.toJson(),
       'endTime': endTime.toJson(),
+      'lecturerStartTime': lecturerStartTime.toJson(),
+      'lecturerEndTime': lecturerEndTime.toJson(),
+      'status': status.toJson(),
       if (updatedById != null) 'updatedById': updatedById?.toJson(),
       if (updatedBy != null) 'updatedBy': updatedBy?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -141,6 +172,9 @@ abstract class RegistrationPeriod
       if (semester != null) 'semester': semester?.toJsonForProtocol(),
       'startTime': startTime.toJson(),
       'endTime': endTime.toJson(),
+      'lecturerStartTime': lecturerStartTime.toJson(),
+      'lecturerEndTime': lecturerEndTime.toJson(),
+      'status': status.toJson(),
       if (updatedById != null) 'updatedById': updatedById?.toJson(),
       if (updatedBy != null) 'updatedBy': updatedBy?.toJsonForProtocol(),
       'createdAt': createdAt.toJson(),
@@ -163,6 +197,9 @@ class _RegistrationPeriodImpl extends RegistrationPeriod {
     _i975wtvt.Semester? semester,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     _isc.UuidValue? updatedById,
     _ikmszj0x.Admin? updatedBy,
     DateTime? createdAt,
@@ -173,6 +210,9 @@ class _RegistrationPeriodImpl extends RegistrationPeriod {
          semester: semester,
          startTime: startTime,
          endTime: endTime,
+         lecturerStartTime: lecturerStartTime,
+         lecturerEndTime: lecturerEndTime,
+         status: status,
          updatedById: updatedById,
          updatedBy: updatedBy,
          createdAt: createdAt,
@@ -189,6 +229,9 @@ class _RegistrationPeriodImpl extends RegistrationPeriod {
     Object? semester = _Undefined,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     Object? updatedById = _Undefined,
     Object? updatedBy = _Undefined,
     DateTime? createdAt,
@@ -202,6 +245,9 @@ class _RegistrationPeriodImpl extends RegistrationPeriod {
           : this.semester?.copyWith(),
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      lecturerStartTime: lecturerStartTime ?? this.lecturerStartTime,
+      lecturerEndTime: lecturerEndTime ?? this.lecturerEndTime,
+      status: status ?? this.status,
       updatedById: updatedById is _isc.UuidValue?
           ? updatedById
           : this.updatedById,

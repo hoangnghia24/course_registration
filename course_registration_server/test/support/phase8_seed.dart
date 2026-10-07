@@ -42,9 +42,12 @@ Future<Phase8Seed> seedPhase8(Session session) async {
     session,
     TrainingProgram(
       majorId: major.id!,
+      code: 'P8-PROGRAM',
       name: 'Phase 8 Program',
       academicYear: 2026,
       totalCredits: 130,
+      semesterCount: 8,
+      status: TrainingProgramStatus.active,
     ),
   );
   final prerequisite = await Course.db.insertRow(
@@ -137,6 +140,24 @@ Future<Phase8Seed> seedPhase8(Session session) async {
     session,
     Admin(userId: adminUser.id!),
   );
+  await AdminPermission.db.insert(
+    session,
+    const {
+          'MANAGE_USER',
+          'MANAGE_COURSE',
+          'MANAGE_PROGRAM',
+          'APPROVE_CLASS',
+          'VIEW_REPORT',
+          'VIEW_AUDIT',
+        }
+        .map(
+          (permission) => AdminPermission(
+            adminId: admin.id!,
+            permissionName: permission,
+          ),
+        )
+        .toList(),
+  );
 
   final semester = await Semester.db.insertRow(
     session,
@@ -146,6 +167,17 @@ Future<Phase8Seed> seedPhase8(Session session) async {
       startDate: DateTime.utc(2026, 1),
       endDate: DateTime.utc(2027, 12, 31),
       status: SemesterStatus.open,
+    ),
+  );
+  await RegistrationPeriod.db.insertRow(
+    session,
+    RegistrationPeriod(
+      semesterId: semester.id!,
+      startTime: DateTime.utc(2025),
+      endTime: DateTime.utc(2028),
+      lecturerStartTime: DateTime.utc(2025),
+      lecturerEndTime: DateTime.utc(2028),
+      status: RegistrationPeriodStatus.active,
     ),
   );
   final courseClass = await CourseClass.db.insertRow(

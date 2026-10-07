@@ -254,10 +254,11 @@ abstract final class CourseRegistrationService {
     );
     final now = DateTime.now().toUtc();
     if (!window.isOpenAt(now)) {
-      final message = window.semester.status != SemesterStatus.open
-          ? 'Học kỳ hiện không mở đăng ký học phần.'
-          : now.isBefore(window.startTime)
-          ? 'Thời gian đăng ký học phần chưa bắt đầu.'
+      final message =
+          !window.configured ||
+              window.status == RegistrationPeriodStatus.draft ||
+              now.isBefore(window.startTime)
+          ? 'Chưa đến thời gian đăng ký học phần.'
           : 'Thời gian đăng ký học phần đã kết thúc.';
       return RegistrationResultDto(
         success: false,
@@ -312,6 +313,7 @@ abstract final class CourseRegistrationService {
       (message) =>
           message.contains('đã đóng') ||
           message.contains('không mở đăng ký') ||
+          message.contains('Chưa đến') ||
           message.contains('chưa bắt đầu') ||
           message.contains('đã kết thúc'),
     )) {

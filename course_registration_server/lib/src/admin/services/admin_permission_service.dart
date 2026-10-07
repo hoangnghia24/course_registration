@@ -4,7 +4,7 @@ import '../../generated/protocol.dart';
 
 abstract final class AdminPermissionService {
   static bool isAllowed(Set<String> granted, String required) =>
-      granted.isEmpty || granted.contains(required);
+      granted.contains(required);
 
   static Future<void> require(
     Session session,

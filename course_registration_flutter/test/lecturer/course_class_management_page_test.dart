@@ -30,7 +30,7 @@ void main() {
     expect(find.text('Đã duyệt'), findsOneWidget);
   });
 
-  testWidgets('deleting a class warns that registrations are removed', (
+  testWidgets('deleting a class preserves registration history', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -50,7 +50,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Xóa lớp học phần?'), findsOneWidget);
-    expect(find.textContaining('gỡ toàn bộ đăng ký liên quan'), findsOneWidget);
+    expect(find.textContaining('không thể xóa'), findsOneWidget);
+    final deleteButton = find.widgetWithText(FilledButton, 'Xóa lớp');
+    expect(tester.widget<FilledButton>(deleteButton).onPressed, isNull);
   });
 
   testWidgets('class changes are submitted as an approval request', (
@@ -168,6 +170,10 @@ RegistrationPeriodDto _period() => RegistrationPeriodDto(
   academicYear: 2026,
   startTime: DateTime.utc(2020),
   endTime: DateTime.utc(2030),
+  lecturerStartTime: DateTime.utc(2020),
+  lecturerEndTime: DateTime.utc(2030),
+  status: RegistrationPeriodStatus.active,
   configured: true,
   isOpen: true,
+  isLecturerOpen: true,
 );

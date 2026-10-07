@@ -6,5 +6,9 @@ fields:
   academicYear: int
   startTime: DateTime
   endTime: DateTime
+  lecturerStartTime: DateTime
+  lecturerEndTime: DateTime
+  status: RegistrationPeriodStatus
   configured: bool
   isOpen: bool
+  isLecturerOpen: bool

@@ -57,6 +57,17 @@ void main() {
             status: SemesterStatus.open,
           ),
         );
+        await RegistrationPeriod.db.insertRow(
+          session,
+          RegistrationPeriod(
+            semesterId: semester.id!,
+            startTime: DateTime.utc(2025),
+            endTime: DateTime.utc(2028),
+            lecturerStartTime: DateTime.utc(2025),
+            lecturerEndTime: DateTime.utc(2028),
+            status: RegistrationPeriodStatus.active,
+          ),
+        );
         final authenticated = sessionBuilder.copyWith(
           authentication: AuthenticationOverride.authenticationInfo(
             authUserId.toString(),
@@ -188,12 +199,18 @@ void main() {
         expect(classStudents.single.finalScore, 9);
         expect(transcript?.score, 3.28);
         expect(transcript?.letterGrade, 'B');
-        expect(
-          await endpoints.lecturer.deleteCourseClass(
+        await expectLater(
+          endpoints.lecturer.deleteCourseClass(
             authenticated,
             courseClassId: created.courseClassId,
           ),
-          isTrue,
+          throwsA(
+            isA<AppException>().having(
+              (error) => error.code,
+              'code',
+              'class_has_registration_history',
+            ),
+          ),
         );
         final assignments = await LecturerCourseClass.db.find(
           session,
@@ -203,7 +220,7 @@ void main() {
           session,
           where: (table) => table.lecturerId.equals(lecturer.id),
         );
-        expect(assignments, isEmpty);
+        expect(assignments, hasLength(1));
         expect(
           logs.map((item) => item.action),
           containsAll(['CREATE_CLASS', 'REQUEST_CLASS_ADJUSTMENT']),

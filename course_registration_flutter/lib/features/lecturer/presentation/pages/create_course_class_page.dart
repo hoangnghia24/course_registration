@@ -36,6 +36,12 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
     final courses = ref.watch(lecturerCoursesProvider);
     final semesters = ref.watch(lecturerSemestersProvider);
     final rooms = ref.watch(availableRoomsProvider);
+    final period = _semesterId == null
+        ? null
+        : ref
+              .watch(lecturerRegistrationPeriodProvider(_semesterId!))
+              .asData
+              ?.value;
     return Scaffold(
       appBar: AppBar(title: const Text('Gửi yêu cầu mở lớp')),
       body: ListView(
@@ -148,9 +154,17 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
             ],
           ),
           const SizedBox(height: 20),
+          if (period != null && !period.isLecturerOpen)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Ngoài thời gian chỉnh sửa lớp học phần của giảng viên.',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
           FilledButton.icon(
             key: const Key('create-class-submit'),
-            onPressed: _saving ? null : _save,
+            onPressed: _saving || period?.isLecturerOpen != true ? null : _save,
             icon: const Icon(Icons.add_business_outlined),
             label: Text(
               _saving ? 'Đang gửi...' : 'Gửi phòng đào tạo duyệt',

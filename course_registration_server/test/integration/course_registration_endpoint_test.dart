@@ -31,9 +31,11 @@ void main() {
         session,
         TrainingProgram(
           majorId: major.id!,
+          code: 'P4-KTPM',
           name: 'KTPM Phase 4',
           academicYear: 2026,
           totalCredits: 130,
+          semesterCount: 8,
         ),
       );
       final course = await Course.db.insertRow(
@@ -100,6 +102,17 @@ void main() {
           startDate: DateTime.utc(2026, 9, 1),
           endDate: DateTime.utc(2027, 1, 31),
           status: SemesterStatus.open,
+        ),
+      );
+      await RegistrationPeriod.db.insertRow(
+        session,
+        RegistrationPeriod(
+          semesterId: semester.id!,
+          startTime: DateTime.utc(2025),
+          endTime: DateTime.utc(2028),
+          lecturerStartTime: DateTime.utc(2025),
+          lecturerEndTime: DateTime.utc(2028),
+          status: RegistrationPeriodStatus.active,
         ),
       );
       final courseClass = await CourseClass.db.insertRow(

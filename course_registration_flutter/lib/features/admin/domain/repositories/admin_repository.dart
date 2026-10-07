@@ -27,6 +27,23 @@ abstract interface class AdminRepository {
   Future<List<TrainingProgram>> getPrograms();
   Future<List<Major>> getMajors();
   Future<List<TrainingProgramCourse>> getProgramCourses(UuidValue programId);
+  Future<TrainingProgram> createProgram({
+    required UuidValue majorId,
+    required String code,
+    required String name,
+    required int academicYear,
+    required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
+    String? description,
+  });
+  Future<TrainingProgram> updateProgram(TrainingProgram program);
+  Future<TrainingProgramCourse> setProgramCourse({
+    required UuidValue programId,
+    required UuidValue courseId,
+    required int semesterNumber,
+    required bool isRequired,
+  });
   Future<List<CoursePrerequisite>> getPrerequisites();
   Future<List<CourseEquivalent>> getEquivalents();
   Future<List<PendingClassApprovalDto>> getPendingClasses();
@@ -44,6 +61,9 @@ abstract interface class AdminRepository {
     required UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    required RegistrationPeriodStatus status,
   });
   Future<AnalyticsReportDto> getReports();
   Future<List<AuditLogDto>> getAuditLogs();

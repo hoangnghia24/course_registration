@@ -118,9 +118,11 @@ void main() {
         session,
         TrainingProgram(
           majorId: otherMajor.id!,
+          code: 'P8-OTHER',
           name: 'Other Phase 8 Program',
           academicYear: 2026,
           totalCredits: 120,
+          semesterCount: 8,
         ),
       );
       await Student.db.updateRow(
@@ -222,6 +224,17 @@ void main() {
             endDate: DateTime.utc(2020, 12, 31),
           ),
         );
+        final period = await RegistrationPeriod.db.findFirstRow(
+          session,
+          where: (table) => table.semesterId.equals(seed.semester.id),
+        );
+        await RegistrationPeriod.db.updateRow(
+          session,
+          period!.copyWith(
+            startTime: DateTime.utc(2020),
+            endTime: DateTime.utc(2020, 12, 31),
+          ),
+        );
         final expired = await endpoints.courseRegistration.registerCourse(
           _studentSession(sessionBuilder, seed, 1),
           courseClassId: seed.courseClass.id!,
@@ -290,6 +303,17 @@ void main() {
         seed.semester.copyWith(
           startDate: DateTime.utc(2020),
           endDate: DateTime.utc(2020, 12, 31),
+        ),
+      );
+      final period = await RegistrationPeriod.db.findFirstRow(
+        session,
+        where: (table) => table.semesterId.equals(seed.semester.id),
+      );
+      await RegistrationPeriod.db.updateRow(
+        session,
+        period!.copyWith(
+          startTime: DateTime.utc(2020),
+          endTime: DateTime.utc(2020, 12, 31),
         ),
       );
       final result = await endpoints.courseRegistration.cancelCourse(

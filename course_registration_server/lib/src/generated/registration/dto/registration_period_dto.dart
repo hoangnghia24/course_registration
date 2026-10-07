@@ -11,6 +11,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _is;
+import '../../registration/models/registration_period_status.dart' as _ievbuj9v;
 
 abstract class RegistrationPeriodDto
     implements _is.SerializableModel, _is.ProtocolSerialization {
@@ -21,8 +22,12 @@ abstract class RegistrationPeriodDto
     required this.academicYear,
     required this.startTime,
     required this.endTime,
+    required this.lecturerStartTime,
+    required this.lecturerEndTime,
+    required this.status,
     required this.configured,
     required this.isOpen,
+    required this.isLecturerOpen,
   });
 
   factory RegistrationPeriodDto({
@@ -32,8 +37,12 @@ abstract class RegistrationPeriodDto
     required int academicYear,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    required _ievbuj9v.RegistrationPeriodStatus status,
     required bool configured,
     required bool isOpen,
+    required bool isLecturerOpen,
   }) = _RegistrationPeriodDtoImpl;
 
   factory RegistrationPeriodDto.fromJson(
@@ -54,10 +63,22 @@ abstract class RegistrationPeriodDto
         jsonSerialization['startTime'],
       ),
       endTime: _is.DateTimeJsonExtension.fromJson(jsonSerialization['endTime']),
+      lecturerStartTime: _is.DateTimeJsonExtension.fromJson(
+        jsonSerialization['lecturerStartTime'],
+      ),
+      lecturerEndTime: _is.DateTimeJsonExtension.fromJson(
+        jsonSerialization['lecturerEndTime'],
+      ),
+      status: _ievbuj9v.RegistrationPeriodStatus.fromJson(
+        (jsonSerialization['status'] as String),
+      ),
       configured: _is.BoolJsonExtension.fromJson(
         jsonSerialization['configured'],
       ),
       isOpen: _is.BoolJsonExtension.fromJson(jsonSerialization['isOpen']),
+      isLecturerOpen: _is.BoolJsonExtension.fromJson(
+        jsonSerialization['isLecturerOpen'],
+      ),
     );
   }
 
@@ -73,9 +94,17 @@ abstract class RegistrationPeriodDto
 
   DateTime endTime;
 
+  DateTime lecturerStartTime;
+
+  DateTime lecturerEndTime;
+
+  _ievbuj9v.RegistrationPeriodStatus status;
+
   bool configured;
 
   bool isOpen;
+
+  bool isLecturerOpen;
 
   /// Returns a shallow copy of this [RegistrationPeriodDto]
   /// with some or all fields replaced by the given arguments.
@@ -87,8 +116,12 @@ abstract class RegistrationPeriodDto
     int? academicYear,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     bool? configured,
     bool? isOpen,
+    bool? isLecturerOpen,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -101,8 +134,12 @@ abstract class RegistrationPeriodDto
       'academicYear': academicYear,
       'startTime': startTime.toJson(),
       'endTime': endTime.toJson(),
+      'lecturerStartTime': lecturerStartTime.toJson(),
+      'lecturerEndTime': lecturerEndTime.toJson(),
+      'status': status.toJson(),
       'configured': configured,
       'isOpen': isOpen,
+      'isLecturerOpen': isLecturerOpen,
     };
   }
 
@@ -117,8 +154,12 @@ abstract class RegistrationPeriodDto
       'academicYear': academicYear,
       'startTime': startTime.toJson(),
       'endTime': endTime.toJson(),
+      'lecturerStartTime': lecturerStartTime.toJson(),
+      'lecturerEndTime': lecturerEndTime.toJson(),
+      'status': status.toJson(),
       'configured': configured,
       'isOpen': isOpen,
+      'isLecturerOpen': isLecturerOpen,
     };
   }
 
@@ -138,8 +179,12 @@ class _RegistrationPeriodDtoImpl extends RegistrationPeriodDto {
     required int academicYear,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    required _ievbuj9v.RegistrationPeriodStatus status,
     required bool configured,
     required bool isOpen,
+    required bool isLecturerOpen,
   }) : super._(
          registrationPeriodId: registrationPeriodId,
          semesterId: semesterId,
@@ -147,8 +192,12 @@ class _RegistrationPeriodDtoImpl extends RegistrationPeriodDto {
          academicYear: academicYear,
          startTime: startTime,
          endTime: endTime,
+         lecturerStartTime: lecturerStartTime,
+         lecturerEndTime: lecturerEndTime,
+         status: status,
          configured: configured,
          isOpen: isOpen,
+         isLecturerOpen: isLecturerOpen,
        );
 
   /// Returns a shallow copy of this [RegistrationPeriodDto]
@@ -162,8 +211,12 @@ class _RegistrationPeriodDtoImpl extends RegistrationPeriodDto {
     int? academicYear,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    _ievbuj9v.RegistrationPeriodStatus? status,
     bool? configured,
     bool? isOpen,
+    bool? isLecturerOpen,
   }) {
     return RegistrationPeriodDto(
       registrationPeriodId: registrationPeriodId is _is.UuidValue?
@@ -174,8 +227,12 @@ class _RegistrationPeriodDtoImpl extends RegistrationPeriodDto {
       academicYear: academicYear ?? this.academicYear,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      lecturerStartTime: lecturerStartTime ?? this.lecturerStartTime,
+      lecturerEndTime: lecturerEndTime ?? this.lecturerEndTime,
+      status: status ?? this.status,
       configured: configured ?? this.configured,
       isOpen: isOpen ?? this.isOpen,
+      isLecturerOpen: isLecturerOpen ?? this.isLecturerOpen,
     );
   }
 }

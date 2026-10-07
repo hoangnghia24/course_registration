@@ -106,32 +106,48 @@ class StudentHomePage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Kết quả học tập',
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ),
-                              ),
-                            ),
-                            GradeScaleSelector(
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final title = Text(
+                              'Kết quả học tập',
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                            );
+                            final selector = GradeScaleSelector(
                               selected: gradeScale,
                               onSelected: ref
                                   .read(gradeScaleProvider.notifier)
                                   .select,
-                            ),
-                          ],
+                            );
+                            if (constraints.maxWidth < 280) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  title,
+                                  const SizedBox(height: 8),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: selector,
+                                  ),
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: [
+                                Expanded(child: title),
+                                selector,
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final score = Text(
                               gradeScale
                                   .fromFourPoint(
                                     gpa.value?.cumulativeGpa ?? student.gpa,
@@ -139,15 +155,30 @@ class StudentHomePage extends ConsumerWidget {
                                   .toStringAsFixed(2),
                               style: Theme.of(context).textTheme.displaySmall
                                   ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 8,
-                                left: 5,
-                              ),
-                              child: Text('GPA / ${gradeScale.maximum}'),
-                            ),
-                          ],
+                            );
+                            final caption = Text(
+                              'GPA / ${gradeScale.maximum}',
+                            );
+                            if (constraints.maxWidth < 280) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [score, caption],
+                              );
+                            }
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                score,
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: 8,
+                                    left: 5,
+                                  ),
+                                  child: caption,
+                                ),
+                              ],
+                            );
+                          },
                         ),
                         const Divider(height: 28),
                         Text(

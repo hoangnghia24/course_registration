@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,6 +55,39 @@ void main() {
     expect(controller.isAuthenticated, isTrue);
   });
 
+  test('login does not wait for background synchronization', () async {
+    final synchronization = Completer<void>();
+    final repository = _FakeAuthRepository();
+    final controller = AuthStateController(
+      repository,
+      onAuthenticated: () => synchronization.future,
+    );
+
+    final success = await controller
+        .login('student@example.edu', 'password123')
+        .timeout(const Duration(seconds: 1));
+
+    expect(success, isTrue);
+    expect(controller.isAuthenticated, isTrue);
+    expect(controller.loading, isFalse);
+  });
+
+  test(
+    'session restore stops waiting when the backend is unresponsive',
+    () async {
+      final controller = AuthStateController(
+        _HangingRestoreRepository(),
+        authenticationTimeout: const Duration(milliseconds: 10),
+      );
+
+      await controller.restore();
+
+      expect(controller.initialized, isTrue);
+      expect(controller.isAuthenticated, isFalse);
+      expect(controller.error, isA<TimeoutException>());
+    },
+  );
+
   testWidgets('login explains that accounts are provisioned', (tester) async {
     final controller = AuthStateController(_FakeAuthRepository());
     await controller.restore();
@@ -98,4 +133,9 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> logout() async => signedIn = false;
   @override
   Future<AppUser?> restore() async => signedIn ? _profile : null;
+}
+
+class _HangingRestoreRepository extends _FakeAuthRepository {
+  @override
+  Future<AppUser?> restore() => Completer<AppUser?>().future;
 }

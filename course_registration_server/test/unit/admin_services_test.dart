@@ -6,9 +6,9 @@ import 'package:test/test.dart';
 
 void main() {
   test(
-    'permission checker supports explicit permissions and bootstrap admin',
+    'permission checker is fail-closed and supports explicit permissions',
     () {
-      expect(AdminPermissionService.isAllowed({}, 'MANAGE_USER'), isTrue);
+      expect(AdminPermissionService.isAllowed({}, 'MANAGE_USER'), isFalse);
       expect(
         AdminPermissionService.isAllowed({'MANAGE_USER'}, 'MANAGE_USER'),
         isTrue,

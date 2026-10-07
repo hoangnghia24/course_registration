@@ -157,6 +157,27 @@ class _FakeAdminRepository implements AdminRepository {
   Future<List<TrainingProgramCourse>> getProgramCourses(UuidValue programId) =>
       throw UnimplementedError();
   @override
+  Future<TrainingProgram> createProgram({
+    required UuidValue majorId,
+    required String code,
+    required String name,
+    required int academicYear,
+    required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
+    String? description,
+  }) => throw UnimplementedError();
+  @override
+  Future<TrainingProgram> updateProgram(TrainingProgram program) =>
+      throw UnimplementedError();
+  @override
+  Future<TrainingProgramCourse> setProgramCourse({
+    required UuidValue programId,
+    required UuidValue courseId,
+    required int semesterNumber,
+    required bool isRequired,
+  }) => throw UnimplementedError();
+  @override
   Future<List<CoursePrerequisite>> getPrerequisites() =>
       throw UnimplementedError();
   @override
@@ -185,6 +206,9 @@ class _FakeAdminRepository implements AdminRepository {
     required UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    required RegistrationPeriodStatus status,
   }) => throw UnimplementedError();
   @override
   Future<AnalyticsReportDto> getReports() => throw UnimplementedError();

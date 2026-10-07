@@ -419,16 +419,21 @@ abstract final class AdminService {
   static Future<TrainingProgram> createTrainingProgram(
     Session session, {
     required UuidValue majorId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
     String? description,
   }) async {
     final ctx = await context(session);
     await AdminPermissionService.require(session, ctx.admin, 'MANAGE_PROGRAM');
-    if (!InputValidator.requiredText(name, maxLength: 200) ||
+    if (!InputValidator.programCode(code) ||
+        !InputValidator.requiredText(name, maxLength: 200) ||
         !InputValidator.academicYear(academicYear) ||
         !InputValidator.totalCredits(totalCredits) ||
+        !InputValidator.semesterCount(semesterCount) ||
         !InputValidator.optionalText(description, maxLength: 2000)) {
       throw _error('invalid_program', 'Thông tin chương trình không hợp lệ.');
     }
@@ -436,9 +441,12 @@ abstract final class AdminService {
       session,
       TrainingProgram(
         majorId: majorId,
+        code: code.trim().toUpperCase(),
         name: name.trim(),
         academicYear: academicYear,
         totalCredits: totalCredits,
+        semesterCount: semesterCount,
+        status: status,
         description: description,
       ),
     );
@@ -456,9 +464,12 @@ abstract final class AdminService {
   static Future<TrainingProgram> updateTrainingProgram(
     Session session, {
     required UuidValue programId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
     String? description,
   }) async {
     final ctx = await context(session);
@@ -467,9 +478,11 @@ abstract final class AdminService {
     if (value == null) {
       throw _error('program_not_found', 'Không tìm thấy chương trình.');
     }
-    if (!InputValidator.requiredText(name, maxLength: 200) ||
+    if (!InputValidator.programCode(code) ||
+        !InputValidator.requiredText(name, maxLength: 200) ||
         !InputValidator.academicYear(academicYear) ||
         !InputValidator.totalCredits(totalCredits) ||
+        !InputValidator.semesterCount(semesterCount) ||
         !InputValidator.optionalText(description, maxLength: 2000)) {
       throw _error('invalid_program', 'Thông tin chương trình không hợp lệ.');
     }
@@ -477,9 +490,12 @@ abstract final class AdminService {
     final updated = await TrainingProgram.db.updateRow(
       session,
       value.copyWith(
+        code: code.trim().toUpperCase(),
         name: name.trim(),
         academicYear: academicYear,
         totalCredits: totalCredits,
+        semesterCount: semesterCount,
+        status: status,
         description: description,
         updatedAt: DateTime.now().toUtc(),
       ),
@@ -505,7 +521,16 @@ abstract final class AdminService {
   }) async {
     final ctx = await context(session);
     await AdminPermissionService.require(session, ctx.admin, 'MANAGE_PROGRAM');
-    if (!InputValidator.semesterNumber(semesterNumber)) {
+    final program = await TrainingProgram.db.findById(session, programId);
+    final course = await Course.db.findById(session, courseId);
+    if (program == null || course == null) {
+      throw _error(
+        'program_course_not_found',
+        'Chương trình hoặc môn học không tồn tại.',
+      );
+    }
+    if (!InputValidator.semesterNumber(semesterNumber) ||
+        semesterNumber > program.semesterCount) {
       throw _error('invalid_semester', 'Học kỳ chương trình không hợp lệ.');
     }
     final existing = await TrainingProgramCourse.db.findFirstRow(
@@ -1020,15 +1045,22 @@ abstract final class AdminService {
     required UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    RegistrationPeriodStatus? status,
   }) async {
     final ctx = await context(session);
     await AdminPermissionService.require(session, ctx.admin, 'MANAGE_COURSE');
     final startUtc = startTime.toUtc();
     final endUtc = endTime.toUtc();
-    if (!startUtc.isBefore(endUtc)) {
+    final lecturerStartUtc = (lecturerStartTime ?? startTime).toUtc();
+    final lecturerEndUtc = (lecturerEndTime ?? endTime).toUtc();
+    final effectiveStatus = status ?? RegistrationPeriodStatus.active;
+    if (!startUtc.isBefore(endUtc) ||
+        !lecturerStartUtc.isBefore(lecturerEndUtc)) {
       throw _error(
         'invalid_registration_period',
-        'Thời gian bắt đầu phải trước thời gian kết thúc.',
+        'Thời gian bắt đầu phải trước thời gian kết thúc cho từng nhóm người dùng.',
       );
     }
     return session.db.transaction((transaction) async {
@@ -1055,6 +1087,9 @@ abstract final class AdminService {
                 semesterId: semesterId,
                 startTime: startUtc,
                 endTime: endUtc,
+                lecturerStartTime: lecturerStartUtc,
+                lecturerEndTime: lecturerEndUtc,
+                status: effectiveStatus,
                 updatedById: ctx.admin.id!,
                 createdAt: now,
                 updatedAt: now,
@@ -1066,6 +1101,9 @@ abstract final class AdminService {
               existing.copyWith(
                 startTime: startUtc,
                 endTime: endUtc,
+                lecturerStartTime: lecturerStartUtc,
+                lecturerEndTime: lecturerEndUtc,
+                status: effectiveStatus,
                 updatedById: ctx.admin.id,
                 updatedAt: now,
               ),

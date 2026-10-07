@@ -27,9 +27,13 @@ class BootstrapDependencies {
 }
 
 Future<BootstrapDependencies> bootstrap() async {
-  final client = Client(await getServerUrl())
-    ..connectivityMonitor = FlutterConnectivityMonitor()
-    ..authSessionManager = FlutterAuthSessionManager();
+  final client =
+      Client(
+          await getServerUrl(),
+          connectionTimeout: const Duration(seconds: 12),
+        )
+        ..connectivityMonitor = FlutterConnectivityMonitor()
+        ..authSessionManager = FlutterAuthSessionManager();
   await client.auth.initialize();
   final database = AppDatabase();
   final syncManager = SyncManager(client, database);
@@ -39,8 +43,9 @@ Future<BootstrapDependencies> bootstrap() async {
     repository,
     onAuthenticated: syncManager.synchronize,
   );
-  await authController.restore();
-  unawaited(syncManager.synchronize());
+  // Render the app and its splash screen immediately. A stale session or an
+  // unavailable backend must not keep Android on a frozen launch surface.
+  unawaited(authController.restore());
   return BootstrapDependencies(
     client: client,
     database: database,

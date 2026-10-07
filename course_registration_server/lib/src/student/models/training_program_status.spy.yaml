@@ -1,0 +1,6 @@
+enum: TrainingProgramStatus
+serialized: byName
+values:
+  - draft
+  - active
+  - archived

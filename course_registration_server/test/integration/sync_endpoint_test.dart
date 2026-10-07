@@ -203,9 +203,11 @@ Future<_Fixture> _fixture(
     session,
     TrainingProgram(
       majorId: major.id!,
+      code: 'SYNC-$students',
       name: 'Chương trình đồng bộ $students',
       academicYear: 2026,
       totalCredits: 130,
+      semesterCount: 8,
     ),
   );
   final course = await Course.db.insertRow(
@@ -252,6 +254,17 @@ Future<_Fixture> _fixture(
       startDate: DateTime.utc(2026, 9),
       endDate: DateTime.utc(2027, 1, 31),
       status: SemesterStatus.open,
+    ),
+  );
+  await RegistrationPeriod.db.insertRow(
+    session,
+    RegistrationPeriod(
+      semesterId: semester.id!,
+      startTime: DateTime.utc(2025),
+      endTime: DateTime.utc(2028),
+      lecturerStartTime: DateTime.utc(2025),
+      lecturerEndTime: DateTime.utc(2028),
+      status: RegistrationPeriodStatus.active,
     ),
   );
   final courseClass = await CourseClass.db.insertRow(

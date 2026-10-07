@@ -67,9 +67,12 @@ void main() {
           endpoints.admin.createTrainingProgram(
             admin,
             majorId: seed.major.id!,
+            code: '',
             name: '',
             academicYear: 1900,
             totalCredits: -1,
+            semesterCount: 0,
+            status: TrainingProgramStatus.draft,
           ),
           'invalid_program',
         );
@@ -195,9 +198,12 @@ void main() {
         await endpoints.admin.updateTrainingProgram(
           admin,
           programId: seed.program.id!,
+          code: seed.program.code,
           name: 'Phase 8 Program Updated',
           academicYear: 2026,
           totalCredits: 130,
+          semesterCount: seed.program.semesterCount,
+          status: TrainingProgramStatus.active,
         );
         final disabledUser = await AppUser.db.findFirstRow(
           session,

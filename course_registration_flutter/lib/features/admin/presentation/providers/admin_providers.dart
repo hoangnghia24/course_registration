@@ -45,6 +45,11 @@ final trainingProgramsAdminProvider =
 final majorsAdminProvider = FutureProvider.autoDispose<List<Major>>(
   (ref) => ref.watch(adminRepositoryProvider).getMajors(),
 );
+final programCoursesAdminProvider = FutureProvider.autoDispose
+    .family<List<TrainingProgramCourse>, UuidValue>(
+      (ref, programId) =>
+          ref.watch(adminRepositoryProvider).getProgramCourses(programId),
+    );
 final prerequisitesAdminProvider =
     FutureProvider.autoDispose<List<CoursePrerequisite>>(
       (ref) => ref.watch(adminRepositoryProvider).getPrerequisites(),

@@ -75,17 +75,11 @@ void main() {
     expect(rows.firstWhere((item) => item.id == 'remaining').status, 'PENDING');
   });
 
-  test('pull checkpoint is transactional', () async {
+  test('pull checkpoint is persisted atomically', () async {
     expect(await database.lastSyncAt('user'), isNull);
-    await expectLater(
-      database.applyPullChanges(
-        'user',
-        DateTime.utc(2026, 10, 2),
-        () async => throw StateError('rollback'),
-      ),
-      throwsStateError,
-    );
-    expect(await database.lastSyncAt('user'), isNull);
+    final checkpoint = DateTime.utc(2026, 10, 2);
+    await database.checkpointPull('user', checkpoint);
+    expect((await database.lastSyncAt('user'))?.toUtc(), checkpoint);
   });
 
   test('retry policy uses bounded exponential backoff', () {

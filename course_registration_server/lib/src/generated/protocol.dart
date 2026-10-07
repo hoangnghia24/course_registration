@@ -111,6 +111,7 @@ import 'registration/models/registration.dart' as _isg2rjz0;
 import 'registration/models/registration_action.dart' as _ick1ofaw;
 import 'registration/models/registration_history.dart' as _io6lhm66;
 import 'registration/models/registration_period.dart' as _i3fi4yfy;
+import 'registration/models/registration_period_status.dart' as _iryum3b8;
 import 'registration/models/registration_status.dart' as _ienvemo7;
 import 'registration/models/semester.dart' as _iz7vluge;
 import 'registration/models/semester_status.dart' as _inuj73nk;
@@ -127,6 +128,7 @@ import 'student/models/major.dart' as _iqe9gc9z;
 import 'student/models/student_transcript.dart' as _iw15wxpt;
 import 'student/models/training_program.dart' as _ige2gcz9;
 import 'student/models/training_program_course.dart' as _im8ku9lz;
+import 'student/models/training_program_status.dart' as _i7qv1iv3;
 import 'student/models/transcript_status.dart' as _i3gkq2t9;
 import 'sync/dto/pull_sync_result_dto.dart' as _i8xfjltp;
 import 'sync/dto/sync_change_dto.dart' as _ih97hn2e;
@@ -182,6 +184,7 @@ export 'registration/models/registration.dart';
 export 'registration/models/registration_action.dart';
 export 'registration/models/registration_history.dart';
 export 'registration/models/registration_period.dart';
+export 'registration/models/registration_period_status.dart';
 export 'registration/models/registration_status.dart';
 export 'registration/models/semester.dart';
 export 'registration/models/semester_status.dart';
@@ -198,6 +201,7 @@ export 'student/models/major.dart';
 export 'student/models/student_transcript.dart';
 export 'student/models/training_program.dart';
 export 'student/models/training_program_course.dart';
+export 'student/models/training_program_status.dart';
 export 'student/models/transcript_status.dart';
 export 'sync/dto/pull_sync_result_dto.dart';
 export 'sync/dto/sync_change_dto.dart';
@@ -1835,6 +1839,24 @@ class Protocol extends _is.DatabaseSerializationManager {
           dartType: 'DateTime',
         ),
         _isp.ColumnDefinition(
+          name: 'lecturerStartTime',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lecturerEndTime',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:RegistrationPeriodStatus',
+        ),
+        _isp.ColumnDefinition(
           name: 'updatedById',
           columnType: _isp.ColumnType.uuid,
           isNullable: true,
@@ -2892,6 +2914,12 @@ class Protocol extends _is.DatabaseSerializationManager {
           dartType: 'UuidValue',
         ),
         _isp.ColumnDefinition(
+          name: 'code',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
           name: 'name',
           columnType: _isp.ColumnType.text,
           isNullable: false,
@@ -2908,6 +2936,18 @@ class Protocol extends _is.DatabaseSerializationManager {
           columnType: _isp.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'semesterCount',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:TrainingProgramStatus',
         ),
         _isp.ColumnDefinition(
           name: 'description',
@@ -2943,6 +2983,19 @@ class Protocol extends _is.DatabaseSerializationManager {
         ),
       ],
       indexes: [
+        _isp.IndexDefinition(
+          indexName: 'training_programs_code_unique',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'code',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
         _isp.IndexDefinition(
           indexName: 'training_programs_major_year_unique',
           tableSpace: null,
@@ -3229,6 +3282,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i3fi4yfy.RegistrationPeriod) {
       return _i3fi4yfy.RegistrationPeriod.fromJson(data) as T;
     }
+    if (t == _iryum3b8.RegistrationPeriodStatus) {
+      return _iryum3b8.RegistrationPeriodStatus.fromJson(data) as T;
+    }
     if (t == _ienvemo7.RegistrationStatus) {
       return _ienvemo7.RegistrationStatus.fromJson(data) as T;
     }
@@ -3276,6 +3332,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _im8ku9lz.TrainingProgramCourse) {
       return _im8ku9lz.TrainingProgramCourse.fromJson(data) as T;
+    }
+    if (t == _i7qv1iv3.TrainingProgramStatus) {
+      return _i7qv1iv3.TrainingProgramStatus.fromJson(data) as T;
     }
     if (t == _i3gkq2t9.TranscriptStatus) {
       return _i3gkq2t9.TranscriptStatus.fromJson(data) as T;
@@ -3510,6 +3569,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _i3fi4yfy.RegistrationPeriod.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_iryum3b8.RegistrationPeriodStatus?>()) {
+      return (data != null
+              ? _iryum3b8.RegistrationPeriodStatus.fromJson(data)
+              : null)
+          as T;
+    }
     if (t == _is.getType<_ienvemo7.RegistrationStatus?>()) {
       return (data != null ? _ienvemo7.RegistrationStatus.fromJson(data) : null)
           as T;
@@ -3570,6 +3635,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_im8ku9lz.TrainingProgramCourse?>()) {
       return (data != null
               ? _im8ku9lz.TrainingProgramCourse.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_i7qv1iv3.TrainingProgramStatus?>()) {
+      return (data != null
+              ? _i7qv1iv3.TrainingProgramStatus.fromJson(data)
               : null)
           as T;
     }
@@ -3870,6 +3941,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _ick1ofaw.RegistrationAction => 'RegistrationAction',
       _io6lhm66.RegistrationHistory => 'RegistrationHistory',
       _i3fi4yfy.RegistrationPeriod => 'RegistrationPeriod',
+      _iryum3b8.RegistrationPeriodStatus => 'RegistrationPeriodStatus',
       _ienvemo7.RegistrationStatus => 'RegistrationStatus',
       _iz7vluge.Semester => 'Semester',
       _inuj73nk.SemesterStatus => 'SemesterStatus',
@@ -3886,6 +3958,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iw15wxpt.StudentTranscript => 'StudentTranscript',
       _ige2gcz9.TrainingProgram => 'TrainingProgram',
       _im8ku9lz.TrainingProgramCourse => 'TrainingProgramCourse',
+      _i7qv1iv3.TrainingProgramStatus => 'TrainingProgramStatus',
       _i3gkq2t9.TranscriptStatus => 'TranscriptStatus',
       _i8xfjltp.PullSyncResultDto => 'PullSyncResultDto',
       _ih97hn2e.SyncChangeDto => 'SyncChangeDto',
@@ -4002,6 +4075,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'RegistrationHistory';
       case _i3fi4yfy.RegistrationPeriod():
         return 'RegistrationPeriod';
+      case _iryum3b8.RegistrationPeriodStatus():
+        return 'RegistrationPeriodStatus';
       case _ienvemo7.RegistrationStatus():
         return 'RegistrationStatus';
       case _iz7vluge.Semester():
@@ -4034,6 +4109,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'TrainingProgram';
       case _im8ku9lz.TrainingProgramCourse():
         return 'TrainingProgramCourse';
+      case _i7qv1iv3.TrainingProgramStatus():
+        return 'TrainingProgramStatus';
       case _i3gkq2t9.TranscriptStatus():
         return 'TranscriptStatus';
       case _i8xfjltp.PullSyncResultDto():
@@ -4214,6 +4291,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'RegistrationPeriod') {
       return deserialize<_i3fi4yfy.RegistrationPeriod>(data['data']);
     }
+    if (dataClassName == 'RegistrationPeriodStatus') {
+      return deserialize<_iryum3b8.RegistrationPeriodStatus>(data['data']);
+    }
     if (dataClassName == 'RegistrationStatus') {
       return deserialize<_ienvemo7.RegistrationStatus>(data['data']);
     }
@@ -4261,6 +4341,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'TrainingProgramCourse') {
       return deserialize<_im8ku9lz.TrainingProgramCourse>(data['data']);
+    }
+    if (dataClassName == 'TrainingProgramStatus') {
+      return deserialize<_i7qv1iv3.TrainingProgramStatus>(data['data']);
     }
     if (dataClassName == 'TranscriptStatus') {
       return deserialize<_i3gkq2t9.TranscriptStatus>(data['data']);

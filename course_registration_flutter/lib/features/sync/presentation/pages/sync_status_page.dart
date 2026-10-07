@@ -79,7 +79,9 @@ class SyncStatusPage extends ConsumerWidget {
                                     .retryOperation(item.id),
                                 icon: const Icon(Icons.refresh),
                               )
-                            : Chip(label: Text(AppLabels.syncStatus(item.status))),
+                            : Chip(
+                                label: Text(AppLabels.syncStatus(item.status)),
+                              ),
                       ),
                     )
                     .toList(),

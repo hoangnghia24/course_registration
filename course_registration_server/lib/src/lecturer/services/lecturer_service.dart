@@ -110,6 +110,11 @@ abstract final class LecturerService {
       if (course == null || semester == null) {
         throw _incomplete('course_or_semester');
       }
+      await RegistrationPeriodService.requireLecturerOpen(
+        session,
+        semesterId: semesterId,
+        transaction: transaction,
+      );
       await ensureNoConflict(
         session,
         lecturer: lecturer,
@@ -175,7 +180,7 @@ abstract final class LecturerService {
         transaction: transaction,
         lock: true,
       );
-      await RegistrationPeriodService.requireOpen(
+      await RegistrationPeriodService.requireLecturerOpen(
         session,
         semesterId: courseClass.semesterId,
         transaction: transaction,
@@ -259,21 +264,28 @@ abstract final class LecturerService {
         transaction: transaction,
         lock: true,
       );
-      await RegistrationPeriodService.requireOpen(
+      await RegistrationPeriodService.requireLecturerOpen(
         session,
         semesterId: courseClass.semesterId,
         transaction: transaction,
       );
-      await RegistrationHistory.db.deleteWhere(
+      final registration = await Registration.db.findFirstRow(
         session,
-        where: (table) => table.courseClassId.equals(courseClassId),
         transaction: transaction,
+        where: (table) => table.courseClassId.equals(courseClassId),
       );
-      await Registration.db.deleteWhere(
+      final history = await RegistrationHistory.db.findFirstRow(
         session,
-        where: (table) => table.courseClassId.equals(courseClassId),
         transaction: transaction,
+        where: (table) => table.courseClassId.equals(courseClassId),
       );
+      if (registration != null || history != null) {
+        throw AppException(
+          code: 'class_has_registration_history',
+          message:
+              'Không thể xóa lớp đã có dữ liệu đăng ký. Hãy đóng lớp để bảo toàn lịch sử.',
+        );
+      }
       await _log(
         session,
         lecturer: lecturer,
@@ -305,7 +317,7 @@ abstract final class LecturerService {
         courseClassId,
         transaction: transaction,
       );
-      await RegistrationPeriodService.requireOpen(
+      await RegistrationPeriodService.requireLecturerOpen(
         session,
         semesterId: courseClass.semesterId,
         transaction: transaction,
@@ -560,7 +572,9 @@ abstract final class LecturerService {
     required double finalScore,
   }) async {
     final lecturer = await _authorizedLecturer(session);
-    if (midtermScore < 0 ||
+    if (!midtermScore.isFinite ||
+        !finalScore.isFinite ||
+        midtermScore < 0 ||
         midtermScore > 10 ||
         finalScore < 0 ||
         finalScore > 10) {
@@ -570,6 +584,10 @@ abstract final class LecturerService {
       );
     }
     final courseClass = await _ownedClass(session, lecturer, courseClassId);
+    await RegistrationPeriodService.requireLecturerOpen(
+      session,
+      semesterId: courseClass.semesterId,
+    );
     final registration = await Registration.db.findFirstRow(
       session,
       where: (table) =>

@@ -7,6 +7,9 @@ class RegistrationWindow {
     required this.semester,
     required this.startTime,
     required this.endTime,
+    required this.lecturerStartTime,
+    required this.lecturerEndTime,
+    required this.status,
     required this.configured,
     this.registrationPeriodId,
   });
@@ -15,13 +18,27 @@ class RegistrationWindow {
   final UuidValue? registrationPeriodId;
   final DateTime startTime;
   final DateTime endTime;
+  final DateTime lecturerStartTime;
+  final DateTime lecturerEndTime;
+  final RegistrationPeriodStatus status;
   final bool configured;
 
   bool isOpenAt(DateTime value) {
     final now = value.toUtc();
-    return semester.status == SemesterStatus.open &&
+    return configured &&
+        status == RegistrationPeriodStatus.active &&
+        semester.status == SemesterStatus.open &&
         !now.isBefore(startTime.toUtc()) &&
         !now.isAfter(endTime.toUtc());
+  }
+
+  bool isLecturerOpenAt(DateTime value) {
+    final now = value.toUtc();
+    return configured &&
+        status == RegistrationPeriodStatus.active &&
+        semester.status == SemesterStatus.open &&
+        !now.isBefore(lecturerStartTime.toUtc()) &&
+        !now.isAfter(lecturerEndTime.toUtc());
   }
 
   RegistrationPeriodDto toDto(DateTime now) => RegistrationPeriodDto(
@@ -31,8 +48,12 @@ class RegistrationWindow {
     academicYear: semester.academicYear,
     startTime: startTime.toUtc(),
     endTime: endTime.toUtc(),
+    lecturerStartTime: lecturerStartTime.toUtc(),
+    lecturerEndTime: lecturerEndTime.toUtc(),
+    status: status,
     configured: configured,
     isOpen: isOpenAt(now),
+    isLecturerOpen: isLecturerOpenAt(now),
   );
 }
 
@@ -63,6 +84,10 @@ abstract final class RegistrationPeriodService {
       registrationPeriodId: period?.id,
       startTime: (period?.startTime ?? semester.startDate).toUtc(),
       endTime: (period?.endTime ?? semester.endDate).toUtc(),
+      lecturerStartTime: (period?.lecturerStartTime ?? semester.startDate)
+          .toUtc(),
+      lecturerEndTime: (period?.lecturerEndTime ?? semester.endDate).toUtc(),
+      status: period?.status ?? RegistrationPeriodStatus.draft,
       configured: period != null,
     );
   }
@@ -93,22 +118,53 @@ abstract final class RegistrationPeriodService {
       transaction: transaction,
     );
     final current = (now ?? DateTime.now()).toUtc();
-    if (window.semester.status != SemesterStatus.open) {
+    if (!window.configured || window.status == RegistrationPeriodStatus.draft) {
+      throw AppException(
+        code: 'registration_not_started',
+        message: 'Chưa đến thời gian đăng ký học phần.',
+      );
+    }
+    if (window.status == RegistrationPeriodStatus.closed ||
+        window.semester.status != SemesterStatus.open) {
       throw AppException(
         code: 'registration_closed',
-        message: 'Học kỳ hiện không mở đăng ký học phần.',
+        message: 'Thời gian đăng ký học phần đã kết thúc.',
       );
     }
     if (current.isBefore(window.startTime.toUtc())) {
       throw AppException(
         code: 'registration_not_started',
-        message: 'Thời gian đăng ký học phần chưa bắt đầu.',
+        message: 'Chưa đến thời gian đăng ký học phần.',
       );
     }
     if (current.isAfter(window.endTime.toUtc())) {
       throw AppException(
         code: 'registration_ended',
         message: 'Thời gian đăng ký học phần đã kết thúc.',
+      );
+    }
+  }
+
+  static Future<void> requireLecturerOpen(
+    Session session, {
+    required UuidValue semesterId,
+    Transaction? transaction,
+    DateTime? now,
+  }) async {
+    final window = await getWindow(
+      session,
+      semesterId: semesterId,
+      transaction: transaction,
+    );
+    final current = (now ?? DateTime.now()).toUtc();
+    if (!window.configured ||
+        window.status != RegistrationPeriodStatus.active ||
+        window.semester.status != SemesterStatus.open ||
+        current.isBefore(window.lecturerStartTime.toUtc()) ||
+        current.isAfter(window.lecturerEndTime.toUtc())) {
+      throw AppException(
+        code: 'lecturer_editing_closed',
+        message: 'Ngoài thời gian chỉnh sửa lớp học phần của giảng viên.',
       );
     }
   }

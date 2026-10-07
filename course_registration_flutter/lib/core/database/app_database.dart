@@ -526,14 +526,8 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
-  Future<void> applyPullChanges(
-    String userId,
-    DateTime serverTimestamp,
-    Future<void> Function() apply,
-  ) => transaction(() async {
-    await apply();
-    await setLastSyncAt(userId, serverTimestamp);
-  });
+  Future<void> checkpointPull(String userId, DateTime serverTimestamp) =>
+      transaction(() => setLastSyncAt(userId, serverTimestamp));
 
   Future<void> cacheStudentProfile(String studentId, String payload) =>
       into(studentProfileCache).insertOnConflictUpdate(

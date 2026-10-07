@@ -15,6 +15,7 @@ import 'package:course_registration_server/src/generated/protocol.dart'
     as _i9p8z86v;
 import 'package:serverpod/serverpod.dart' as _is;
 import '../../student/models/major.dart' as _imik5j2n;
+import '../../student/models/training_program_status.dart' as _iwtxfpeu;
 
 abstract class TrainingProgram
     implements _is.TableRow<_is.UuidValue?>, _is.ProtocolSerialization {
@@ -22,22 +23,29 @@ abstract class TrainingProgram
     this.id,
     required this.majorId,
     this.major,
+    required this.code,
     required this.name,
     required this.academicYear,
     required this.totalCredits,
+    required this.semesterCount,
+    _iwtxfpeu.TrainingProgramStatus? status,
     this.description,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now(),
+  }) : status = status ?? _iwtxfpeu.TrainingProgramStatus.draft,
+       createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
   factory TrainingProgram({
     _is.UuidValue? id,
     required _is.UuidValue majorId,
     _imik5j2n.Major? major,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    _iwtxfpeu.TrainingProgramStatus? status,
     String? description,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -56,9 +64,16 @@ abstract class TrainingProgram
           : _i9p8z86v.Protocol().deserialize<_imik5j2n.Major>(
               jsonSerialization['major'],
             ),
+      code: jsonSerialization['code'] as String,
       name: jsonSerialization['name'] as String,
       academicYear: jsonSerialization['academicYear'] as int,
       totalCredits: jsonSerialization['totalCredits'] as int,
+      semesterCount: jsonSerialization['semesterCount'] as int,
+      status: jsonSerialization['status'] == null
+          ? null
+          : _iwtxfpeu.TrainingProgramStatus.fromJson(
+              (jsonSerialization['status'] as String),
+            ),
       description: jsonSerialization['description'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -80,11 +95,17 @@ abstract class TrainingProgram
 
   _imik5j2n.Major? major;
 
+  String code;
+
   String name;
 
   int academicYear;
 
   int totalCredits;
+
+  int semesterCount;
+
+  _iwtxfpeu.TrainingProgramStatus status;
 
   String? description;
 
@@ -102,9 +123,12 @@ abstract class TrainingProgram
     _is.UuidValue? id,
     _is.UuidValue? majorId,
     _imik5j2n.Major? major,
+    String? code,
     String? name,
     int? academicYear,
     int? totalCredits,
+    int? semesterCount,
+    _iwtxfpeu.TrainingProgramStatus? status,
     String? description,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -116,9 +140,12 @@ abstract class TrainingProgram
       if (id != null) 'id': id?.toJson(),
       'majorId': majorId.toJson(),
       if (major != null) 'major': major?.toJson(),
+      'code': code,
       'name': name,
       'academicYear': academicYear,
       'totalCredits': totalCredits,
+      'semesterCount': semesterCount,
+      'status': status.toJson(),
       if (description != null) 'description': description,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -132,9 +159,12 @@ abstract class TrainingProgram
       if (id != null) 'id': id?.toJson(),
       'majorId': majorId.toJson(),
       if (major != null) 'major': major?.toJsonForProtocol(),
+      'code': code,
       'name': name,
       'academicYear': academicYear,
       'totalCredits': totalCredits,
+      'semesterCount': semesterCount,
+      'status': status.toJson(),
       if (description != null) 'description': description,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -176,9 +206,12 @@ class _TrainingProgramImpl extends TrainingProgram {
     _is.UuidValue? id,
     required _is.UuidValue majorId,
     _imik5j2n.Major? major,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    _iwtxfpeu.TrainingProgramStatus? status,
     String? description,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -186,9 +219,12 @@ class _TrainingProgramImpl extends TrainingProgram {
          id: id,
          majorId: majorId,
          major: major,
+         code: code,
          name: name,
          academicYear: academicYear,
          totalCredits: totalCredits,
+         semesterCount: semesterCount,
+         status: status,
          description: description,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -202,9 +238,12 @@ class _TrainingProgramImpl extends TrainingProgram {
     Object? id = _Undefined,
     _is.UuidValue? majorId,
     Object? major = _Undefined,
+    String? code,
     String? name,
     int? academicYear,
     int? totalCredits,
+    int? semesterCount,
+    _iwtxfpeu.TrainingProgramStatus? status,
     Object? description = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -213,9 +252,12 @@ class _TrainingProgramImpl extends TrainingProgram {
       id: id is _is.UuidValue? ? id : this.id,
       majorId: majorId ?? this.majorId,
       major: major is _imik5j2n.Major? ? major : this.major?.copyWith(),
+      code: code ?? this.code,
       name: name ?? this.name,
       academicYear: academicYear ?? this.academicYear,
       totalCredits: totalCredits ?? this.totalCredits,
+      semesterCount: semesterCount ?? this.semesterCount,
+      status: status ?? this.status,
       description: description is String? ? description : this.description,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -232,6 +274,11 @@ class TrainingProgramUpdateTable extends _is.UpdateTable<TrainingProgramTable> {
         value,
       );
 
+  _is.ColumnValue<String, String> code(String value) => _is.ColumnValue(
+    table.code,
+    value,
+  );
+
   _is.ColumnValue<String, String> name(String value) => _is.ColumnValue(
     table.name,
     value,
@@ -244,6 +291,20 @@ class TrainingProgramUpdateTable extends _is.UpdateTable<TrainingProgramTable> {
 
   _is.ColumnValue<int, int> totalCredits(int value) => _is.ColumnValue(
     table.totalCredits,
+    value,
+  );
+
+  _is.ColumnValue<int, int> semesterCount(int value) => _is.ColumnValue(
+    table.semesterCount,
+    value,
+  );
+
+  _is.ColumnValue<
+    _iwtxfpeu.TrainingProgramStatus,
+    _iwtxfpeu.TrainingProgramStatus
+  >
+  status(_iwtxfpeu.TrainingProgramStatus value) => _is.ColumnValue(
+    table.status,
     value,
   );
 
@@ -273,6 +334,10 @@ class TrainingProgramTable extends _is.Table<_is.UuidValue?> {
       'majorId',
       this,
     );
+    code = _is.ColumnString(
+      'code',
+      this,
+    );
     name = _is.ColumnString(
       'name',
       this,
@@ -284,6 +349,15 @@ class TrainingProgramTable extends _is.Table<_is.UuidValue?> {
     totalCredits = _is.ColumnInt(
       'totalCredits',
       this,
+    );
+    semesterCount = _is.ColumnInt(
+      'semesterCount',
+      this,
+    );
+    status = _is.ColumnEnum(
+      'status',
+      this,
+      _is.EnumSerialization.byName,
     );
     description = _is.ColumnString(
       'description',
@@ -307,11 +381,17 @@ class TrainingProgramTable extends _is.Table<_is.UuidValue?> {
 
   _imik5j2n.MajorTable? _major;
 
+  late final _is.ColumnString code;
+
   late final _is.ColumnString name;
 
   late final _is.ColumnInt academicYear;
 
   late final _is.ColumnInt totalCredits;
+
+  late final _is.ColumnInt semesterCount;
+
+  late final _is.ColumnEnum<_iwtxfpeu.TrainingProgramStatus> status;
 
   late final _is.ColumnString description;
 
@@ -336,9 +416,12 @@ class TrainingProgramTable extends _is.Table<_is.UuidValue?> {
   List<_is.Column> get columns => [
     id,
     majorId,
+    code,
     name,
     academicYear,
     totalCredits,
+    semesterCount,
+    status,
     description,
     createdAt,
     updatedAt,

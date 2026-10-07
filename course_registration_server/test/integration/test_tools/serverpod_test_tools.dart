@@ -61,6 +61,8 @@ import 'package:course_registration_server/src/generated/registration/models/cou
     as _iemolfy3;
 import 'package:course_registration_server/src/generated/registration/models/course_prerequisite.dart'
     as _ivv0f5sx;
+import 'package:course_registration_server/src/generated/registration/models/registration_period_status.dart'
+    as _irltxfcw;
 import 'package:course_registration_server/src/generated/registration/models/semester.dart'
     as _i4gr1wnu;
 import 'package:course_registration_server/src/generated/student/dto/gpa_dto.dart'
@@ -81,6 +83,8 @@ import 'package:course_registration_server/src/generated/student/models/training
     as _iyi2skq0;
 import 'package:course_registration_server/src/generated/student/models/training_program_course.dart'
     as _iyb4eomn;
+import 'package:course_registration_server/src/generated/student/models/training_program_status.dart'
+    as _i6l8nt82;
 import 'package:course_registration_server/src/generated/sync/dto/pull_sync_result_dto.dart'
     as _ib1amovp;
 import 'package:course_registration_server/src/generated/sync/dto/sync_operation_input_dto.dart'
@@ -808,9 +812,12 @@ class _AdminEndpoint {
   _ida.Future<_iyi2skq0.TrainingProgram> createTrainingProgram(
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue majorId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required _i6l8nt82.TrainingProgramStatus status,
     String? description,
   }) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
@@ -826,9 +833,12 @@ class _AdminEndpoint {
           methodName: 'createTrainingProgram',
           parameters: _ist.testObjectToJson({
             'majorId': majorId,
+            'code': code,
             'name': name,
             'academicYear': academicYear,
             'totalCredits': totalCredits,
+            'semesterCount': semesterCount,
+            'status': status,
             'description': description,
           }),
           serializationManager: _serializationManager,
@@ -849,9 +859,12 @@ class _AdminEndpoint {
   _ida.Future<_iyi2skq0.TrainingProgram> updateTrainingProgram(
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue programId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required _i6l8nt82.TrainingProgramStatus status,
     String? description,
   }) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
@@ -867,9 +880,12 @@ class _AdminEndpoint {
           methodName: 'updateTrainingProgram',
           parameters: _ist.testObjectToJson({
             'programId': programId,
+            'code': code,
             'name': name,
             'academicYear': academicYear,
             'totalCredits': totalCredits,
+            'semesterCount': semesterCount,
+            'status': status,
             'description': description,
           }),
           serializationManager: _serializationManager,
@@ -1326,6 +1342,9 @@ class _AdminEndpoint {
     required _is.UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    _irltxfcw.RegistrationPeriodStatus? status,
   }) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1342,6 +1361,9 @@ class _AdminEndpoint {
             'semesterId': semesterId,
             'startTime': startTime,
             'endTime': endTime,
+            'lecturerStartTime': lecturerStartTime,
+            'lecturerEndTime': lecturerEndTime,
+            'status': status,
           }),
           serializationManager: _serializationManager,
         );

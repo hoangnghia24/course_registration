@@ -28,9 +28,11 @@ void main() {
         session,
         TrainingProgram(
           majorId: major.id!,
+          code: 'KTPM-2025',
           name: 'KTPM 2025',
           academicYear: 2025,
           totalCredits: 130,
+          semesterCount: 8,
         ),
       );
       final course = await Course.db.insertRow(

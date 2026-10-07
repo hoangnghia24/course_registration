@@ -25,6 +25,8 @@ class SyncManager {
   final AppDatabase _database;
   final NetworkHandler _network;
   final DateTime Function() _clock;
+  static const _networkCheckTimeout = Duration(seconds: 5);
+  static const _requestTimeout = Duration(seconds: 15);
   final String clientId;
   final _networkController = StreamController<NetworkStatus>.broadcast();
   final _statusController = StreamController<SyncStatusState>.broadcast();
@@ -38,11 +40,11 @@ class SyncManager {
   Stream<SyncStatusState> get statuses => _statusController.stream;
   NetworkStatus get networkStatus => _networkStatus;
   SyncStatusState get status => _status;
-  Future<bool> get isOnline => _network.hasNetwork;
+  Future<bool> get isOnline => _hasNetwork();
 
   Future<void> start() async {
     await _database.recoverInterruptedOperations();
-    await _publishNetworkStatus();
+    unawaited(_publishNetworkStatus());
     _networkSubscription ??= _network.changes.listen((_) async {
       final wasOffline = _networkStatus == NetworkStatus.offline;
       await _publishNetworkStatus();
@@ -93,7 +95,7 @@ class SyncManager {
   }
 
   Future<void> synchronize() async {
-    if (_syncing || !await _network.hasNetwork) return;
+    if (_syncing || !await _hasNetwork()) return;
     await _publishNetworkStatus();
     if (!_client.auth.isAuthenticated) {
       await _markAuthRequired();
@@ -102,7 +104,7 @@ class SyncManager {
     _syncing = true;
     _setStatus(_status.copyWith(running: true));
     try {
-      final user = await _client.profile.current();
+      final user = await _request(_client.profile.current());
       await _cacheUser(user);
       await _pushPendingOperations();
       await _pullChanges(user.id.toString());
@@ -147,18 +149,20 @@ class SyncManager {
     for (final local in pending) {
       await _database.markOperationSyncing(local.id);
       try {
-        final results = await _client.sync.pushOperations(
-          operations: [
-            SyncOperationInputDto(
-              operationId: UuidValue.withValidation(local.id),
-              entityType: local.entity.toUpperCase(),
-              entityId: local.entityId,
-              operationType: local.operationType,
-              payload: local.data,
-              clientId: local.clientId,
-              baseVersion: local.baseVersion,
-            ),
-          ],
+        final results = await _request(
+          _client.sync.pushOperations(
+            operations: [
+              SyncOperationInputDto(
+                operationId: UuidValue.withValidation(local.id),
+                entityType: local.entity.toUpperCase(),
+                entityId: local.entityId,
+                operationType: local.operationType,
+                payload: local.data,
+                clientId: local.clientId,
+                baseVersion: local.baseVersion,
+              ),
+            ],
+          ),
         );
         final result = results.single;
         final status = ConflictResolver.localStatus(
@@ -223,18 +227,12 @@ class SyncManager {
 
   Future<void> _pullChanges(String userId) async {
     final lastSyncAt = await _database.lastSyncAt(userId);
-    final result = await _client.sync.pullChanges(lastSyncAt: lastSyncAt);
-    await _database.applyPullChanges(
-      userId,
-      result.serverTimestamp,
-      () async {
-        if (result.changes.any(
-          (item) => item.entityType == 'COURSE_REGISTRATION',
-        )) {
-          await _refreshRegistrationCache();
-        }
-      },
+    final result = await _request(
+      _client.sync.pullChanges(lastSyncAt: lastSyncAt),
     );
+    // Never hold a SQLite transaction while doing network I/O. Role-specific
+    // caches are refreshed after this checkpoint, outside the transaction.
+    await _database.checkpointPull(userId, result.serverTimestamp);
   }
 
   Future<void> _cacheUser(AppUser user) async {
@@ -265,13 +263,15 @@ class SyncManager {
   }
 
   Future<void> _refreshRegistrationCache() async {
-    final semester = await _client.courseRegistration.getCurrentSemester();
-    final semesterId = semester.id!;
-    final classes = await _client.courseRegistration.getOpenClasses(
-      semesterId: semesterId,
+    final semester = await _request(
+      _client.courseRegistration.getCurrentSemester(),
     );
-    final registrations = await _client.courseRegistration.getMyCourses(
-      semesterId: semesterId,
+    final semesterId = semester.id!;
+    final classes = await _request(
+      _client.courseRegistration.getOpenClasses(semesterId: semesterId),
+    );
+    final registrations = await _request(
+      _client.courseRegistration.getMyCourses(semesterId: semesterId),
     );
     await _database.cacheCurrentSemester(jsonEncode(semester.toJson()));
     await _database.cacheOpenClasses(
@@ -286,7 +286,9 @@ class SyncManager {
 
   Future<bool> _refreshAuthentication() async {
     try {
-      final result = await _client.auth.refreshAuthKey(force: true);
+      final result = await _request(
+        _client.auth.refreshAuthKey(force: true),
+      );
       return result.name == 'success';
     } catch (_) {
       return false;
@@ -312,11 +314,21 @@ class SyncManager {
   }
 
   Future<void> _publishNetworkStatus() async {
-    _networkStatus = await _network.hasNetwork
+    _networkStatus = await _hasNetwork()
         ? NetworkStatus.online
         : NetworkStatus.offline;
     _networkController.add(_networkStatus);
   }
+
+  Future<bool> _hasNetwork() async {
+    try {
+      return await _network.hasNetwork.timeout(_networkCheckTimeout);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<T> _request<T>(Future<T> request) => request.timeout(_requestTimeout);
 
   void _publishQueue(List<SyncQueueData> values) {
     int count(String state) =>

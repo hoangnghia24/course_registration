@@ -8,6 +8,7 @@ import 'package:course_registration_flutter/features/lecturer/presentation/pages
 import 'package:course_registration_flutter/features/lecturer/presentation/providers/lecturer_providers.dart';
 import 'package:course_registration_flutter/features/registration/presentation/pages/course_search_page.dart';
 import 'package:course_registration_flutter/features/registration/presentation/providers/course_registration_providers.dart';
+import 'package:course_registration_flutter/features/student/presentation/pages/student_home_page.dart';
 import 'package:course_registration_flutter/features/student/presentation/pages/student_profile_page.dart';
 import 'package:course_registration_flutter/features/student/presentation/providers/student_providers.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,26 @@ void main() {
     expect(find.text('Thử lại'), findsOneWidget);
   });
 
+  testWidgets('student dashboard does not overflow on 320px Android screen', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    await _pump(tester, ThemeMode.light, const StudentHomePage(), [
+      studentProfileProvider.overrideWith((ref) async => _profile()),
+      gpaProvider.overrideWith(
+        (ref) async => GpaDto(
+          semester: 'HK1 2026-2027',
+          semesterGpa: 3.5,
+          cumulativeGpa: 3.5,
+          attemptedCredits: 30,
+          earnedCredits: 30,
+        ),
+      ),
+    ]);
+    expect(find.text('Kết quả học tập'), findsOneWidget);
+    expect(find.text('GPA / 4.0'), findsOneWidget);
+  });
+
   testWidgets('representative controls meet accessibility guidelines', (
     tester,
   ) async {
@@ -116,7 +137,14 @@ Future<void> _pump(
   } else {
     await tester.pump();
   }
-  expect(tester.takeException(), isNull);
+  final exception = tester.takeException();
+  if (exception case FlutterError error) {
+    // Keep the render-object diagnostics visible when a responsive regression
+    // is introduced; the default matcher only prints the headline.
+    // ignore: avoid_print
+    print(error.toStringDeep());
+  }
+  expect(exception, isNull);
 }
 
 StudentProfileDto _profile() => StudentProfileDto(

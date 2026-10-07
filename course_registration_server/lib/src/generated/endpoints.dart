@@ -14,8 +14,12 @@ import 'package:course_registration_server/src/generated/lecturer/models/class_a
     as _iinax7tt;
 import 'package:course_registration_server/src/generated/registration/dto/class_schedule_dto.dart'
     as _ig0q9hbn;
+import 'package:course_registration_server/src/generated/registration/models/registration_period_status.dart'
+    as _irltxfcw;
 import 'package:course_registration_server/src/generated/student/models/course_type.dart'
     as _i6yjtab1;
+import 'package:course_registration_server/src/generated/student/models/training_program_status.dart'
+    as _i6l8nt82;
 import 'package:course_registration_server/src/generated/sync/dto/sync_operation_input_dto.dart'
     as _i968sfzk;
 import 'package:course_registration_server/src/generated/user_role.dart'
@@ -481,6 +485,11 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<_is.UuidValue>(),
               nullable: false,
             ),
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
             'name': _is.ParameterDescription(
               name: 'name',
               type: _is.getType<String>(),
@@ -494,6 +503,16 @@ class Endpoints extends _is.EndpointDispatch {
             'totalCredits': _is.ParameterDescription(
               name: 'totalCredits',
               type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'semesterCount': _is.ParameterDescription(
+              name: 'semesterCount',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'status': _is.ParameterDescription(
+              name: 'status',
+              type: _is.getType<_i6l8nt82.TrainingProgramStatus>(),
               nullable: false,
             ),
             'description': _is.ParameterDescription(
@@ -510,9 +529,12 @@ class Endpoints extends _is.EndpointDispatch {
                   .createTrainingProgram(
                     session,
                     majorId: params['majorId'],
+                    code: params['code'],
                     name: params['name'],
                     academicYear: params['academicYear'],
                     totalCredits: params['totalCredits'],
+                    semesterCount: params['semesterCount'],
+                    status: params['status'],
                     description: params['description'],
                   ),
         ),
@@ -522,6 +544,11 @@ class Endpoints extends _is.EndpointDispatch {
             'programId': _is.ParameterDescription(
               name: 'programId',
               type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
               nullable: false,
             ),
             'name': _is.ParameterDescription(
@@ -539,6 +566,16 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<int>(),
               nullable: false,
             ),
+            'semesterCount': _is.ParameterDescription(
+              name: 'semesterCount',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'status': _is.ParameterDescription(
+              name: 'status',
+              type: _is.getType<_i6l8nt82.TrainingProgramStatus>(),
+              nullable: false,
+            ),
             'description': _is.ParameterDescription(
               name: 'description',
               type: _is.getType<String?>(),
@@ -553,9 +590,12 @@ class Endpoints extends _is.EndpointDispatch {
                   .updateTrainingProgram(
                     session,
                     programId: params['programId'],
+                    code: params['code'],
                     name: params['name'],
                     academicYear: params['academicYear'],
                     totalCredits: params['totalCredits'],
+                    semesterCount: params['semesterCount'],
+                    status: params['status'],
                     description: params['description'],
                   ),
         ),
@@ -857,6 +897,21 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<DateTime>(),
               nullable: false,
             ),
+            'lecturerStartTime': _is.ParameterDescription(
+              name: 'lecturerStartTime',
+              type: _is.getType<DateTime?>(),
+              nullable: true,
+            ),
+            'lecturerEndTime': _is.ParameterDescription(
+              name: 'lecturerEndTime',
+              type: _is.getType<DateTime?>(),
+              nullable: true,
+            ),
+            'status': _is.ParameterDescription(
+              name: 'status',
+              type: _is.getType<_irltxfcw.RegistrationPeriodStatus?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -868,6 +923,9 @@ class Endpoints extends _is.EndpointDispatch {
                     semesterId: params['semesterId'],
                     startTime: params['startTime'],
                     endTime: params['endTime'],
+                    lecturerStartTime: params['lecturerStartTime'],
+                    lecturerEndTime: params['lecturerEndTime'],
+                    status: params['status'],
                   ),
         ),
         'getReports': _is.MethodConnector(

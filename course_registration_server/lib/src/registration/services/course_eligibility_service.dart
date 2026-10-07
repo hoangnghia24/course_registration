@@ -60,12 +60,39 @@ abstract final class CourseEligibilityService {
       transaction: transaction,
     );
     final now = DateTime.now().toUtc();
-    if (semester.status != SemesterStatus.open) {
-      messages.add('Học kỳ hiện không mở đăng ký học phần.');
+    if (!window.configured || window.status == RegistrationPeriodStatus.draft) {
+      messages.add('Chưa đến thời gian đăng ký học phần.');
+    } else if (window.status == RegistrationPeriodStatus.closed ||
+        semester.status != SemesterStatus.open) {
+      messages.add('Thời gian đăng ký học phần đã kết thúc.');
     } else if (now.isBefore(window.startTime)) {
-      messages.add('Thời gian đăng ký học phần chưa bắt đầu.');
+      messages.add('Chưa đến thời gian đăng ký học phần.');
     } else if (now.isAfter(window.endTime)) {
       messages.add('Thời gian đăng ký học phần đã kết thúc.');
+    }
+    if (messages.isNotEmpty) {
+      final capacityAvailable = CapacityChecker.hasSeat(
+        capacity: courseClass.capacity,
+        registeredCount: courseClass.registeredCount,
+      );
+      return EligibilityEvaluation(
+        courseClass: courseClass,
+        course: course,
+        result: EligibilityResultDto(
+          eligible: false,
+          prerequisitePassed: false,
+          scheduleAvailable: false,
+          withinCreditLimit: false,
+          inTrainingProgram: false,
+          equivalentAvailable: false,
+          capacityAvailable: capacityAvailable,
+          currentCredits: 0,
+          projectedCredits: course.credits,
+          minimumCredits: CreditLimitChecker.minimumCredits,
+          maximumCredits: CreditLimitChecker.maximumCredits,
+          messages: messages,
+        ),
+      );
     }
     if (courseClass.status == CourseClassStatus.closed) {
       messages.add('Lớp học đã đóng đăng ký.');

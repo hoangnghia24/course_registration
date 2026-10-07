@@ -38,7 +38,7 @@ class CourseClassManagementPage extends ConsumerWidget {
                 .watch(lecturerRegistrationPeriodProvider(item.semesterId))
                 .asData
                 ?.value;
-            final canChange = period?.isOpen ?? false;
+            final canChange = period?.isLecturerOpen ?? false;
             return Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -55,7 +55,7 @@ class CourseClassManagementPage extends ConsumerWidget {
                     Text('${item.registeredCount}/${item.capacity} sinh viên'),
                     const SizedBox(height: 6),
                     _ApprovalStatusChip(item: item),
-                    if (period != null && !period.isOpen)
+                    if (period != null && !period.isLecturerOpen)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
@@ -148,7 +148,7 @@ class CourseClassManagementPage extends ConsumerWidget {
         content: Text(
           item.registeredCount == 0
               ? 'Bạn có chắc muốn xóa ${item.classCode} - ${item.courseName}?'
-              : 'Lớp có ${item.registeredCount} sinh viên. Xóa lớp sẽ đồng thời gỡ toàn bộ đăng ký liên quan. Bạn có chắc chắn?',
+              : 'Lớp có ${item.registeredCount} sinh viên và không thể xóa để bảo toàn lịch sử đăng ký.',
         ),
         actions: [
           TextButton(
@@ -156,7 +156,9 @@ class CourseClassManagementPage extends ConsumerWidget {
             child: const Text('Hủy'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: item.registeredCount == 0
+                ? () => Navigator.pop(context, true)
+                : null,
             child: const Text('Xóa lớp'),
           ),
         ],
@@ -184,11 +186,15 @@ class CourseClassManagementPage extends ConsumerWidget {
 
   static String _periodMessage(RegistrationPeriodDto period) {
     final now = DateTime.now().toUtc();
-    if (now.isBefore(period.startTime.toUtc())) {
-      return 'Chỉ được điều chỉnh từ ${_format(period.startTime.toLocal())}.';
+    if (!period.configured ||
+        period.status != RegistrationPeriodStatus.active) {
+      return 'Đợt chỉnh sửa lớp học phần chưa được mở.';
     }
-    if (now.isAfter(period.endTime.toUtc())) {
-      return 'Thời gian điều chỉnh đã kết thúc lúc ${_format(period.endTime.toLocal())}.';
+    if (now.isBefore(period.lecturerStartTime.toUtc())) {
+      return 'Chỉ được điều chỉnh từ ${_format(period.lecturerStartTime.toLocal())}.';
+    }
+    if (now.isAfter(period.lecturerEndTime.toUtc())) {
+      return 'Thời gian điều chỉnh đã kết thúc lúc ${_format(period.lecturerEndTime.toLocal())}.';
     }
     return 'Học kỳ hiện không mở điều chỉnh lớp học phần.';
   }

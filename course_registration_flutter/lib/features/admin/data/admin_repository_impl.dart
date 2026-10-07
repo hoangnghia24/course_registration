@@ -90,6 +90,50 @@ class AdminRepositoryImpl implements AdminRepository {
   Future<List<TrainingProgramCourse>> getProgramCourses(UuidValue programId) =>
       _client.admin.getProgramCourses(programId: programId);
   @override
+  Future<TrainingProgram> createProgram({
+    required UuidValue majorId,
+    required String code,
+    required String name,
+    required int academicYear,
+    required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
+    String? description,
+  }) => _client.admin.createTrainingProgram(
+    majorId: majorId,
+    code: code,
+    name: name,
+    academicYear: academicYear,
+    totalCredits: totalCredits,
+    semesterCount: semesterCount,
+    status: status,
+    description: description,
+  );
+  @override
+  Future<TrainingProgram> updateProgram(TrainingProgram program) =>
+      _client.admin.updateTrainingProgram(
+        programId: program.id!,
+        code: program.code,
+        name: program.name,
+        academicYear: program.academicYear,
+        totalCredits: program.totalCredits,
+        semesterCount: program.semesterCount,
+        status: program.status,
+        description: program.description,
+      );
+  @override
+  Future<TrainingProgramCourse> setProgramCourse({
+    required UuidValue programId,
+    required UuidValue courseId,
+    required int semesterNumber,
+    required bool isRequired,
+  }) => _client.admin.setProgramCourse(
+    programId: programId,
+    courseId: courseId,
+    semesterNumber: semesterNumber,
+    isRequired: isRequired,
+  );
+  @override
   Future<List<CoursePrerequisite>> getPrerequisites() =>
       _client.admin.getPrerequisites();
   @override
@@ -142,10 +186,16 @@ class AdminRepositoryImpl implements AdminRepository {
     required UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    required DateTime lecturerStartTime,
+    required DateTime lecturerEndTime,
+    required RegistrationPeriodStatus status,
   }) => _client.admin.updateRegistrationPeriod(
     semesterId: semesterId,
     startTime: startTime,
     endTime: endTime,
+    lecturerStartTime: lecturerStartTime,
+    lecturerEndTime: lecturerEndTime,
+    status: status,
   );
 
   @override

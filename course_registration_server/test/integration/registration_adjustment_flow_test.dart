@@ -69,15 +69,18 @@ void main() {
         courseClassId: seed.courseClass.id!,
       );
       expect(blockedCancel.success, isFalse);
-      expect(blockedCancel.message, contains('chưa bắt đầu'));
+      expect(blockedCancel.message, 'Chưa đến thời gian đăng ký học phần.');
       expect(blockedRegister.success, isFalse);
-      expect(blockedRegister.message, contains('chưa bắt đầu'));
+      expect(blockedRegister.message, 'Chưa đến thời gian đăng ký học phần.');
 
       await endpoints.admin.updateRegistrationPeriod(
         admin,
         semesterId: seed.semester.id!,
         startTime: now.subtract(const Duration(days: 1)),
         endTime: now.add(const Duration(days: 1)),
+        lecturerStartTime: now.subtract(const Duration(days: 1)),
+        lecturerEndTime: now.add(const Duration(days: 1)),
+        status: RegistrationPeriodStatus.active,
       );
       final cancelled = await endpoints.courseRegistration.cancelCourse(
         student,
@@ -104,8 +107,11 @@ void main() {
       await endpoints.admin.updateRegistrationPeriod(
         admin,
         semesterId: seed.semester.id!,
-        startTime: now.subtract(const Duration(days: 1)),
-        endTime: now.add(const Duration(days: 1)),
+        startTime: now.add(const Duration(days: 1)),
+        endTime: now.add(const Duration(days: 2)),
+        lecturerStartTime: now.subtract(const Duration(days: 1)),
+        lecturerEndTime: now.add(const Duration(days: 1)),
+        status: RegistrationPeriodStatus.active,
       );
 
       final request = await endpoints.lecturer.updateCourseClass(
@@ -232,8 +238,11 @@ void main() {
         await endpoints.admin.updateRegistrationPeriod(
           admin,
           semesterId: seed.semester.id!,
-          startTime: now.subtract(const Duration(days: 2)),
-          endTime: now.subtract(const Duration(days: 1)),
+          startTime: now.subtract(const Duration(days: 1)),
+          endTime: now.add(const Duration(days: 1)),
+          lecturerStartTime: now.subtract(const Duration(days: 2)),
+          lecturerEndTime: now.subtract(const Duration(days: 1)),
+          status: RegistrationPeriodStatus.active,
         );
         await expectLater(
           endpoints.lecturer.updateCourseClass(
@@ -246,7 +255,7 @@ void main() {
             isA<AppException>().having(
               (error) => error.code,
               'code',
-              'registration_ended',
+              'lecturer_editing_closed',
             ),
           ),
         );
@@ -256,6 +265,9 @@ void main() {
           semesterId: seed.semester.id!,
           startTime: now.subtract(const Duration(days: 1)),
           endTime: now.add(const Duration(days: 1)),
+          lecturerStartTime: now.subtract(const Duration(days: 1)),
+          lecturerEndTime: now.add(const Duration(days: 1)),
+          status: RegistrationPeriodStatus.active,
         );
         for (var index = 1; index < 10; index++) {
           final user = await AppUser.db.insertRow(
@@ -305,30 +317,36 @@ void main() {
           ),
           10,
         );
-        expect(
-          await endpoints.lecturer.deleteCourseClass(
+        await expectLater(
+          endpoints.lecturer.deleteCourseClass(
             lecturer,
             courseClassId: seed.courseClass.id!,
           ),
-          isTrue,
+          throwsA(
+            isA<AppException>().having(
+              (error) => error.code,
+              'code',
+              'class_has_registration_history',
+            ),
+          ),
         );
         expect(
           await Registration.db.find(
             session,
             where: (table) => table.courseClassId.equals(seed.courseClass.id),
           ),
-          isEmpty,
+          hasLength(10),
         );
         expect(
           await RegistrationHistory.db.find(
             session,
             where: (table) => table.courseClassId.equals(seed.courseClass.id),
           ),
-          isEmpty,
+          hasLength(10),
         );
         expect(
           await CourseClass.db.findById(session, seed.courseClass.id!),
-          isNull,
+          isNotNull,
         );
       },
     );

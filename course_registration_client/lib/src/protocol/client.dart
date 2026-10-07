@@ -59,6 +59,8 @@ import 'package:course_registration_client/src/protocol/registration/models/cour
     as _i095tu7a;
 import 'package:course_registration_client/src/protocol/registration/models/course_prerequisite.dart'
     as _i5zv3u4e;
+import 'package:course_registration_client/src/protocol/registration/models/registration_period_status.dart'
+    as _ijkg8xpw;
 import 'package:course_registration_client/src/protocol/registration/models/semester.dart'
     as _iu5keruo;
 import 'package:course_registration_client/src/protocol/student/dto/gpa_dto.dart'
@@ -79,6 +81,8 @@ import 'package:course_registration_client/src/protocol/student/models/training_
     as _iiopdple;
 import 'package:course_registration_client/src/protocol/student/models/training_program_course.dart'
     as _ijwatpay;
+import 'package:course_registration_client/src/protocol/student/models/training_program_status.dart'
+    as _ihj399hn;
 import 'package:course_registration_client/src/protocol/sync/dto/pull_sync_result_dto.dart'
     as _iua1j9e4;
 import 'package:course_registration_client/src/protocol/sync/dto/sync_operation_input_dto.dart'
@@ -265,36 +269,48 @@ class EndpointAdmin extends EndpointAdminGuard {
 
   _ida.Future<_iiopdple.TrainingProgram> createTrainingProgram({
     required _isc.UuidValue majorId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required _ihj399hn.TrainingProgramStatus status,
     String? description,
   }) => caller.callServerEndpoint<_iiopdple.TrainingProgram>(
     'admin',
     'createTrainingProgram',
     {
       'majorId': majorId,
+      'code': code,
       'name': name,
       'academicYear': academicYear,
       'totalCredits': totalCredits,
+      'semesterCount': semesterCount,
+      'status': status,
       'description': description,
     },
   );
 
   _ida.Future<_iiopdple.TrainingProgram> updateTrainingProgram({
     required _isc.UuidValue programId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required _ihj399hn.TrainingProgramStatus status,
     String? description,
   }) => caller.callServerEndpoint<_iiopdple.TrainingProgram>(
     'admin',
     'updateTrainingProgram',
     {
       'programId': programId,
+      'code': code,
       'name': name,
       'academicYear': academicYear,
       'totalCredits': totalCredits,
+      'semesterCount': semesterCount,
+      'status': status,
       'description': description,
     },
   );
@@ -437,6 +453,9 @@ class EndpointAdmin extends EndpointAdminGuard {
     required _isc.UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    _ijkg8xpw.RegistrationPeriodStatus? status,
   }) => caller.callServerEndpoint<_iofzf6to.RegistrationPeriodDto>(
     'admin',
     'updateRegistrationPeriod',
@@ -444,6 +463,9 @@ class EndpointAdmin extends EndpointAdminGuard {
       'semesterId': semesterId,
       'startTime': startTime,
       'endTime': endTime,
+      'lecturerStartTime': lecturerStartTime,
+      'lecturerEndTime': lecturerEndTime,
+      'status': status,
     },
   );
 

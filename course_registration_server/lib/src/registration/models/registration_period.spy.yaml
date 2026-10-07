@@ -5,6 +5,9 @@ fields:
   semester: Semester?, relation(onDelete=Cascade)
   startTime: DateTime
   endTime: DateTime
+  lecturerStartTime: DateTime
+  lecturerEndTime: DateTime
+  status: RegistrationPeriodStatus, defaultModel=draft
   updatedBy: Admin?, relation(optional, onDelete=SetNull)
   createdAt: DateTime, default=now
   updatedAt: DateTime, default=now

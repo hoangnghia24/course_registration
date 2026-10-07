@@ -13,17 +13,44 @@ class GradeScaleSelector extends StatelessWidget {
   final ValueChanged<GradeScale> onSelected;
 
   @override
-  Widget build(BuildContext context) => SegmentedButton<GradeScale>(
+  Widget build(BuildContext context) => Wrap(
     key: const Key('grade-scale-selector'),
-    showSelectedIcon: false,
-    segments: const [
-      ButtonSegment(value: GradeScale.four, label: Text('Thang 4')),
-      ButtonSegment(value: GradeScale.ten, label: Text('Thang 10')),
+    spacing: 6,
+    runSpacing: 6,
+    children: [
+      _ScaleChip(
+        label: 'Thang 4',
+        selected: selected == GradeScale.four,
+        onSelected: () => onSelected(GradeScale.four),
+      ),
+      _ScaleChip(
+        label: 'Thang 10',
+        selected: selected == GradeScale.ten,
+        onSelected: () => onSelected(GradeScale.ten),
+      ),
     ],
-    selected: {selected},
-    onSelectionChanged: (values) => onSelected(values.single),
-    style: const ButtonStyle(
-      visualDensity: VisualDensity(horizontal: -3, vertical: -3),
-    ),
+  );
+}
+
+class _ScaleChip extends StatelessWidget {
+  const _ScaleChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) => ChoiceChip(
+    label: Text(label),
+    selected: selected,
+    showCheckmark: false,
+    visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
+    onSelected: (value) {
+      if (value) onSelected();
+    },
   );
 }

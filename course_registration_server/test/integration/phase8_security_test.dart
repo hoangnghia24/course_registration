@@ -47,6 +47,36 @@ void main() {
       );
     });
 
+    test('admin without an explicit permission is denied', () async {
+      final session = sessionBuilder.build();
+      final authUserId = UuidValue.withValidation(
+        '018f0000-0000-7000-8000-000000000899',
+      );
+      final user = await AppUser.db.insertRow(
+        session,
+        AppUser(
+          authUserId: authUserId,
+          email: 'restricted-admin@example.edu',
+          fullName: 'Restricted Admin',
+          role: UserRole.admin,
+        ),
+      );
+      await Admin.db.insertRow(session, Admin(userId: user.id!));
+
+      await expectLater(
+        endpoints.admin.getUsers(
+          _auth(sessionBuilder, authUserId, AppScopes.admin),
+        ),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.code,
+            'code',
+            'permission_denied',
+          ),
+        ),
+      );
+    });
+
     test('student cannot call lecturer APIs or mutate admin courses', () async {
       final student = _auth(
         sessionBuilder,

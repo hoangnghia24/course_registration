@@ -112,31 +112,43 @@ class AdminEndpoint extends AdminGuard {
   Future<TrainingProgram> createTrainingProgram(
     Session session, {
     required UuidValue majorId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
     String? description,
   }) => AdminService.createTrainingProgram(
     session,
     majorId: majorId,
+    code: code,
     name: name,
     academicYear: academicYear,
     totalCredits: totalCredits,
+    semesterCount: semesterCount,
+    status: status,
     description: description,
   );
   Future<TrainingProgram> updateTrainingProgram(
     Session session, {
     required UuidValue programId,
+    required String code,
     required String name,
     required int academicYear,
     required int totalCredits,
+    required int semesterCount,
+    required TrainingProgramStatus status,
     String? description,
   }) => AdminService.updateTrainingProgram(
     session,
     programId: programId,
+    code: code,
     name: name,
     academicYear: academicYear,
     totalCredits: totalCredits,
+    semesterCount: semesterCount,
+    status: status,
     description: description,
   );
   Future<TrainingProgramCourse> setProgramCourse(
@@ -218,11 +230,17 @@ class AdminEndpoint extends AdminGuard {
     required UuidValue semesterId,
     required DateTime startTime,
     required DateTime endTime,
+    DateTime? lecturerStartTime,
+    DateTime? lecturerEndTime,
+    RegistrationPeriodStatus? status,
   }) => AdminService.updateRegistrationPeriod(
     session,
     semesterId: semesterId,
     startTime: startTime,
     endTime: endTime,
+    lecturerStartTime: lecturerStartTime,
+    lecturerEndTime: lecturerEndTime,
+    status: status,
   );
 
   Future<AnalyticsReportDto> getReports(Session session) =>
