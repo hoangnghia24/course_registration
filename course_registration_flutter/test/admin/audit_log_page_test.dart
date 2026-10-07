@@ -43,4 +43,44 @@ void main() {
     expect(find.textContaining('className'), findsNothing);
     expect(find.textContaining('{"'), findsNothing);
   });
+
+  testWidgets('nested audit data is localized and fits a phone screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final log = AuditLogDto(
+      id: UuidValue.withValidation('018f0000-0000-7000-8000-000000000303'),
+      actorName: 'Nguyễn Hoàng Minh',
+      action: 'APPROVE_CLASS_ADJUSTMENT',
+      entity: 'class_adjustment_request',
+      entityId: UuidValue.withValidation(
+        '018f0000-0000-7000-8000-000000000304',
+      ),
+      oldValue: '{"capacity":30}',
+      newValue:
+          '{"capacity":35,"schedules":[{"__className__":"ClassScheduleDto","dayOfWeek":6,"startPeriod":7,"endPeriod":9,"room":"LAB-02"}],"status":"approved"}',
+      createdAt: DateTime.utc(2026, 10, 7, 3, 5),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          auditLogProvider.overrideWith((ref) async => [log]),
+        ],
+        child: const MaterialApp(home: AuditLogPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Duyệt yêu cầu điều chỉnh lớp'), findsOneWidget);
+    expect(find.textContaining('Lịch học:'), findsOneWidget);
+    expect(find.textContaining('Thứ: Thứ Bảy'), findsOneWidget);
+    expect(find.textContaining('Trạng thái: Đã duyệt'), findsOneWidget);
+    expect(find.textContaining('ClassScheduleDto'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

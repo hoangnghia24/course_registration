@@ -1,5 +1,6 @@
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/error_handler.dart';
@@ -279,6 +280,7 @@ class _ProgramDialogState extends State<_ProgramDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
+    insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
     title: Text(
       widget.program == null ? 'Thêm chương trình' : 'Sửa chương trình',
     ),
@@ -292,12 +294,17 @@ class _ProgramDialogState extends State<_ProgramDialog> {
             children: [
               DropdownButtonFormField<UuidValue>(
                 initialValue: _majorId,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Ngành'),
                 items: widget.majors
                     .map(
                       (item) => DropdownMenuItem(
                         value: item.id,
-                        child: Text(item.name),
+                        child: Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     )
                     .toList(),
@@ -305,28 +312,35 @@ class _ProgramDialogState extends State<_ProgramDialog> {
                     ? (value) => _majorId = value!
                     : null,
               ),
+              const SizedBox(height: 12),
               _text(_code, 'Mã chương trình', _required),
+              const SizedBox(height: 12),
               _text(_name, 'Tên chương trình', _required),
+              const SizedBox(height: 12),
               _text(
                 _year,
                 'Khóa tuyển sinh',
                 (value) => _range(value, 2000, 2100),
                 number: true,
               ),
+              const SizedBox(height: 12),
               _text(
                 _credits,
                 'Tổng tín chỉ',
                 (value) => _range(value, 1, 300),
                 number: true,
               ),
+              const SizedBox(height: 12),
               _text(
                 _semesters,
                 'Số học kỳ',
                 (value) => _range(value, 1, 20),
                 number: true,
               ),
+              const SizedBox(height: 12),
               DropdownButtonFormField<TrainingProgramStatus>(
                 initialValue: _status,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Trạng thái'),
                 items: TrainingProgramStatus.values
                     .map(
@@ -360,6 +374,7 @@ class _ProgramDialogState extends State<_ProgramDialog> {
   }) => TextFormField(
     controller: controller,
     keyboardType: number ? TextInputType.number : TextInputType.text,
+    inputFormatters: number ? [FilteringTextInputFormatter.digitsOnly] : null,
     decoration: InputDecoration(labelText: label),
     validator: validator,
   );
@@ -372,9 +387,9 @@ class _ProgramDialogState extends State<_ProgramDialog> {
         majorId: _majorId,
         code: _code.text.trim().toUpperCase(),
         name: _name.text.trim(),
-        academicYear: int.parse(_year.text),
-        totalCredits: int.parse(_credits.text),
-        semesterCount: int.parse(_semesters.text),
+        academicYear: int.parse(_year.text.trim()),
+        totalCredits: int.parse(_credits.text.trim()),
+        semesterCount: int.parse(_semesters.text.trim()),
         status: _status,
       ),
     );
@@ -410,42 +425,55 @@ class _CourseAssignmentDialogState extends State<_CourseAssignmentDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
+    insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
     title: const Text('Gán môn vào chương trình'),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        DropdownButtonFormField<UuidValue>(
-          initialValue: _courseId,
-          decoration: const InputDecoration(labelText: 'Môn học'),
-          items: widget.courses
-              .map(
-                (item) => DropdownMenuItem(
-                  value: item.id,
-                  child: Text('${item.courseCode} • ${item.courseName}'),
-                ),
-              )
-              .toList(),
-          onChanged: (value) => _courseId = value!,
-        ),
-        DropdownButtonFormField<int>(
-          initialValue: _semester,
-          decoration: const InputDecoration(labelText: 'Học kỳ đề xuất'),
-          items: List.generate(widget.semesterCount, (index) => index + 1)
-              .map(
-                (value) => DropdownMenuItem(
-                  value: value,
-                  child: Text('Học kỳ $value'),
-                ),
-              )
-              .toList(),
-          onChanged: (value) => _semester = value!,
-        ),
-        SwitchListTile(
-          value: _required,
-          title: const Text('Môn bắt buộc'),
-          onChanged: (value) => setState(() => _required = value),
-        ),
-      ],
+    content: SizedBox(
+      width: 520,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButtonFormField<UuidValue>(
+            initialValue: _courseId,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Môn học'),
+            items: widget.courses
+                .map(
+                  (item) => DropdownMenuItem(
+                    value: item.id,
+                    child: Text(
+                      '${item.courseCode} • ${item.courseName}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _courseId = value!),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int>(
+            initialValue: _semester,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Học kỳ đề xuất'),
+            items: List.generate(widget.semesterCount, (index) => index + 1)
+                .map(
+                  (value) => DropdownMenuItem(
+                    value: value,
+                    child: Text('Học kỳ $value'),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _semester = value!),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile.adaptive(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            value: _required,
+            title: const Text('Môn bắt buộc'),
+            onChanged: (value) => setState(() => _required = value),
+          ),
+        ],
+      ),
     ),
     actions: [
       TextButton(
