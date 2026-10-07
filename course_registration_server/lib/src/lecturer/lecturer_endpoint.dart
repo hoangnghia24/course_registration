@@ -42,12 +42,12 @@ class LecturerEndpoint extends LecturerGuard {
     Session session, {
     required UuidValue courseClassId,
     required int capacity,
-    required CourseClassStatus status,
+    required List<ClassScheduleDto> schedules,
   }) => LecturerService.updateCourseClass(
     session,
     courseClassId: courseClassId,
     capacity: capacity,
-    status: status,
+    schedules: schedules,
   );
 
   Future<bool> deleteCourseClass(

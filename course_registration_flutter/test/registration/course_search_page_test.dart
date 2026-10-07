@@ -1,6 +1,8 @@
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:course_registration_flutter/features/registration/presentation/pages/course_search_page.dart';
+import 'package:course_registration_flutter/features/registration/domain/repositories/course_registration_repository.dart';
 import 'package:course_registration_flutter/features/registration/presentation/providers/course_registration_providers.dart';
+import 'package:course_registration_flutter/features/student/presentation/providers/student_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,6 +51,74 @@ void main() {
 
     expect(filterAvailableClasses([courseClass], [registered]), isEmpty);
   });
+
+  testWidgets('opening request closes without disposed controller errors', (
+    tester,
+  ) async {
+    final repository = _FakeRegistrationRepository();
+    final programCourse = TrainingProgramCourseDto(
+      courseId: _courseClass().courseId,
+      courseCode: 'IT101',
+      courseName: 'Lập trình cơ bản',
+      credits: 3,
+      semesterNumber: 1,
+      isRequired: true,
+      courseType: CourseType.compulsory,
+      progressStatus: CourseProgressStatus.notStarted,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          availableOpenClassesProvider.overrideWith((ref) async => const []),
+          trainingProgramProvider.overrideWith((ref) async => [programCourse]),
+          courseRegistrationRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const MaterialApp(home: CourseSearchPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Yêu cầu mở lớp'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('IT101 - Lập trình cơ bản'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Cần học đúng tiến độ');
+    await tester.tap(find.text('Gửi yêu cầu'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(repository.requestedCourseId, programCourse.courseId);
+    expect(repository.reason, 'Cần học đúng tiến độ');
+  });
+}
+
+class _FakeRegistrationRepository implements CourseRegistrationRepository {
+  UuidValue? requestedCourseId;
+  String? reason;
+
+  @override
+  Future<void> createOpeningRequest(UuidValue courseId, String reason) async {
+    requestedCourseId = courseId;
+    this.reason = reason;
+  }
+
+  @override
+  Future<Semester> getCurrentSemester() => throw UnimplementedError();
+  @override
+  Future<List<OpenCourseClassDto>> getOpenClasses(UuidValue semesterId) =>
+      throw UnimplementedError();
+  @override
+  Future<List<RegisteredCourseDto>> getMyCourses(UuidValue semesterId) =>
+      throw UnimplementedError();
+  @override
+  Future<EligibilityResultDto> checkEligibility(UuidValue courseClassId) =>
+      throw UnimplementedError();
+  @override
+  Future<RegistrationResultDto> registerCourse(UuidValue courseClassId) =>
+      throw UnimplementedError();
+  @override
+  Future<RegistrationResultDto> cancelCourse(UuidValue registrationId) =>
+      throw UnimplementedError();
 }
 
 OpenCourseClassDto _courseClass() => OpenCourseClassDto(

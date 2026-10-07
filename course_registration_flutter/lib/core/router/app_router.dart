@@ -117,7 +117,9 @@ abstract final class AppRouter {
       ),
       GoRoute(
         path: '/lecturer/classes/create',
-        builder: (_, _) => const CreateCourseClassPage(),
+        builder: (_, state) => CreateCourseClassPage(
+          initialCourseId: state.extra as UuidValue?,
+        ),
       ),
       GoRoute(
         path: '/lecturer/classes/students',

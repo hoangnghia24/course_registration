@@ -735,6 +735,13 @@ abstract final class AdminService {
             table.courseClassId.equals(courseClassId) &
             table.status.equals(TeachingScheduleStatus.pending),
       );
+      if (approve) {
+        await ClassSchedule.db.deleteWhere(
+          session,
+          where: (table) => table.courseClassId.equals(courseClassId),
+          transaction: transaction,
+        );
+      }
       for (final proposal in proposals) {
         await TeachingScheduleProposal.db.updateRow(
           session,
@@ -758,6 +765,24 @@ abstract final class AdminService {
             transaction: transaction,
           );
         }
+      }
+      final openingRequests = await CourseOpeningRequest.db.find(
+        session,
+        transaction: transaction,
+        where: (table) =>
+            table.courseId.equals(courseClass.courseId) &
+            table.status.equals(OpeningRequestStatus.pending),
+      );
+      for (final request in openingRequests) {
+        await CourseOpeningRequest.db.updateRow(
+          session,
+          request.copyWith(
+            status: approve
+                ? OpeningRequestStatus.approved
+                : OpeningRequestStatus.rejected,
+          ),
+          transaction: transaction,
+        );
       }
       await AuditService.log(
         session,

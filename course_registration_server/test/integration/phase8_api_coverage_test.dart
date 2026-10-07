@@ -99,7 +99,14 @@ void main() {
           lecturer,
           courseClassId: created.courseClassId,
           capacity: 25,
-          status: CourseClassStatus.closed,
+          schedules: [
+            ClassScheduleDto(
+              dayOfWeek: 3,
+              startPeriod: 4,
+              endPeriod: 6,
+              room: 'B101',
+            ),
+          ],
         );
         final schedule = await endpoints.lecturer.getMySchedule(lecturer);
         final students = await endpoints.lecturer.getRegisteredStudents(
@@ -116,8 +123,15 @@ void main() {
         expect(courses, isNotEmpty);
         expect(semesters, isNotEmpty);
         expect(existing, isNotEmpty);
-        expect(updated.classCode, 'P8-UPDATED');
+        expect(updated.classCode, startsWith('LHP'));
+        expect(updated.status, CourseClassStatus.closed);
         expect(schedule, isNotEmpty);
+        expect(
+          schedule.every(
+            (item) => item.status == TeachingScheduleStatus.approved,
+          ),
+          isTrue,
+        );
         expect(students.single.studentCode, 'P8-STUDENT-0');
         expect(demand, isA<List<ClassDemandDto>>());
         expect(deleted, isTrue);

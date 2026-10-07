@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/lecturer_providers.dart';
 
@@ -39,6 +40,18 @@ class ClassDemandPage extends ConsumerWidget {
                         LinearProgressIndicator(value: item.requestCount / max),
                         const SizedBox(height: 8),
                         Text(item.recommendation),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: () => context.push(
+                              '/lecturer/classes/create',
+                              extra: item.courseId,
+                            ),
+                            icon: const Icon(Icons.send_outlined),
+                            label: const Text('Gửi đề xuất mở lớp'),
+                          ),
+                        ),
                       ],
                     ),
                   ),

@@ -61,4 +61,29 @@ void main() {
 
     expect(find.text('Điểm phải từ 0 đến 10'), findsOneWidget);
   });
+
+  testWidgets('student list hides internal server errors and offers retry', (
+    tester,
+  ) async {
+    final courseClass = lecturerClass();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          studentListProvider(courseClass.courseClassId).overrideWith(
+            (ref) async => throw Exception(
+              'ServerpodClientInternalServerError: statusCode: 500',
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: ClassStudentListPage(courseClass: courseClass),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đã xảy ra lỗi. Vui lòng thử lại.'), findsOneWidget);
+    expect(find.text('Thử lại'), findsOneWidget);
+    expect(find.textContaining('ServerpodClient'), findsNothing);
+  });
 }

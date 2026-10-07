@@ -170,7 +170,14 @@ void main() {
           lecturer,
           courseClassId: createdClass.courseClassId,
           capacity: 25,
-          status: CourseClassStatus.closed,
+          schedules: [
+            ClassScheduleDto(
+              dayOfWeek: 6,
+              startPeriod: 1,
+              endPeriod: 3,
+              room: 'A202',
+            ),
+          ],
         );
         await endpoints.lecturer.deleteCourseClass(
           lecturer,

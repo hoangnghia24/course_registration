@@ -7,14 +7,16 @@ import '../../../../core/network/error_handler.dart';
 import '../providers/lecturer_providers.dart';
 
 class CreateCourseClassPage extends ConsumerStatefulWidget {
-  const CreateCourseClassPage({super.key});
+  const CreateCourseClassPage({super.key, this.initialCourseId});
+
+  final UuidValue? initialCourseId;
   @override
   ConsumerState<CreateCourseClassPage> createState() =>
       _CreateCourseClassPageState();
 }
 
 class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
-  UuidValue? _courseId;
+  late UuidValue? _courseId = widget.initialCourseId;
   UuidValue? _semesterId;
   String? _room;
   ClassScheduleDto? _selectedSlot;
@@ -35,7 +37,7 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
     final semesters = ref.watch(lecturerSemestersProvider);
     final rooms = ref.watch(availableRoomsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Tạo lớp học phần')),
+      appBar: AppBar(title: const Text('Gửi yêu cầu mở lớp')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -44,6 +46,8 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
             title: 'Thông tin lớp',
             children: [
               DropdownButtonFormField<UuidValue>(
+                key: const Key('class-course'),
+                initialValue: _courseId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Môn học'),
                 items: courses.value
@@ -148,7 +152,9 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
             key: const Key('create-class-submit'),
             onPressed: _saving ? null : _save,
             icon: const Icon(Icons.add_business_outlined),
-            label: Text(_saving ? 'Đang tạo...' : 'Tạo lớp'),
+            label: Text(
+              _saving ? 'Đang gửi...' : 'Gửi phòng đào tạo duyệt',
+            ),
           ),
         ],
       ),
@@ -258,6 +264,7 @@ class _CreateCourseClassPageState extends ConsumerState<CreateCourseClassPage> {
           );
       ref.invalidate(courseClassProvider);
       ref.invalidate(scheduleProvider);
+      ref.invalidate(classDemandProvider);
       if (mounted) Navigator.pop(context);
     } catch (error) {
       if (mounted) {

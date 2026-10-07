@@ -49,8 +49,6 @@ import 'package:course_registration_server/src/generated/registration/dto/regist
     as _ih5gikos;
 import 'package:course_registration_server/src/generated/registration/dto/registration_result_dto.dart'
     as _iit4hukr;
-import 'package:course_registration_server/src/generated/registration/models/course_class_status.dart'
-    as _i2w6mn3n;
 import 'package:course_registration_server/src/generated/registration/models/course_equivalent.dart'
     as _iulejzlc;
 import 'package:course_registration_server/src/generated/registration/models/course_opening_request.dart'
@@ -2006,7 +2004,7 @@ class _LecturerEndpoint {
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue courseClassId,
     required int capacity,
-    required _i2w6mn3n.CourseClassStatus status,
+    required List<_ig0q9hbn.ClassScheduleDto> schedules,
   }) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2022,7 +2020,7 @@ class _LecturerEndpoint {
           parameters: _ist.testObjectToJson({
             'courseClassId': courseClassId,
             'capacity': capacity,
-            'status': status,
+            'schedules': schedules,
           }),
           serializationManager: _serializationManager,
         );

@@ -18,6 +18,7 @@ class CourseClassManagementPage extends ConsumerWidget {
         title: const Text('Quản lý lớp học phần'),
         actions: [
           IconButton(
+            tooltip: 'Gửi yêu cầu mở lớp',
             onPressed: () => context.push('/lecturer/classes/create'),
             icon: const Icon(Icons.add),
           ),
@@ -47,6 +48,8 @@ class CourseClassManagementPage extends ConsumerWidget {
                       '${item.semesterName} ${item.academicYear} • ${item.classCode}',
                     ),
                     Text('${item.registeredCount}/${item.capacity} sinh viên'),
+                    const SizedBox(height: 6),
+                    _ApprovalStatusChip(item: item),
                     Wrap(
                       children: [
                         TextButton(
@@ -81,19 +84,37 @@ class CourseClassManagementPage extends ConsumerWidget {
     WidgetRef ref,
     LecturerCourseClassDto item,
   ) async {
-    final value = await showDialog<int>(
-      context: context,
-      builder: (_) => _CourseClassEditDialog(item: item),
-    );
-    if (value == null || !context.mounted) return;
-    await ref
-        .read(lecturerRepositoryProvider)
-        .updateClass(
-          courseClassId: item.courseClassId,
-          capacity: value,
-          status: item.status,
+    try {
+      final rooms = await ref.read(availableRoomsProvider.future);
+      if (!context.mounted) return;
+      final value = await showDialog<_ClassEditValue>(
+        context: context,
+        builder: (_) => _CourseClassEditDialog(item: item, rooms: rooms),
+      );
+      if (value == null || !context.mounted) return;
+      await ref
+          .read(lecturerRepositoryProvider)
+          .updateClass(
+            courseClassId: item.courseClassId,
+            capacity: value.capacity,
+            schedules: [value.schedule],
+          );
+      ref.invalidate(courseClassProvider);
+      ref.invalidate(scheduleProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã gửi yêu cầu điều chỉnh để phòng đào tạo duyệt.'),
+          ),
         );
-    ref.invalidate(courseClassProvider);
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ErrorHandler.message(error))),
+        );
+      }
+    }
   }
 
   Future<void> _delete(
@@ -159,10 +180,48 @@ class CourseClassManagementPage extends ConsumerWidget {
   }
 }
 
-class _CourseClassEditDialog extends StatefulWidget {
-  const _CourseClassEditDialog({required this.item});
+class _ApprovalStatusChip extends StatelessWidget {
+  const _ApprovalStatusChip({required this.item});
 
   final LecturerCourseClassDto item;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = item.proposals.any(
+      (value) => value.status == TeachingScheduleStatus.pending,
+    );
+    final rejected =
+        item.proposals.isNotEmpty &&
+        item.proposals.every(
+          (value) => value.status == TeachingScheduleStatus.rejected,
+        );
+    final (label, color, icon) = pending
+        ? ('Chờ phòng đào tạo duyệt', Colors.orange, Icons.hourglass_top)
+        : rejected && item.status == CourseClassStatus.closed
+        ? ('Yêu cầu bị từ chối', Colors.red, Icons.cancel_outlined)
+        : item.status == CourseClassStatus.open
+        ? ('Đã duyệt', Colors.green, Icons.check_circle_outline)
+        : ('Đã đóng', Colors.grey, Icons.lock_outline);
+    return Chip(
+      avatar: Icon(icon, size: 18, color: color),
+      label: Text(label),
+      side: BorderSide(color: color.withValues(alpha: 0.45)),
+    );
+  }
+}
+
+class _ClassEditValue {
+  const _ClassEditValue({required this.capacity, required this.schedule});
+
+  final int capacity;
+  final ClassScheduleDto schedule;
+}
+
+class _CourseClassEditDialog extends StatefulWidget {
+  const _CourseClassEditDialog({required this.item, required this.rooms});
+
+  final LecturerCourseClassDto item;
+  final List<String> rooms;
 
   @override
   State<_CourseClassEditDialog> createState() => _CourseClassEditDialogState();
@@ -171,16 +230,29 @@ class _CourseClassEditDialog extends StatefulWidget {
 class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _capacity;
+  late final TextEditingController _startPeriod;
+  late final TextEditingController _endPeriod;
+  late int _dayOfWeek;
+  late String _room;
 
   @override
   void initState() {
     super.initState();
     _capacity = TextEditingController(text: '${widget.item.capacity}');
+    final schedule = _initialSchedule(widget.item);
+    _startPeriod = TextEditingController(text: '${schedule.startPeriod}');
+    _endPeriod = TextEditingController(text: '${schedule.endPeriod}');
+    _dayOfWeek = schedule.dayOfWeek;
+    _room = widget.rooms.contains(schedule.room)
+        ? schedule.room
+        : widget.rooms.first;
   }
 
   @override
   void dispose() {
     _capacity.dispose();
+    _startPeriod.dispose();
+    _endPeriod.dispose();
     super.dispose();
   }
 
@@ -214,6 +286,61 @@ class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
                 return null;
               },
             ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<int>(
+              initialValue: _dayOfWeek,
+              decoration: const InputDecoration(labelText: 'Ngày học'),
+              items: [
+                for (var day = 2; day <= 7; day++)
+                  DropdownMenuItem(value: day, child: Text('Thứ $day')),
+              ],
+              onChanged: (value) => setState(() => _dayOfWeek = value!),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _startPeriod,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'Từ tiết',
+                    ),
+                    validator: _periodValidator,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _endPeriod,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'Đến tiết',
+                    ),
+                    validator: _periodValidator,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _room,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Phòng học'),
+              items: widget.rooms
+                  .map(
+                    (room) => DropdownMenuItem(value: room, child: Text(room)),
+                  )
+                  .toList(),
+              onChanged: (value) => setState(() => _room = value!),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Mọi thay đổi sẽ được gửi đến phòng đào tạo để duyệt.',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
           ],
         ),
       ),
@@ -226,10 +353,58 @@ class _CourseClassEditDialogState extends State<_CourseClassEditDialog> {
       FilledButton(
         onPressed: () {
           if (!_formKey.currentState!.validate()) return;
-          Navigator.pop(context, int.parse(_capacity.text));
+          final start = int.parse(_startPeriod.text);
+          final end = int.parse(_endPeriod.text);
+          if (end < start) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tiết kết thúc phải sau tiết bắt đầu.'),
+              ),
+            );
+            return;
+          }
+          Navigator.pop(
+            context,
+            _ClassEditValue(
+              capacity: int.parse(_capacity.text),
+              schedule: ClassScheduleDto(
+                dayOfWeek: _dayOfWeek,
+                startPeriod: start,
+                endPeriod: end,
+                room: _room,
+              ),
+            ),
+          );
         },
-        child: const Text('Lưu'),
+        child: const Text('Gửi duyệt'),
       ),
     ],
   );
+
+  String? _periodValidator(String? value) {
+    final period = int.tryParse(value ?? '');
+    return period == null || period < 1 || period > 12 ? 'Nhập từ 1–12' : null;
+  }
+
+  static ClassScheduleDto _initialSchedule(LecturerCourseClassDto item) {
+    final pending = item.proposals.where(
+      (value) => value.status == TeachingScheduleStatus.pending,
+    );
+    if (pending.isNotEmpty) {
+      final value = pending.first;
+      return ClassScheduleDto(
+        dayOfWeek: value.dayOfWeek,
+        startPeriod: value.startPeriod,
+        endPeriod: value.endPeriod,
+        room: value.room,
+      );
+    }
+    if (item.schedules.isNotEmpty) return item.schedules.first;
+    return ClassScheduleDto(
+      dayOfWeek: 2,
+      startPeriod: 1,
+      endPeriod: 3,
+      room: '',
+    );
+  }
 }

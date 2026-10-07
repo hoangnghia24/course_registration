@@ -17,7 +17,28 @@ class ClassStudentListPage extends ConsumerWidget {
         .watch(studentListProvider(courseClass.courseClassId))
         .when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('$error')),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ErrorHandler.message(error),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () => ref.invalidate(
+                      studentListProvider(courseClass.courseClassId),
+                    ),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            ),
+          ),
           data: (items) => items.isEmpty
               ? const Center(child: Text('Lớp chưa có sinh viên đăng ký.'))
               : ListView(

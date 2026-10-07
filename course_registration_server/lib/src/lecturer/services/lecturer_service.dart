@@ -161,9 +161,10 @@ abstract final class LecturerService {
     Session session, {
     required UuidValue courseClassId,
     required int capacity,
-    required CourseClassStatus status,
+    required List<ClassScheduleDto> schedules,
   }) async {
     final lecturer = await _authorizedLecturer(session);
+    _validateSchedules(schedules);
     return session.db.transaction((transaction) async {
       final courseClass = await _ownedClass(
         session,
@@ -181,11 +182,42 @@ abstract final class LecturerService {
           message: 'Sĩ số tối đa không thể nhỏ hơn số sinh viên đã đăng ký.',
         );
       }
+      await _ensureNoConflict(
+        session,
+        lecturer: lecturer,
+        semesterId: courseClass.semesterId,
+        schedules: schedules,
+        excludedClassId: courseClassId,
+        transaction: transaction,
+      );
+      final oldProposals = await TeachingScheduleProposal.db.find(
+        session,
+        transaction: transaction,
+        where: (table) => table.courseClassId.equals(courseClassId),
+      );
+      for (final proposal in oldProposals) {
+        if (proposal.status != TeachingScheduleStatus.rejected) {
+          await TeachingScheduleProposal.db.updateRow(
+            session,
+            proposal.copyWith(status: TeachingScheduleStatus.rejected),
+            transaction: transaction,
+          );
+        }
+      }
+      for (final schedule in schedules) {
+        await _insertProposal(
+          session,
+          lecturer: lecturer,
+          courseClassId: courseClassId,
+          schedule: schedule,
+          transaction: transaction,
+        );
+      }
       final updated = await CourseClass.db.updateRow(
         session,
         courseClass.copyWith(
           capacity: capacity,
-          status: status,
+          status: CourseClassStatus.closed,
         ),
         transaction: transaction,
       );
@@ -281,10 +313,35 @@ abstract final class LecturerService {
     Session session,
   ) async {
     final lecturer = await _authorizedLecturer(session);
-    final values = await TeachingScheduleProposal.db.find(
+    final classes = await CourseClass.db.find(
       session,
-      where: (table) => table.lecturerId.equals(lecturer.id),
+      where: (table) =>
+          table.lecturerId.equals(lecturer.id) &
+          table.status.equals(CourseClassStatus.open),
     );
+    final classIds = classes.map((item) => item.id!).toSet();
+    if (classIds.isEmpty) return [];
+    // ClassSchedule is the canonical timetable written only after the training
+    // department approves a proposal. Pending/rejected proposals must stay in
+    // class management and must never leak into the teaching timetable.
+    final approvedSchedules = await ClassSchedule.db.find(
+      session,
+      where: (table) => table.courseClassId.inSet(classIds),
+    );
+    final values = approvedSchedules
+        .map(
+          (schedule) => TeachingScheduleProposal(
+            id: schedule.id,
+            lecturerId: lecturer.id!,
+            courseClassId: schedule.courseClassId,
+            dayOfWeek: schedule.dayOfWeek,
+            startPeriod: schedule.startPeriod,
+            endPeriod: schedule.endPeriod,
+            room: schedule.room,
+            status: TeachingScheduleStatus.approved,
+          ),
+        )
+        .toList();
     values.sort((a, b) {
       final day = a.dayOfWeek.compareTo(b.dayOfWeek);
       return day != 0 ? day : a.startPeriod.compareTo(b.startPeriod);

@@ -152,37 +152,10 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
         ),
       );
       if (selected == null || !mounted) return;
-      final controller = TextEditingController();
       final reason = await showDialog<String>(
         context: context,
-        builder: (context) => AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          title: const Text('Lý do mở lớp'),
-          content: TextField(
-            controller: controller,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Lý do',
-              hintText: 'Nhập lý do đề nghị mở lớp',
-              alignLabelWithHint: true,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Gửi yêu cầu'),
-            ),
-          ],
-        ),
+        builder: (_) => const _OpeningReasonDialog(),
       );
-      controller.dispose();
       if (reason == null || reason.trim().isEmpty || !mounted) return;
       await ref
           .read(courseRegistrationRepositoryProvider)
@@ -200,6 +173,57 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
       }
     }
   }
+}
+
+class _OpeningReasonDialog extends StatefulWidget {
+  const _OpeningReasonDialog();
+
+  @override
+  State<_OpeningReasonDialog> createState() => _OpeningReasonDialogState();
+}
+
+class _OpeningReasonDialogState extends State<_OpeningReasonDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _reason = TextEditingController();
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+    title: const Text('Lý do mở lớp'),
+    content: Form(
+      key: _formKey,
+      child: TextFormField(
+        controller: _reason,
+        maxLines: 3,
+        decoration: const InputDecoration(
+          labelText: 'Lý do',
+          hintText: 'Nhập lý do đề nghị mở lớp',
+          alignLabelWithHint: true,
+        ),
+        validator: (value) =>
+            (value?.trim().isEmpty ?? true) ? 'Vui lòng nhập lý do' : null,
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Hủy'),
+      ),
+      FilledButton(
+        onPressed: () {
+          if (!_formKey.currentState!.validate()) return;
+          Navigator.pop(context, _reason.text.trim());
+        },
+        child: const Text('Gửi yêu cầu'),
+      ),
+    ],
+  );
 }
 
 class _CourseClassCard extends StatelessWidget {

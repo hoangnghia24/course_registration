@@ -109,11 +109,11 @@ class LecturerRepositoryImpl implements LecturerRepository {
   Future<LecturerCourseClassDto> updateClass({
     required UuidValue courseClassId,
     required int capacity,
-    required CourseClassStatus status,
+    required List<ClassScheduleDto> schedules,
   }) => _client.lecturer.updateCourseClass(
     courseClassId: courseClassId,
     capacity: capacity,
-    status: status,
+    schedules: schedules,
   );
 
   @override

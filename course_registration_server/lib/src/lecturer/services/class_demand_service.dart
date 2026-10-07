@@ -4,12 +4,29 @@ import '../../generated/protocol.dart';
 
 abstract final class ClassDemandService {
   static Future<List<ClassDemandDto>> analyze(Session session) async {
+    final pendingProposals = await TeachingScheduleProposal.db.find(
+      session,
+      where: (table) => table.status.equals(TeachingScheduleStatus.pending),
+    );
+    final proposedClassIds = pendingProposals
+        .map((item) => item.courseClassId)
+        .toSet();
+    final proposedClasses = proposedClassIds.isEmpty
+        ? <CourseClass>[]
+        : await CourseClass.db.find(
+            session,
+            where: (table) => table.id.inSet(proposedClassIds),
+          );
+    final coursesAlreadyProposed = proposedClasses
+        .map((item) => item.courseId)
+        .toSet();
     final requests = await CourseOpeningRequest.db.find(
       session,
       where: (table) => table.status.equals(OpeningRequestStatus.pending),
     );
     final counts = <UuidValue, int>{};
     for (final request in requests) {
+      if (coursesAlreadyProposed.contains(request.courseId)) continue;
       counts.update(request.courseId, (value) => value + 1, ifAbsent: () => 1);
     }
     final courseIds = counts.keys.toSet();

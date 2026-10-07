@@ -97,7 +97,14 @@ void main() {
           authenticated,
           courseClassId: created.courseClassId,
           capacity: 60,
-          status: CourseClassStatus.open,
+          schedules: [
+            ClassScheduleDto(
+              dayOfWeek: 3,
+              startPeriod: 4,
+              endPeriod: 6,
+              room: 'A102',
+            ),
+          ],
         );
         final studentUser = await AppUser.db.insertRow(
           session,
@@ -176,6 +183,13 @@ void main() {
         expect(created.proposals.single.status, TeachingScheduleStatus.pending);
         expect(classes.single.courseName, 'Lập trình cơ bản');
         expect(updated.capacity, 60);
+        expect(updated.status, CourseClassStatus.closed);
+        expect(
+          updated.proposals.any(
+            (item) => item.status == TeachingScheduleStatus.pending,
+          ),
+          isTrue,
+        );
         expect(classStudents.single.midtermScore, 7);
         expect(classStudents.single.finalScore, 9);
         expect(transcript?.score, 3.28);

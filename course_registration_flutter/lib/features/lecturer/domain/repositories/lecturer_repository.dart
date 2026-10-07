@@ -22,7 +22,7 @@ abstract interface class LecturerRepository {
   Future<LecturerCourseClassDto> updateClass({
     required UuidValue courseClassId,
     required int capacity,
-    required CourseClassStatus status,
+    required List<ClassScheduleDto> schedules,
   });
   Future<void> deleteClass(UuidValue courseClassId);
   Future<void> updateStudentGrades({

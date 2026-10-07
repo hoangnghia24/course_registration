@@ -12,8 +12,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:course_registration_server/src/generated/registration/dto/class_schedule_dto.dart'
     as _ig0q9hbn;
-import 'package:course_registration_server/src/generated/registration/models/course_class_status.dart'
-    as _i2w6mn3n;
 import 'package:course_registration_server/src/generated/student/models/course_type.dart'
     as _i6yjtab1;
 import 'package:course_registration_server/src/generated/sync/dto/sync_operation_input_dto.dart'
@@ -1253,9 +1251,9 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<int>(),
               nullable: false,
             ),
-            'status': _is.ParameterDescription(
-              name: 'status',
-              type: _is.getType<_i2w6mn3n.CourseClassStatus>(),
+            'schedules': _is.ParameterDescription(
+              name: 'schedules',
+              type: _is.getType<List<_ig0q9hbn.ClassScheduleDto>>(),
               nullable: false,
             ),
           },
@@ -1268,7 +1266,7 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     courseClassId: params['courseClassId'],
                     capacity: params['capacity'],
-                    status: params['status'],
+                    schedules: params['schedules'],
                   ),
         ),
         'deleteCourseClass': _is.MethodConnector(

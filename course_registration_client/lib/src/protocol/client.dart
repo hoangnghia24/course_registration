@@ -47,8 +47,6 @@ import 'package:course_registration_client/src/protocol/registration/dto/registe
     as _irdda7pa;
 import 'package:course_registration_client/src/protocol/registration/dto/registration_result_dto.dart'
     as _iuabtiyn;
-import 'package:course_registration_client/src/protocol/registration/models/course_class_status.dart'
-    as _iv18i5eg;
 import 'package:course_registration_client/src/protocol/registration/models/course_equivalent.dart'
     as _i67xlk2c;
 import 'package:course_registration_client/src/protocol/registration/models/course_opening_request.dart'
@@ -767,14 +765,14 @@ class EndpointLecturer extends EndpointLecturerGuard {
   _ida.Future<_ibein0b1.LecturerCourseClassDto> updateCourseClass({
     required _isc.UuidValue courseClassId,
     required int capacity,
-    required _iv18i5eg.CourseClassStatus status,
+    required List<_iff0ymco.ClassScheduleDto> schedules,
   }) => caller.callServerEndpoint<_ibein0b1.LecturerCourseClassDto>(
     'lecturer',
     'updateCourseClass',
     {
       'courseClassId': courseClassId,
       'capacity': capacity,
-      'status': status,
+      'schedules': schedules,
     },
   );
 

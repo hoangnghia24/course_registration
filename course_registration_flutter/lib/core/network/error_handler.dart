@@ -31,6 +31,12 @@ class ErrorHandler {
     if (raw.contains('class_has_students')) {
       return 'Không thể xóa vì lớp đang có sinh viên học.';
     }
+    if (raw.contains('invalid_capacity')) {
+      return 'Sĩ số phải từ số sinh viên hiện có đến tối đa 500.';
+    }
+    if (raw.contains('invalid_schedule')) {
+      return 'Ngày học, tiết học hoặc phòng học không hợp lệ.';
+    }
     if (raw.contains('teaching_schedule_conflict')) {
       return 'Khung giờ này bị trùng với lịch dạy hiện có.';
     }
