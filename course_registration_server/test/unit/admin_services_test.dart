@@ -20,6 +20,22 @@ void main() {
     },
   );
 
+  test('new administrators use the complete default permission set', () {
+    expect(AdminPermissionService.fullAccessLevel, 9);
+    expect(
+      AdminPermissionService.defaultPermissions,
+      containsAll({
+        'MANAGE_USER',
+        'MANAGE_COURSE',
+        'MANAGE_PROGRAM',
+        'APPROVE_CLASS',
+        'VIEW_REPORT',
+        'VIEW_AUDIT',
+      }),
+    );
+    expect(AdminPermissionService.defaultPermissions, hasLength(6));
+  });
+
   test('approval workflow maps decisions to class status', () {
     final approved = ApprovalWorkflow.resolve(approve: true);
     final rejected = ApprovalWorkflow.resolve(approve: false);

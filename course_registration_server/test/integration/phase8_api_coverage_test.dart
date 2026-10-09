@@ -1,4 +1,5 @@
 import 'package:course_registration_server/src/auth/app_scopes.dart';
+import 'package:course_registration_server/src/admin/services/admin_permission_service.dart';
 import 'package:course_registration_server/src/generated/protocol.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
@@ -158,6 +159,19 @@ void main() {
           role: UserRole.admin,
           phone: '0912345678',
         );
+        final createdAdmin = await Admin.db.findFirstRow(
+          session,
+          where: (table) => table.userId.equals(createdUser.userId),
+        );
+        expect(createdAdmin, isNotNull);
+        final persistedAdmin = createdAdmin!;
+        final createdAdminPermissions = await AdminPermission.db.find(
+          session,
+          where: (table) => table.adminId.equals(persistedAdmin.id),
+        );
+        final createdAdminReport = await endpoints.admin.getReports(
+          _auth(sessionBuilder, createdUser.authUserId, AppScopes.admin),
+        );
         final createdStudent = await endpoints.admin.createUser(
           admin,
           email: 'phase8-created-student@example.edu',
@@ -165,7 +179,47 @@ void main() {
           fullName: 'Created Student',
           role: UserRole.student,
           phone: '0987654321',
+          majorId: seed.major.id,
+          trainingProgramId: seed.program.id,
+          academicYear: seed.program.academicYear,
         );
+        final createdLecturer = await endpoints.admin.createUser(
+          admin,
+          email: 'phase8-created-lecturer@example.edu',
+          password: 'Initial-pass-123!',
+          fullName: 'Created Lecturer',
+          role: UserRole.lecturer,
+          phone: '0976543210',
+        );
+        final createdStudentProfile = await endpoints.student.getProfile(
+          _auth(sessionBuilder, createdStudent.authUserId, AppScopes.student),
+        );
+        final createdLecturerProfile = await endpoints.lecturer.getMyProfile(
+          _auth(
+            sessionBuilder,
+            createdLecturer.authUserId,
+            AppScopes.lecturer,
+          ),
+        );
+        final createdLecturerCourses = await endpoints.lecturer.getCourses(
+          _auth(
+            sessionBuilder,
+            createdLecturer.authUserId,
+            AppScopes.lecturer,
+          ),
+        );
+        final createdAuthUserIds = {
+          createdUser.authUserId,
+          createdStudent.authUserId,
+          createdLecturer.authUserId,
+        };
+        final createdAuthUsers = (await AuthUser.db.find(
+          session,
+        )).where((authUser) => createdAuthUserIds.contains(authUser.id));
+        final scopesByAuthUserId = {
+          for (final authUser in createdAuthUsers)
+            authUser.id!: authUser.scopeNames,
+        };
         final updatedUser = await endpoints.admin.updateUser(
           admin,
           userId: createdUser.userId,
@@ -228,8 +282,36 @@ void main() {
         expect(users, isNotEmpty);
         expect(updatedUser.fullName, 'Updated Admin');
         expect(createdUser.phone, '0912345678');
+        expect(
+          createdAdminPermissions
+              .map((permission) => permission.permissionName)
+              .toSet(),
+          AdminPermissionService.defaultPermissions,
+        );
+        expect(
+          persistedAdmin.permissionLevel,
+          AdminPermissionService.fullAccessLevel,
+        );
+        expect(createdAdminReport.totalCourses, greaterThanOrEqualTo(1));
         expect(createdStudent.roleCode, startsWith('SV'));
         expect(createdStudent.phone, '0987654321');
+        expect(createdStudentProfile.majorName, seed.major.name);
+        expect(createdStudentProfile.trainingProgramName, seed.program.name);
+        expect(createdLecturer.roleCode, startsWith('GV'));
+        expect(createdLecturerProfile.fullName, 'Created Lecturer');
+        expect(createdLecturerCourses, isNotEmpty);
+        expect(
+          scopesByAuthUserId[createdUser.authUserId],
+          {AppScopes.admin.name},
+        );
+        expect(
+          scopesByAuthUserId[createdStudent.authUserId],
+          {AppScopes.student.name},
+        );
+        expect(
+          scopesByAuthUserId[createdLecturer.authUserId],
+          {AppScopes.lecturer.name},
+        );
         expect(disabled, isTrue);
         expect(enabled, isTrue);
         expect(

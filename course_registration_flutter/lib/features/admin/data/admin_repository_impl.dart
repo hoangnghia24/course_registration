@@ -19,12 +19,18 @@ class AdminRepositoryImpl implements AdminRepository {
     required String fullName,
     required UserRole role,
     String? phone,
+    int? academicYear,
+    UuidValue? majorId,
+    UuidValue? trainingProgramId,
   }) => _client.admin.createUser(
     email: email,
     password: password,
     fullName: fullName,
     role: role,
     phone: phone,
+    academicYear: academicYear,
+    majorId: majorId,
+    trainingProgramId: trainingProgramId,
   );
   @override
   Future<AdminUserDto> updateUser(

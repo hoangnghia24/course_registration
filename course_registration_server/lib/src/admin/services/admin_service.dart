@@ -89,6 +89,23 @@ abstract final class AdminService {
     if (existing != null) {
       throw _error('email_exists', 'Email đã được cấp tài khoản.');
     }
+    final studentProgram = role == UserRole.student
+        ? await _validStudentProgram(
+            session,
+            majorId: majorId,
+            trainingProgramId: trainingProgramId,
+            academicYear: academicYear,
+          )
+        : null;
+    if (role != UserRole.student &&
+        (academicYear != null ||
+            majorId != null ||
+            trainingProgramId != null)) {
+      throw _error(
+        'invalid_role_profile',
+        'Thông tin ngành và chương trình chỉ áp dụng cho sinh viên.',
+      );
+    }
     return session.db.transaction((transaction) async {
       final scope = switch (role) {
         UserRole.student => AppScopes.student,
@@ -127,10 +144,10 @@ abstract final class AdminService {
             Student(
               userId: user.id!,
               studentCode: _automaticRoleCode(UserRole.student, user.id!),
-              majorId: majorId,
-              trainingProgramId: trainingProgramId,
-              academicYear: academicYear ?? DateTime.now().year,
-              enrollmentYear: academicYear ?? DateTime.now().year,
+              majorId: studentProgram!.majorId,
+              trainingProgramId: studentProgram.id!,
+              academicYear: studentProgram.academicYear,
+              enrollmentYear: studentProgram.academicYear,
               currentSemester: 1,
             ),
             transaction: transaction,
@@ -145,9 +162,17 @@ abstract final class AdminService {
             transaction: transaction,
           );
         case UserRole.admin:
-          await Admin.db.insertRow(
+          final admin = await Admin.db.insertRow(
             session,
-            Admin(userId: user.id!),
+            Admin(
+              userId: user.id!,
+              permissionLevel: AdminPermissionService.fullAccessLevel,
+            ),
+            transaction: transaction,
+          );
+          await AdminPermissionService.grantDefaultPermissions(
+            session,
+            adminId: admin.id!,
             transaction: transaction,
           );
       }
@@ -1342,6 +1367,36 @@ abstract final class AdminService {
     entityId: id,
     newValue: jsonEncode(value),
   );
+
+  static Future<TrainingProgram> _validStudentProgram(
+    Session session, {
+    required UuidValue? majorId,
+    required UuidValue? trainingProgramId,
+    required int? academicYear,
+  }) async {
+    if (majorId == null || trainingProgramId == null) {
+      throw _error(
+        'student_academic_profile_required',
+        'Vui lòng chọn ngành và chương trình đào tạo cho sinh viên.',
+      );
+    }
+    final major = await Major.db.findById(session, majorId);
+    final program = await TrainingProgram.db.findById(
+      session,
+      trainingProgramId,
+    );
+    if (major == null ||
+        program == null ||
+        program.majorId != majorId ||
+        program.status != TrainingProgramStatus.active ||
+        (academicYear != null && academicYear != program.academicYear)) {
+      throw _error(
+        'invalid_student_academic_profile',
+        'Ngành hoặc chương trình đào tạo của sinh viên không hợp lệ.',
+      );
+    }
+    return program;
+  }
 
   static bool _validPhone(String? value) {
     final normalized = value?.trim() ?? '';

@@ -8,6 +8,9 @@ abstract interface class AdminRepository {
     required String fullName,
     required UserRole role,
     String? phone,
+    int? academicYear,
+    UuidValue? majorId,
+    UuidValue? trainingProgramId,
   });
   Future<AdminUserDto> updateUser(
     UuidValue userId,

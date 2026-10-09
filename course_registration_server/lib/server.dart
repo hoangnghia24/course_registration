@@ -2,7 +2,6 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
-import 'src/auth/app_scopes.dart';
 import 'src/generated/serverpod.dart';
 import 'src/profile/profile_service.dart';
 
@@ -30,15 +29,6 @@ void run(List<String> args) async {
             ),
       ),
     ],
-    authUsersConfig: AuthUsersConfig(
-      onBeforeAuthUserCreated:
-          (
-            session,
-            scopes,
-            blocked, {
-            required transaction,
-          }) => (scopes: {...scopes, AppScopes.student}, blocked: blocked),
-    ),
   );
 
   await pod.start();

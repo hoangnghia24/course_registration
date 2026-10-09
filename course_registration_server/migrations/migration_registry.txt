@@ -15,3 +15,5 @@
 20261006212016344-lecturer-grades
 20261007013843255-registration-adjustments
 20261007094951353-curriculum-role-windows
+20261007235556599-admin-default-permissions
+20261008001228094-role-scope-consistency

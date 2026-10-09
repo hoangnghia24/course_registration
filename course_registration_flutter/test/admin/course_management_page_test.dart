@@ -130,6 +130,9 @@ class _FakeAdminRepository implements AdminRepository {
     required String fullName,
     required UserRole role,
     String? phone,
+    int? academicYear,
+    UuidValue? majorId,
+    UuidValue? trainingProgramId,
   }) => throw UnimplementedError();
   @override
   Future<AdminUserDto> updateUser(

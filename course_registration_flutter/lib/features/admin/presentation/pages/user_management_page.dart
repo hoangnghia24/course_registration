@@ -231,6 +231,8 @@ class _UserDialogState extends ConsumerState<_UserDialog> {
   late final TextEditingController _fullName;
   late final TextEditingController _phone;
   late UserRole _role;
+  UuidValue? _majorId;
+  UuidValue? _trainingProgramId;
   bool _saving = false;
 
   @override
@@ -314,9 +316,10 @@ class _UserDialogState extends ConsumerState<_UserDialog> {
             if (widget.user == null)
               DropdownButtonFormField<UserRole>(
                 initialValue: _role,
+                isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Vai trò',
-                  helperText: 'ID tài khoản và mã vai trò được tạo tự động',
+                  helperText: 'Mã tài khoản được tạo tự động',
                 ),
                 items: UserRole.values
                     .map(
@@ -328,8 +331,18 @@ class _UserDialogState extends ConsumerState<_UserDialog> {
                     .toList(),
                 onChanged: _saving
                     ? null
-                    : (value) => setState(() => _role = value!),
+                    : (value) => setState(() {
+                        _role = value!;
+                        if (_role != UserRole.student) {
+                          _majorId = null;
+                          _trainingProgramId = null;
+                        }
+                      }),
               ),
+            if (widget.user == null && _role == UserRole.student) ...[
+              const SizedBox(height: 12),
+              _studentAcademicFields(),
+            ],
           ],
         ),
       ),
@@ -351,18 +364,131 @@ class _UserDialogState extends ConsumerState<_UserDialog> {
     ],
   );
 
+  Widget _studentAcademicFields() {
+    final majors = ref.watch(majorsAdminProvider);
+    final programs = ref.watch(trainingProgramsAdminProvider);
+    return majors.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: CircularProgressIndicator(),
+      ),
+      error: (error, _) => Text(ErrorHandler.message(error)),
+      data: (majorItems) => programs.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+        error: (error, _) => Text(ErrorHandler.message(error)),
+        data: (programItems) {
+          final selectedMajorId =
+              majorItems.any(
+                (major) => major.id == _majorId,
+              )
+              ? _majorId
+              : null;
+          final availablePrograms = programItems
+              .where(
+                (program) =>
+                    program.majorId == selectedMajorId &&
+                    program.status == TrainingProgramStatus.active,
+              )
+              .toList(growable: false);
+          final selectedProgramId =
+              availablePrograms.any(
+                (program) => program.id == _trainingProgramId,
+              )
+              ? _trainingProgramId
+              : null;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<UuidValue>(
+                key: const Key('admin-student-major'),
+                initialValue: selectedMajorId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Ngành'),
+                items: majorItems
+                    .map(
+                      (major) => DropdownMenuItem(
+                        value: major.id,
+                        child: Text(
+                          '${major.code} • ${major.name}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _saving
+                    ? null
+                    : (value) => setState(() {
+                        _majorId = value;
+                        _trainingProgramId = null;
+                      }),
+                validator: (value) =>
+                    value == null ? 'Vui lòng chọn ngành' : null,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<UuidValue>(
+                key: const Key('admin-student-program'),
+                initialValue: selectedProgramId,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: 'Chương trình đào tạo',
+                  helperText: selectedMajorId == null
+                      ? 'Chọn ngành trước'
+                      : availablePrograms.isEmpty
+                      ? 'Ngành chưa có chương trình đang áp dụng'
+                      : 'Khóa tuyển sinh được lấy theo chương trình',
+                ),
+                items: availablePrograms
+                    .map(
+                      (program) => DropdownMenuItem(
+                        value: program.id,
+                        child: Text(
+                          '${program.code} • Khóa ${program.academicYear}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: _saving
+                    ? null
+                    : (value) => setState(() => _trainingProgramId = value),
+                validator: (value) =>
+                    value == null ? 'Vui lòng chọn chương trình đào tạo' : null,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
       final repository = ref.read(adminRepositoryProvider);
       if (widget.user == null) {
+        final programs = ref.read(trainingProgramsAdminProvider).value;
+        final selectedProgram = _role == UserRole.student
+            ? programs
+                  ?.where((item) => item.id == _trainingProgramId)
+                  .firstOrNull
+            : null;
         await repository.createUser(
           email: _email.text.trim(),
           password: _password.text,
           fullName: _fullName.text.trim(),
           role: _role,
           phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+          academicYear: selectedProgram?.academicYear,
+          majorId: _role == UserRole.student ? _majorId : null,
+          trainingProgramId: _role == UserRole.student
+              ? _trainingProgramId
+              : null,
         );
       } else {
         await repository.updateUser(

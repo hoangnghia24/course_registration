@@ -63,6 +63,10 @@ void main() {
       ProviderScope(
         overrides: [
           userManagementProvider.overrideWith((ref) async => const []),
+          majorsAdminProvider.overrideWith((ref) async => [_major()]),
+          trainingProgramsAdminProvider.overrideWith(
+            (ref) async => [_program()],
+          ),
         ],
         child: const MaterialApp(home: UserManagementPage()),
       ),
@@ -81,6 +85,54 @@ void main() {
     await tester.pump();
     final widget = tester.widget<TextFormField>(phoneField);
     expect(widget.controller!.text, '09123456');
+  });
+
+  testWidgets('creating a student submits a complete academic profile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final repository = _FakeAdminRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          adminRepositoryProvider.overrideWithValue(repository),
+          userManagementProvider.overrideWith((ref) async => const []),
+          majorsAdminProvider.overrideWith((ref) async => [_major()]),
+          trainingProgramsAdminProvider.overrideWith(
+            (ref) async => [_program()],
+          ),
+        ],
+        child: const MaterialApp(home: UserManagementPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Tạo tài khoản'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).at(0), 'new@student.edu');
+    await tester.enterText(find.byType(TextFormField).at(1), 'Password123!');
+    await tester.enterText(find.byType(TextFormField).at(2), 'Sinh viên mới');
+
+    await tester.ensureVisible(find.byKey(const Key('admin-student-major')));
+    await tester.tap(find.byKey(const Key('admin-student-major')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('P8-MAJOR').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('admin-student-program')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('P8-PROGRAM').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lưu'));
+    await tester.pumpAndSettle();
+
+    expect(repository.createdRole, UserRole.student);
+    expect(repository.createdMajorId, _major().id);
+    expect(repository.createdProgramId, _program().id);
+    expect(repository.createdAcademicYear, _program().academicYear);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('editing an account closes without disposed controller errors', (
@@ -113,6 +165,10 @@ void main() {
 class _FakeAdminRepository implements AdminRepository {
   UuidValue? enabledUserId;
   UuidValue? updatedUserId;
+  UserRole? createdRole;
+  UuidValue? createdMajorId;
+  UuidValue? createdProgramId;
+  int? createdAcademicYear;
 
   @override
   Future<bool> enableUser(UuidValue userId) async {
@@ -129,7 +185,26 @@ class _FakeAdminRepository implements AdminRepository {
     required String fullName,
     required UserRole role,
     String? phone,
-  }) => throw UnimplementedError();
+    int? academicYear,
+    UuidValue? majorId,
+    UuidValue? trainingProgramId,
+  }) async {
+    createdRole = role;
+    createdMajorId = majorId;
+    createdProgramId = trainingProgramId;
+    createdAcademicYear = academicYear;
+    return AdminUserDto(
+      userId: _id('505'),
+      authUserId: _id('506'),
+      email: email,
+      fullName: fullName,
+      phone: phone,
+      role: role,
+      isActive: true,
+      roleCode: role == UserRole.student ? 'SVTEST' : null,
+    );
+  }
+
   @override
   Future<AdminUserDto> updateUser(
     UuidValue userId,
@@ -220,3 +295,25 @@ class _FakeAdminRepository implements AdminRepository {
   @override
   Future<List<AuditLogDto>> getAuditLogs() => throw UnimplementedError();
 }
+
+Major _major() => Major(
+  id: _id('501'),
+  facultyId: _id('502'),
+  name: 'Công nghệ Thông tin',
+  code: 'P8-MAJOR',
+);
+
+TrainingProgram _program() => TrainingProgram(
+  id: _id('503'),
+  majorId: _major().id!,
+  code: 'P8-PROGRAM',
+  name: 'Chương trình CNTT',
+  academicYear: 2026,
+  totalCredits: 130,
+  semesterCount: 8,
+  status: TrainingProgramStatus.active,
+);
+
+UuidValue _id(String suffix) => UuidValue.withValidation(
+  '018f0000-0000-7000-8000-${suffix.padLeft(12, '0')}',
+);

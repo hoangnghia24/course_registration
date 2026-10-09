@@ -5,6 +5,7 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import '../auth/app_scopes.dart';
+import '../admin/services/admin_permission_service.dart';
 import '../generated/protocol.dart';
 
 /// Development-only sample data for demonstrating the application.
@@ -317,27 +318,13 @@ abstract final class DemoDataSeed {
         session,
         Admin(
           userId: users['phongdaotao@namviet.edu.vn']!.id!,
-          permissionLevel: 9,
+          permissionLevel: AdminPermissionService.fullAccessLevel,
         ),
         transaction: transaction,
       );
-      await AdminPermission.db.insert(
+      await AdminPermissionService.grantDefaultPermissions(
         session,
-        [
-              'MANAGE_USER',
-              'MANAGE_COURSE',
-              'MANAGE_PROGRAM',
-              'APPROVE_CLASS',
-              'VIEW_REPORT',
-              'VIEW_AUDIT',
-            ]
-            .map(
-              (permission) => AdminPermission(
-                adminId: admin.id!,
-                permissionName: permission,
-              ),
-            )
-            .toList(),
+        adminId: admin.id!,
         transaction: transaction,
       );
 
