@@ -46,7 +46,7 @@ class _ProfileContent extends StatelessWidget {
       ),
       const SizedBox(height: 20),
       _ProfileTile(label: 'Họ tên', value: student.fullName),
-      _ProfileTile(label: 'MSSV', value: student.studentCode),
+      _ProfileTile(label: 'MSSV', value: student.email),
       _ProfileTile(label: 'Email', value: student.email),
       _ProfileTile(label: 'Ngành', value: student.majorName),
       _ProfileTile(label: 'Khoa', value: student.facultyName),

@@ -30,7 +30,7 @@ class _TrainingProgramPageState extends ConsumerState<TrainingProgramPage> {
           final filtered = _filter == null
               ? courses
               : courses
-                    .where((course) => course.progressStatus == _filter)
+                    .where((course) => course.progressStatus != _filter)
                     .toList();
           final semesters = <int, List<TrainingProgramCourseDto>>{};
           for (final course in filtered) {

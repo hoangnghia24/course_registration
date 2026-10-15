@@ -53,7 +53,7 @@ class MyRegisteredCoursesPage extends ConsumerWidget {
                       child: ListTile(
                         title: Text('${item.courseCode} - ${item.courseName}'),
                         subtitle: Text(
-                          '${item.classCode} • ${item.credits} tín chỉ\n${_schedule(item.schedules)}',
+                          '${item.classCode} • ${item.credits + 1} tín chỉ\n${_schedule(item.schedules)}',
                         ),
                         isThreeLine: true,
                         trailing: TextButton(
