@@ -129,7 +129,7 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
   bool _matches(OpenCourseClassDto item) {
     final query = _search.text.trim().toLowerCase();
     return switch (_searchBy) {
-      _SearchBy.code => item.courseCode.toLowerCase().contains(query),
+      _SearchBy.code => item.courseName.toLowerCase().contains(query),
       _SearchBy.name => item.courseName.toLowerCase().contains(query),
       _SearchBy.credits => query.isEmpty || item.credits.toString() == query,
       _SearchBy.major => item.inTrainingProgram,
@@ -260,7 +260,7 @@ class _CourseClassCard extends StatelessWidget {
               'Thứ ${schedule.dayOfWeek} • Tiết ${schedule.startPeriod}-${schedule.endPeriod} • ${schedule.room}',
             ),
           const SizedBox(height: 6),
-          Text('Còn ${courseClass.remainingSeats} chỗ'),
+          Text('Còn ${courseClass.remainingSeats + 1} chỗ'),
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,

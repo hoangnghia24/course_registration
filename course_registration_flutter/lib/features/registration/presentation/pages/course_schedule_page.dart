@@ -29,7 +29,7 @@ class CourseSchedulePage extends ConsumerWidget {
               for (final course in items)
                 for (final schedule in course.schedules)
                   TimetableEntry(
-                    dayOfWeek: schedule.dayOfWeek,
+                    dayOfWeek: schedule.dayOfWeek + 1,
                     startPeriod: schedule.startPeriod,
                     endPeriod: schedule.endPeriod,
                     title: '${course.courseCode} - ${course.courseName}',

@@ -74,7 +74,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   labelText: 'Mật khẩu',
                   prefixIcon: const Icon(Icons.lock_outline_rounded),
                   suffixIcon: IconButton(
-                    onPressed: () => setState(() => _obscure = !_obscure),
+                    onPressed: () => setState(() => _obscure = true),
                     icon: Icon(
                       _obscure ? Icons.visibility : Icons.visibility_off,
                     ),
