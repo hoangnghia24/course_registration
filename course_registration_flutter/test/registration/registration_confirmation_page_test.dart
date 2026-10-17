@@ -31,9 +31,8 @@ void main() {
         ProviderScope(
           overrides: [
             courseRegistrationRepositoryProvider.overrideWithValue(repository),
-            eligibilityProvider(
-              courseClass.courseClassId,
-            ).overrideWith((ref) async => eligibility),
+            eligibilityProvider(courseClass.courseClassId)
+                .overrideWith((ref) async => eligibility),
             registrationPeriodProvider.overrideWith(
               (ref) async => RegistrationPeriodDto(
                 semesterId: courseClass.semesterId,
@@ -59,6 +58,25 @@ void main() {
 
       expect(find.text('Đủ điều kiện tiên quyết'), findsOneWidget);
       expect(find.text('Không trùng lịch'), findsOneWidget);
+      final scheduleRow = find.ancestor(
+        of: find.text('Không trùng lịch'),
+        matching: find.byType(ListTile),
+      );
+      expect(
+        find.descendant(
+          of: scheduleRow,
+          matching: find.byIcon(Icons.check_circle),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(of: scheduleRow, matching: find.byType(Icon)),
+            )
+            .color,
+        Colors.green,
+      );
       expect(find.text('Còn chỗ'), findsOneWidget);
       expect(find.text('IT101 - Lập trình cơ bản'), findsOneWidget);
       expect(find.textContaining('$classCode • 3 tín chỉ'), findsOneWidget);
@@ -67,18 +85,81 @@ void main() {
       expect(repository.registerCalls, 1);
     });
   }
+  testWidgets('conflicting schedule shows a red X and disables confirmation', (
+    tester,
+  ) async {
+    final courseClass = _courseClass();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          eligibilityProvider(courseClass.courseClassId).overrideWith(
+            (ref) async => EligibilityResultDto(
+              eligible: false,
+              prerequisitePassed: true,
+              scheduleAvailable: false,
+              withinCreditLimit: true,
+              inTrainingProgram: true,
+              equivalentAvailable: true,
+              capacityAvailable: true,
+              currentCredits: 12,
+              projectedCredits: 15,
+              minimumCredits: 10,
+              maximumCredits: 25,
+              messages: const ['Trùng lịch'],
+            ),
+          ),
+          registrationPeriodProvider.overrideWith(
+            (ref) async => RegistrationPeriodDto(
+              semesterId: courseClass.semesterId,
+              semesterName: 'Học kỳ 1',
+              academicYear: 2026,
+              startTime: DateTime.utc(2020),
+              endTime: DateTime.utc(2030),
+              lecturerStartTime: DateTime.utc(2020),
+              lecturerEndTime: DateTime.utc(2030),
+              status: RegistrationPeriodStatus.active,
+              configured: true,
+              isOpen: true,
+              isLecturerOpen: true,
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: RegistrationConfirmationPage(courseClass: courseClass),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scheduleRow = find.ancestor(
+      of: find.text('Không trùng lịch'),
+      matching: find.byType(ListTile),
+    );
+    expect(
+      find.descendant(of: scheduleRow, matching: find.byIcon(Icons.cancel)),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<Icon>(
+            find.descendant(of: scheduleRow, matching: find.byType(Icon)),
+          )
+          .color,
+      Theme.of(tester.element(scheduleRow)).colorScheme.error,
+    );
+    final button = tester.widget<FilledButton>(
+      find.byKey(const Key('confirm-registration')),
+    );
+    expect(button.onPressed, isNull);
+  });
 }
 
 OpenCourseClassDto _courseClass() => OpenCourseClassDto(
   courseClassId: UuidValue.withValidation(
     '018f0000-0000-7000-8000-000000000211',
   ),
-  courseId: UuidValue.withValidation(
-    '018f0000-0000-7000-8000-000000000212',
-  ),
-  semesterId: UuidValue.withValidation(
-    '018f0000-0000-7000-8000-000000000213',
-  ),
+  courseId: UuidValue.withValidation('018f0000-0000-7000-8000-000000000212'),
+  semesterId: UuidValue.withValidation('018f0000-0000-7000-8000-000000000213'),
   classCode: 'IT101-01',
   courseCode: 'IT101',
   courseName: 'Lập trình cơ bản',

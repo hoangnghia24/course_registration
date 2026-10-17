@@ -39,7 +39,7 @@ class RegistrationConfirmationPage extends ConsumerWidget {
               label: 'Đủ điều kiện tiên quyết',
               ok: result.prerequisitePassed,
             ),
-            _Check(label: 'Không trùng lịch', ok: !result.scheduleAvailable),
+            _Check(label: 'Không trùng lịch', ok: result.scheduleAvailable),
             _Check(label: 'Còn chỗ', ok: result.capacityAvailable),
             _Check(
               label: 'Trong giới hạn tín chỉ',
