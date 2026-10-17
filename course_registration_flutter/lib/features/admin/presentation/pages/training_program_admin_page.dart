@@ -313,7 +313,7 @@ class _ProgramDialogState extends State<_ProgramDialog> {
                     : null,
               ),
               const SizedBox(height: 12),
-              _text(_code, 'Mã chương trình', _required),
+              _text(_code, 'Mã chương trình', _programCodeValidator),
               const SizedBox(height: 12),
               _text(_name, 'Tên chương trình', _required),
               const SizedBox(height: 12),
@@ -397,6 +397,15 @@ class _ProgramDialogState extends State<_ProgramDialog> {
 
   String? _required(String? value) =>
       value == null || value.trim().isEmpty ? 'Không được để trống' : null;
+  String? _programCodeValidator(String? value) {
+    final code = value?.trim().toUpperCase() ?? '';
+    if (code.isEmpty) return 'Không được để trống';
+    if (!RegExp(r'^[A-Z0-9][A-Z0-9_-]{2,29}$').hasMatch(code)) {
+      return 'Mã gồm 3–30 ký tự: chữ, số, dấu _ hoặc -';
+    }
+    return null;
+  }
+
   String? _range(String? value, int min, int max) {
     final number = int.tryParse(value ?? '');
     return number == null || number < min || number > max

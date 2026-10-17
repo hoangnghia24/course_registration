@@ -10,6 +10,15 @@ class ErrorHandler {
     if (raw.contains('invalid_course')) {
       return 'Thông tin môn học không hợp lệ. Tín chỉ phải từ 1 đến 10.';
     }
+    if (raw.contains('program_code_exists')) {
+      return 'Mã chương trình đã tồn tại. Vui lòng chọn mã khác.';
+    }
+    if (raw.contains('program_major_year_exists')) {
+      return 'Ngành này đã có chương trình đào tạo cho khóa tuyển sinh đó.';
+    }
+    if (raw.contains('invalid_program')) {
+      return 'Thông tin chương trình không hợp lệ. Kiểm tra mã, tên, năm, tín chỉ và số học kỳ.';
+    }
     if (raw.contains('course_not_found')) {
       return 'Không tìm thấy môn học. Danh sách sẽ được tải lại.';
     }

@@ -462,6 +462,12 @@ abstract final class AdminService {
         !InputValidator.optionalText(description, maxLength: 2000)) {
       throw _error('invalid_program', 'Thông tin chương trình không hợp lệ.');
     }
+    await _ensureProgramUnique(
+      session,
+      majorId: majorId,
+      code: code.trim().toUpperCase(),
+      academicYear: academicYear,
+    );
     final value = await TrainingProgram.db.insertRow(
       session,
       TrainingProgram(
@@ -511,6 +517,13 @@ abstract final class AdminService {
         !InputValidator.optionalText(description, maxLength: 2000)) {
       throw _error('invalid_program', 'Thông tin chương trình không hợp lệ.');
     }
+    await _ensureProgramUnique(
+      session,
+      majorId: value.majorId,
+      code: code.trim().toUpperCase(),
+      academicYear: academicYear,
+      excludedProgramId: programId,
+    );
     final old = jsonEncode(value.toJson());
     final updated = await TrainingProgram.db.updateRow(
       session,
@@ -1419,6 +1432,34 @@ abstract final class AdminService {
 
   static String _automaticCourseCode() =>
       'MH${DateTime.now().toUtc().microsecondsSinceEpoch.toRadixString(36).toUpperCase()}';
+
+  static Future<void> _ensureProgramUnique(
+    Session session, {
+    required UuidValue majorId,
+    required String code,
+    required int academicYear,
+    UuidValue? excludedProgramId,
+  }) async {
+    final sameCode = await TrainingProgram.db.findFirstRow(
+      session,
+      where: (table) => table.code.equals(code),
+    );
+    if (sameCode != null && sameCode.id != excludedProgramId) {
+      throw _error('program_code_exists', 'Mã chương trình đã tồn tại.');
+    }
+    final sameMajorYear = await TrainingProgram.db.findFirstRow(
+      session,
+      where: (table) =>
+          table.majorId.equals(majorId) &
+          table.academicYear.equals(academicYear),
+    );
+    if (sameMajorYear != null && sameMajorYear.id != excludedProgramId) {
+      throw _error(
+        'program_major_year_exists',
+        'Ngành này đã có chương trình đào tạo cho khóa $academicYear.',
+      );
+    }
+  }
 
   static AppException _error(String code, String message) =>
       AppException(code: code, message: message);
