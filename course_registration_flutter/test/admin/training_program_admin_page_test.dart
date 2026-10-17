@@ -6,6 +6,47 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
+  testWidgets('program form explains an invalid code before submitting', (
+    tester,
+  ) async {
+    final major = Major(
+      id: _id('501'),
+      facultyId: _id('502'),
+      name: 'Công nghệ Thông tin',
+      code: 'CNTT',
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          majorsAdminProvider.overrideWith((ref) async => [major]),
+          trainingProgramsAdminProvider.overrideWith((ref) async => []),
+          courseManagementProvider.overrideWith((ref) async => []),
+        ],
+        child: const MaterialApp(home: TrainingProgramAdminPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-training-program')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Mã chương trình'),
+      'A!',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Tên chương trình'),
+      'Kiểm thử',
+    );
+    await tester.tap(find.text('Lưu'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Mã gồm 3–30 ký tự: chữ, số, dấu _ hoặc -'),
+      findsOneWidget,
+    );
+    expect(find.text('Thêm chương trình'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('program dialogs stay separated and do not overflow on phone', (
     tester,
   ) async {

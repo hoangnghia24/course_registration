@@ -20,6 +20,50 @@ void main() {
     });
 
     test(
+      'program creation distinguishes valid, code and major-year cases',
+      () async {
+        final admin = _auth(sessionBuilder, seed.adminAuthId, AppScopes.admin);
+        final created = await endpoints.admin.createTrainingProgram(
+          admin,
+          majorId: seed.major.id!,
+          code: '26CNTT',
+          name: 'Chương trình kiểm thử',
+          academicYear: 2027,
+          totalCredits: 130,
+          semesterCount: 8,
+          status: TrainingProgramStatus.draft,
+        );
+        expect(created.code, '26CNTT');
+        await _expectCode(
+          endpoints.admin.createTrainingProgram(
+            admin,
+            majorId: seed.major.id!,
+            code: '26CNTT',
+            name: 'Trùng mã',
+            academicYear: 2028,
+            totalCredits: 130,
+            semesterCount: 8,
+            status: TrainingProgramStatus.draft,
+          ),
+          'program_code_exists',
+        );
+        await _expectCode(
+          endpoints.admin.createTrainingProgram(
+            admin,
+            majorId: seed.major.id!,
+            code: '27CNTT',
+            name: 'Trùng ngành và năm',
+            academicYear: 2026,
+            totalCredits: 130,
+            semesterCount: 8,
+            status: TrainingProgramStatus.draft,
+          ),
+          'program_major_year_exists',
+        );
+      },
+    );
+
+    test(
       'server rejects empty, negative, invalid and oversized input',
       () async {
         final admin = _auth(sessionBuilder, seed.adminAuthId, AppScopes.admin);
