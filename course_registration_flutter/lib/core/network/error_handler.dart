@@ -1,11 +1,14 @@
 class ErrorHandler {
   static String message(Object error) {
-    final raw = error.toString();
-    if (raw.contains('Network') || raw.contains('Socket')) {
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('network') || raw.contains('socket')) {
       return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng.';
     }
-    if (raw.contains('InvalidCredentials')) {
+    if (raw.contains('invalidcredentials') || raw.contains('emailaccountloginexception')) {
       return 'Email hoặc mật khẩu không chính xác.';
+    }
+    if (raw.contains('toomanyattempts')) {
+      return 'Tài khoản đã bị tạm khóa do nhập sai quá nhiều lần. Vui lòng thử lại sau.';
     }
     if (raw.contains('invalid_course')) {
       return 'Thông tin môn học không hợp lệ. Tín chỉ phải từ 1 đến 10.';
