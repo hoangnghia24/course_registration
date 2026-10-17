@@ -34,6 +34,40 @@ void main() {
     expect(find.text('ĐĂNG KÝ'), findsOneWidget);
   });
 
+  for (final seatCase in [(0, 35, 35), (1, 1, 0)]) {
+    testWidgets(
+      'seats ${seatCase.$1}/${seatCase.$2} show ${seatCase.$3} remaining',
+      (
+        tester,
+      ) async {
+        final courseClass = _courseClass()
+          ..registeredCount = seatCase.$1
+          ..capacity = seatCase.$2
+          ..remainingSeats = seatCase.$3;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              availableOpenClassesProvider.overrideWith(
+                (ref) async => [courseClass],
+              ),
+              registrationPeriodProvider.overrideWith(
+                (ref) async => _registrationPeriod(courseClass.semesterId),
+              ),
+            ],
+            child: const MaterialApp(home: CourseSearchPage()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Còn ${seatCase.$3} chỗ'), findsOneWidget);
+        final button = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'ĐĂNG KÝ'),
+        );
+        expect(button.onPressed != null, seatCase.$3 > 0);
+      },
+    );
+  }
+
   test('registered classes are removed from available classes', () {
     final courseClass = _courseClass();
     final registered = RegisteredCourseDto(

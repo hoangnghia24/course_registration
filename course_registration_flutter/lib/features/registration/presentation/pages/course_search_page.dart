@@ -260,7 +260,7 @@ class _CourseClassCard extends StatelessWidget {
               'Thứ ${schedule.dayOfWeek} • Tiết ${schedule.startPeriod}-${schedule.endPeriod} • ${schedule.room}',
             ),
           const SizedBox(height: 6),
-          Text('Còn ${courseClass.remainingSeats + 1} chỗ'),
+          Text('Còn ${courseClass.remainingSeats} chỗ'),
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
