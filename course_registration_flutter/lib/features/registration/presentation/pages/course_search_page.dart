@@ -31,6 +31,10 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
     final classes = ref.watch(availableOpenClassesProvider);
     final registrationOpen =
         ref.watch(registrationPeriodProvider).asData?.value.isOpen ?? false;
+    
+    final page = ref.watch(openClassesPageNumberProvider);
+    final pageSize = ref.watch(openClassesPageSizeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lớp học phần đang mở'),
@@ -57,7 +61,10 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                   final searchField = TextField(
                     key: const Key('course-search'),
                     controller: _search,
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (value) {
+                      ref.read(openClassesPageNumberProvider.notifier).state = 1;
+                      setState(() {});
+                    },
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.search),
                       labelText: 'Tìm học phần',
@@ -67,7 +74,10 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                     initialValue: _searchBy,
                     isExpanded: true,
                     decoration: const InputDecoration(labelText: 'Tìm theo'),
-                    onChanged: (value) => setState(() => _searchBy = value!),
+                    onChanged: (value) {
+                      setState(() => _searchBy = value!);
+                      ref.read(openClassesPageNumberProvider.notifier).state = 1;
+                    },
                     items: const [
                       DropdownMenuItem(
                         value: _SearchBy.code,
@@ -119,6 +129,17 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                         ),
                       ),
               ),
+              _PaginationBar(
+                page: page,
+                pageSize: pageSize,
+                itemCount: items.length,
+                onPageChanged: (p) =>
+                    ref.read(openClassesPageNumberProvider.notifier).state = p,
+                onPageSizeChanged: (s) {
+                  ref.read(openClassesPageSizeProvider.notifier).state = s;
+                  ref.read(openClassesPageNumberProvider.notifier).state = 1;
+                },
+              ),
             ],
           );
         },
@@ -129,7 +150,7 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
   bool _matches(OpenCourseClassDto item) {
     final query = _search.text.trim().toLowerCase();
     return switch (_searchBy) {
-      _SearchBy.code => item.courseName.toLowerCase().contains(query),
+      _SearchBy.code => item.courseCode.toLowerCase().contains(query),
       _SearchBy.name => item.courseName.toLowerCase().contains(query),
       _SearchBy.credits => query.isEmpty || item.credits.toString() == query,
       _SearchBy.major => item.inTrainingProgram,
@@ -175,6 +196,61 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
         );
       }
     }
+  }
+}
+
+class _PaginationBar extends StatelessWidget {
+  const _PaginationBar({
+    required this.page,
+    required this.pageSize,
+    required this.itemCount,
+    required this.onPageChanged,
+    required this.onPageSizeChanged,
+  });
+
+  final int page;
+  final int pageSize;
+  final int itemCount;
+  final ValueChanged<int> onPageChanged;
+  final ValueChanged<int> onPageSizeChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            DropdownButton<int>(
+              value: pageSize,
+              items: [10, 20, 50, 100]
+                  .map((s) => DropdownMenuItem(value: s, child: Text('$s dòng/trang')))
+                  .toList(),
+              onChanged: (v) => v != null ? onPageSizeChanged(v) : null,
+            ),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: page > 1 ? () => onPageChanged(page - 1) : null,
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                Text('Trang $page'),
+                IconButton(
+                  onPressed: itemCount == pageSize ? () => onPageChanged(page + 1) : null,
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

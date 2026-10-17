@@ -5,7 +5,11 @@ abstract interface class CourseRegistrationRepository {
 
   Future<RegistrationPeriodDto> getRegistrationPeriod(UuidValue semesterId);
 
-  Future<List<OpenCourseClassDto>> getOpenClasses(UuidValue semesterId);
+  Future<List<OpenCourseClassDto>> getOpenClasses(
+    UuidValue semesterId, {
+    int page = 1,
+    int pageSize = 50,
+  });
 
   Future<List<RegisteredCourseDto>> getMyCourses(UuidValue semesterId);
 
