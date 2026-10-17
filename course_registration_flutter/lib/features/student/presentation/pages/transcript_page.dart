@@ -66,9 +66,8 @@ class TranscriptPage extends ConsumerWidget {
                                     DataCell(Text('${item.credits}')),
                                     DataCell(
                                       Text(
-                                        (gradeScale
-                                                .fromFourPoint(item.score) +
-                                            1)
+                                        gradeScale
+                                            .fromFourPoint(item.score)
                                             .toStringAsFixed(2),
                                       ),
                                     ),

@@ -157,7 +157,7 @@ class StudentHomePage extends ConsumerWidget {
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             );
                             final caption = Text(
-                              'GPA / 10',
+                              'GPA / ${gradeScale.maximum}',
                             );
                             if (constraints.maxWidth < 280) {
                               return Column(
