@@ -7,62 +7,66 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('registration screen confirms an eligible course', (
-    tester,
-  ) async {
-    final repository = _FakeRegistrationRepository();
-    final courseClass = _courseClass();
-    final eligibility = EligibilityResultDto(
-      eligible: true,
-      prerequisitePassed: true,
-      scheduleAvailable: true,
-      withinCreditLimit: true,
-      inTrainingProgram: true,
-      equivalentAvailable: true,
-      capacityAvailable: true,
-      currentCredits: 12,
-      projectedCredits: 15,
-      minimumCredits: 10,
-      maximumCredits: 25,
-      messages: const [],
-    );
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          courseRegistrationRepositoryProvider.overrideWithValue(repository),
-          eligibilityProvider(
-            courseClass.courseClassId,
-          ).overrideWith((ref) async => eligibility),
-          registrationPeriodProvider.overrideWith(
-            (ref) async => RegistrationPeriodDto(
-              semesterId: courseClass.semesterId,
-              semesterName: 'Học kỳ 1',
-              academicYear: 2026,
-              startTime: DateTime.utc(2020),
-              endTime: DateTime.utc(2030),
-              lecturerStartTime: DateTime.utc(2020),
-              lecturerEndTime: DateTime.utc(2030),
-              status: RegistrationPeriodStatus.active,
-              configured: true,
-              isOpen: true,
-              isLecturerOpen: true,
+  for (final classCode in ['IT101-01', 'IT101-02']) {
+    testWidgets('registration screen confirms eligible class $classCode', (
+      tester,
+    ) async {
+      final repository = _FakeRegistrationRepository();
+      final courseClass = _courseClass()..classCode = classCode;
+      final eligibility = EligibilityResultDto(
+        eligible: true,
+        prerequisitePassed: true,
+        scheduleAvailable: true,
+        withinCreditLimit: true,
+        inTrainingProgram: true,
+        equivalentAvailable: true,
+        capacityAvailable: true,
+        currentCredits: 12,
+        projectedCredits: 15,
+        minimumCredits: 10,
+        maximumCredits: 25,
+        messages: const [],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            courseRegistrationRepositoryProvider.overrideWithValue(repository),
+            eligibilityProvider(
+              courseClass.courseClassId,
+            ).overrideWith((ref) async => eligibility),
+            registrationPeriodProvider.overrideWith(
+              (ref) async => RegistrationPeriodDto(
+                semesterId: courseClass.semesterId,
+                semesterName: 'Học kỳ 1',
+                academicYear: 2026,
+                startTime: DateTime.utc(2020),
+                endTime: DateTime.utc(2030),
+                lecturerStartTime: DateTime.utc(2020),
+                lecturerEndTime: DateTime.utc(2030),
+                status: RegistrationPeriodStatus.active,
+                configured: true,
+                isOpen: true,
+                isLecturerOpen: true,
+              ),
             ),
+          ],
+          child: MaterialApp(
+            home: RegistrationConfirmationPage(courseClass: courseClass),
           ),
-        ],
-        child: MaterialApp(
-          home: RegistrationConfirmationPage(courseClass: courseClass),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Đủ điều kiện tiên quyết'), findsOneWidget);
-    expect(find.text('Không trùng lịch'), findsOneWidget);
-    expect(find.text('Còn chỗ'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('confirm-registration')));
-    await tester.pumpAndSettle();
-    expect(repository.registerCalls, 1);
-  });
+      expect(find.text('Đủ điều kiện tiên quyết'), findsOneWidget);
+      expect(find.text('Không trùng lịch'), findsOneWidget);
+      expect(find.text('Còn chỗ'), findsOneWidget);
+      expect(find.text('IT101 - Lập trình cơ bản'), findsOneWidget);
+      expect(find.textContaining('$classCode • 3 tín chỉ'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('confirm-registration')));
+      await tester.pumpAndSettle();
+      expect(repository.registerCalls, 1);
+    });
+  }
 }
 
 OpenCourseClassDto _courseClass() => OpenCourseClassDto(
