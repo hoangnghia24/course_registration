@@ -82,6 +82,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   prefixIcon: const Icon(Icons.lock_outline_rounded),
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => _obscure = !_obscure),
+                    tooltip: _obscure ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
                     icon: Icon(
                       _obscure ? Icons.visibility : Icons.visibility_off,
                     ),
@@ -92,7 +93,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return 'Vui lòng nhập mật khẩu';
                   }
                   if (value.length < 8) {
-                    return 'Mật khẩu phải có nhất 8 ký tự';
+                    return 'Mật khẩu phải có ít nhất 8 ký tự';
                   }
                   return null;
                 },
