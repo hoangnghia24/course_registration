@@ -270,8 +270,7 @@ class _UserDialogState extends ConsumerState<_UserDialog> {
               controller: _email,
               enabled: widget.user == null,
               decoration: const InputDecoration(labelText: 'Email'),
-              validator: (value) =>
-                  (value?.contains('@') ?? false) ? null : 'Email không hợp lệ',
+              validator: validateAdminEmail,
             ),
             const SizedBox(height: 12),
             if (widget.user == null) ...[
@@ -507,4 +506,14 @@ class _UserDialogState extends ConsumerState<_UserDialog> {
       }
     }
   }
+}
+
+String? validateAdminEmail(String? value) {
+  final email = value?.trim() ?? '';
+  if (email.isEmpty) return 'Vui lòng nhập email';
+  if (email.length > 254) return 'Email không được vượt quá 254 ký tự';
+  if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+    return 'Email không hợp lệ';
+  }
+  return null;
 }
