@@ -192,7 +192,12 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
 
   bool _matches(OpenCourseClassDto item) {
     final query = _search.text.trim().toLowerCase();
-    if (_status != null && item.status != _status) return false;
+    if (_status == CourseClassStatus.full && item.remainingSeats > 0) {
+      return false;
+    }
+    if (_status == CourseClassStatus.open && item.remainingSeats <= 0) {
+      return false;
+    }
     return switch (_searchBy) {
       _SearchBy.code => item.courseCode.toLowerCase().contains(query),
       _SearchBy.name => item.courseName.toLowerCase().contains(query),
@@ -265,13 +270,16 @@ class _PaginationBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
           children: [
             DropdownButton<int>(
               value: pageSize,
@@ -286,6 +294,7 @@ class _PaginationBar extends StatelessWidget {
               onChanged: (v) => v != null ? onPageSizeChanged(v) : null,
             ),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   onPressed: page > 1 ? () => onPageChanged(page - 1) : null,

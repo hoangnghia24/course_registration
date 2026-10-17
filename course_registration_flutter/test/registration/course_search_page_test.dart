@@ -57,7 +57,7 @@ void main() {
         ..courseCode = 'IT102'
         ..classCode = 'IT102-01'
         ..courseName = 'Cấu trúc dữ liệu'
-        ..status = CourseClassStatus.full
+        ..status = CourseClassStatus.open
         ..remainingSeats = 0;
       final other = _courseClass()
         ..courseCode = 'MATH101'
