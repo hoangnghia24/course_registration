@@ -27,14 +27,20 @@ final registrationPeriodProvider =
           .getRegistrationPeriod(semester.id!);
     });
 
+final openClassesPageNumberProvider = StateProvider.autoDispose<int>((ref) => 1);
+final openClassesPageSizeProvider = StateProvider.autoDispose<int>((ref) => 50);
+
 final openClassesProvider =
     FutureProvider.autoDispose<List<OpenCourseClassDto>>((
       ref,
     ) async {
       final semester = await ref.watch(currentSemesterProvider.future);
+      final page = ref.watch(openClassesPageNumberProvider);
+      final pageSize = ref.watch(openClassesPageSizeProvider);
+      
       return ref
           .watch(courseRegistrationRepositoryProvider)
-          .getOpenClasses(semester.id!);
+          .getOpenClasses(semester.id!, page: page, pageSize: pageSize);
     });
 
 final myRegisteredCoursesProvider =
