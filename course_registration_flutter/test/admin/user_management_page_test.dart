@@ -9,6 +9,50 @@ import 'package:flutter_test/flutter_test.dart';
 import 'admin_fixtures.dart';
 
 void main() {
+  test('admin email validation matches the server length and format rules', () {
+    final suffix = '@example.edu';
+    final maxLengthEmail =
+        '${List.filled(254 - suffix.length, 'a').join()}$suffix';
+    expect(maxLengthEmail.length, 254);
+    expect(validateAdminEmail(maxLengthEmail), isNull);
+    expect(
+      validateAdminEmail('a$maxLengthEmail'),
+      'Email không được vượt quá 254 ký tự',
+    );
+    expect(validateAdminEmail(''), 'Vui lòng nhập email');
+    expect(validateAdminEmail('abc'), 'Email không hợp lệ');
+    expect(validateAdminEmail('abc@'), 'Email không hợp lệ');
+  });
+
+  testWidgets('overlong email is rejected before creating user', (
+    tester,
+  ) async {
+    final repository = _FakeAdminRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          adminRepositoryProvider.overrideWithValue(repository),
+          userManagementProvider.overrideWith((ref) async => const []),
+          majorsAdminProvider.overrideWith((ref) async => [_major()]),
+          trainingProgramsAdminProvider.overrideWith(
+            (ref) async => [_program()],
+          ),
+        ],
+        child: const MaterialApp(home: UserManagementPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tạo tài khoản'));
+    await tester.pumpAndSettle();
+    final suffix = '@example.edu';
+    final tooLong = '${List.filled(255 - suffix.length, 'a').join()}$suffix';
+    await tester.enterText(find.byType(TextFormField).first, tooLong);
+    await tester.tap(find.text('Lưu'));
+    await tester.pumpAndSettle();
+    expect(find.text('Email không được vượt quá 254 ký tự'), findsOneWidget);
+    expect(repository.createCalls, 0);
+  });
+
   testWidgets('user management lists and filters users', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -163,6 +207,7 @@ void main() {
 }
 
 class _FakeAdminRepository implements AdminRepository {
+  int createCalls = 0;
   UuidValue? enabledUserId;
   UuidValue? updatedUserId;
   UserRole? createdRole;
@@ -189,6 +234,7 @@ class _FakeAdminRepository implements AdminRepository {
     UuidValue? majorId,
     UuidValue? trainingProgramId,
   }) async {
+    createCalls++;
     createdRole = role;
     createdMajorId = majorId;
     createdProgramId = trainingProgramId;
