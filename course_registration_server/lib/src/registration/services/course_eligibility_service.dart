@@ -128,7 +128,7 @@ abstract final class CourseEligibilityService {
       course.id.toString(),
       registeredClasses.map((value) => value.courseId.toString()),
     );
-    if (duplicateCourse) messages.add('Bạn đã đăng ký môn học này.');
+    if (duplicateCourse) messages.add('Bạn đã đăng ký môn học này trong học kỳ này.');
 
     var currentCredits = 0;
     for (final value in registeredClasses) {
@@ -143,7 +143,7 @@ abstract final class CourseEligibilityService {
       currentCredits: currentCredits,
       courseCredits: course.credits,
     );
-    if (!withinCreditLimit) messages.add('Đã vượt quá số tín chỉ tối đa.');
+    if (!withinCreditLimit) messages.add('Đã vượt quá số tín chỉ tối đa (25).');
 
     final programId = student.trainingProgramId;
     final program = programId == null
@@ -180,11 +180,8 @@ abstract final class CourseEligibilityService {
         .where((item) => item.status == TranscriptStatus.passed)
         .map((item) => item.courseId.toString())
         .toSet();
-    final prerequisites = await CoursePrerequisite.db.find(
-      session,
-      transaction: transaction,
-      where: (table) => table.courseId.equals(course.id),
-    );
+
+    // Check equivalent/passed first as it is a more definitive rejection reason
     final equivalents = await CourseEquivalent.db.find(
       session,
       transaction: transaction,
@@ -192,33 +189,6 @@ abstract final class CourseEligibilityService {
           table.courseId.equals(course.id) |
           table.equivalentId.equals(course.id),
     );
-    final equivalentMap = <String, Set<String>>{};
-    for (final prerequisite in prerequisites) {
-      final related = await CourseEquivalent.db.find(
-        session,
-        transaction: transaction,
-        where: (table) =>
-            table.courseId.equals(prerequisite.prerequisiteId) |
-            table.equivalentId.equals(prerequisite.prerequisiteId),
-      );
-      equivalentMap[prerequisite.prerequisiteId.toString()] = related
-          .map(
-            (item) => item.courseId == prerequisite.prerequisiteId
-                ? item.equivalentId.toString()
-                : item.courseId.toString(),
-          )
-          .toSet();
-    }
-    final prerequisitePassed = PrerequisiteChecker.isSatisfied(
-      prerequisites: prerequisites
-          .map((item) => item.prerequisiteId.toString())
-          .toSet(),
-      passedCourses: passed,
-      equivalents: equivalentMap,
-    );
-    if (!prerequisitePassed) {
-      messages.add('Bạn chưa học môn tiên quyết.');
-    }
     final targetEquivalentIds = equivalents
         .map(
           (item) => item.courseId == course.id
@@ -226,14 +196,73 @@ abstract final class CourseEligibilityService {
               : item.courseId.toString(),
         )
         .toSet();
-    final equivalentAvailable = EquivalentCourseChecker.canRegister(
+    
+    final passedEquivalentId = EquivalentCourseChecker.getPassedEquivalent(
       courseId: course.id.toString(),
       passedCourses: passed,
       equivalentCourseIds: targetEquivalentIds,
     );
-    if (!equivalentAvailable) {
-      messages.add('Môn học hoặc môn tương đương đã được hoàn thành.');
+
+    if (passedEquivalentId != null) {
+      final passedCourse = await Course.db.findById(
+        session,
+        UuidValue.withValidation(passedEquivalentId),
+        transaction: transaction,
+      );
+      messages.add(
+        'Môn học hoặc môn tương đương (${passedCourse?.courseCode ?? passedEquivalentId}) đã được hoàn thành.',
+      );
     }
+
+    // Only check prerequisites if the student hasn't passed the course yet
+    var prerequisitePassed = true;
+    if (passedEquivalentId == null) {
+      final prerequisites = await CoursePrerequisite.db.find(
+        session,
+        transaction: transaction,
+        where: (table) => table.courseId.equals(course.id),
+      );
+      final equivalentMap = <String, Set<String>>{};
+      for (final prerequisite in prerequisites) {
+        final related = await CourseEquivalent.db.find(
+          session,
+          transaction: transaction,
+          where: (table) =>
+              table.courseId.equals(prerequisite.prerequisiteId) |
+              table.equivalentId.equals(prerequisite.prerequisiteId),
+        );
+        equivalentMap[prerequisite.prerequisiteId.toString()] = related
+            .map(
+              (item) => item.courseId == prerequisite.prerequisiteId
+                  ? item.equivalentId.toString()
+                  : item.courseId.toString(),
+            )
+            .toSet();
+      }
+      
+      final missingPrerequisiteIds = PrerequisiteChecker.getMissing(
+        prerequisites: prerequisites
+            .map((item) => item.prerequisiteId.toString())
+            .toSet(),
+        passedCourses: passed,
+        equivalents: equivalentMap,
+      );
+      
+      if (missingPrerequisiteIds.isNotEmpty) {
+        prerequisitePassed = false;
+        final missingCourses = await Course.db.find(
+          session,
+          where: (table) => table.id.inSet(
+            missingPrerequisiteIds.map(UuidValue.withValidation).toSet(),
+          ),
+          transaction: transaction,
+        );
+        final codes = missingCourses.map((e) => e.courseCode).join(', ');
+        messages.add('Bạn chưa hoàn thành môn học tiên quyết: $codes.');
+      }
+    }
+
+    final equivalentAvailable = passedEquivalentId == null;
 
     final candidateSchedules = await ClassSchedule.db.find(
       session,

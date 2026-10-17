@@ -11,17 +11,30 @@ class ScheduleSlot {
 }
 
 abstract final class PrerequisiteChecker {
+  static List<String> getMissing({
+    required Set<String> prerequisites,
+    required Set<String> passedCourses,
+    required Map<String, Set<String>> equivalents,
+  }) =>
+      prerequisites
+          .where(
+            (requiredCourse) =>
+                !passedCourses.contains(requiredCourse) &&
+                !(equivalents[requiredCourse] ?? const <String>{}).any(
+                  passedCourses.contains,
+                ),
+          )
+          .toList();
+
   static bool isSatisfied({
     required Set<String> prerequisites,
     required Set<String> passedCourses,
     required Map<String, Set<String>> equivalents,
-  }) => prerequisites.every(
-    (requiredCourse) =>
-        passedCourses.contains(requiredCourse) ||
-        (equivalents[requiredCourse] ?? const <String>{}).any(
-          passedCourses.contains,
-        ),
-  );
+  }) => getMissing(
+    prerequisites: prerequisites,
+    passedCourses: passedCourses,
+    equivalents: equivalents,
+  ).isEmpty;
 }
 
 abstract final class ScheduleConflictChecker {
@@ -85,13 +98,29 @@ abstract final class ProgramChecker {
 }
 
 abstract final class EquivalentCourseChecker {
+  static String? getPassedEquivalent({
+    required String courseId,
+    required Set<String> passedCourses,
+    required Set<String> equivalentCourseIds,
+  }) {
+    if (passedCourses.contains(courseId)) return courseId;
+    for (final id in equivalentCourseIds) {
+      if (passedCourses.contains(id)) return id;
+    }
+    return null;
+  }
+
   static bool canRegister({
     required String courseId,
     required Set<String> passedCourses,
     required Set<String> equivalentCourseIds,
   }) =>
-      !passedCourses.contains(courseId) &&
-      equivalentCourseIds.intersection(passedCourses).isEmpty;
+      getPassedEquivalent(
+        courseId: courseId,
+        passedCourses: passedCourses,
+        equivalentCourseIds: equivalentCourseIds,
+      ) ==
+      null;
 }
 
 abstract final class DuplicateRegistrationChecker {
