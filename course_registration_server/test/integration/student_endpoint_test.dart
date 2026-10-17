@@ -80,7 +80,8 @@ void main() {
           studentId: student.id!,
           courseId: course.id!,
           semester: '2025-1',
-          score: 3.5,
+          // Legacy rows can retain a 10-point score with a normalized letter.
+          score: 8.0,
           letterGrade: 'B+',
           status: TranscriptStatus.passed,
         ),
@@ -112,6 +113,7 @@ void main() {
         CourseProgressStatus.completed,
       );
       expect(transcript.single.letterGrade, 'B+');
+      expect(transcript.single.score, 3.5);
       expect(gpa.semesterGpa, 3.5);
       expect(gpa.cumulativeGpa, 3.5);
     });

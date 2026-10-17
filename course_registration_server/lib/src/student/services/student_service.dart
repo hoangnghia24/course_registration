@@ -138,7 +138,7 @@ abstract final class StudentService {
           courseName: course.courseName,
           credits: course.credits,
           semester: record.semester,
-          score: record.score,
+          score: _gradePoint(record),
           letterGrade: record.letterGrade,
           status: record.status,
           attemptNumber: record.attemptNumber,
@@ -177,7 +177,7 @@ abstract final class StudentService {
         GpaAttempt(
           courseId: courseId,
           credits: course.credits,
-          score: record.score,
+          score: _gradePoint(record),
           status: record.status,
           attemptNumber: record.attemptNumber,
           semester: record.semester,
@@ -185,6 +185,23 @@ abstract final class StudentService {
       );
     }
     return GpaCalculatorService.calculate(attempts, semester: semester);
+  }
+
+  static double _gradePoint(StudentTranscript record) {
+    if (record.score <= 4) return record.score;
+    if (record.score > 10) {
+      throw ArgumentError.value(record.score, 'score', 'Expected 0..10');
+    }
+    return switch (record.letterGrade.toUpperCase()) {
+      'A' => 4.0,
+      'B+' => 3.5,
+      'B' => 3.0,
+      'C+' => 2.5,
+      'C' => 2.0,
+      'D+' => 1.5,
+      'D' => 1.0,
+      _ => 0.0,
+    };
   }
 
   static Future<Student> _authorizedStudent(

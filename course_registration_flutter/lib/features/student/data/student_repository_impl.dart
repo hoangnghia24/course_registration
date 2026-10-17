@@ -13,20 +13,12 @@ class StudentRepositoryImpl implements StudentRepository {
 
   @override
   Future<StudentProfileDto> getProfile() async {
-    try {
-      final profile = await _client.student.getProfile();
-      await _database.cacheStudentProfile(
-        profile.studentId.toString(),
-        jsonEncode(profile.toJson()),
-      );
-      return profile;
-    } catch (_) {
-      final cached = await _database.latestStudentProfile();
-      if (cached == null) rethrow;
-      return StudentProfileDto.fromJson(
-        jsonDecode(cached.payload) as Map<String, dynamic>,
-      );
-    }
+    final profile = await _client.student.getProfile();
+    await _database.cacheStudentProfile(
+      profile.studentId.toString(),
+      jsonEncode(profile.toJson()),
+    );
+    return profile;
   }
 
   @override

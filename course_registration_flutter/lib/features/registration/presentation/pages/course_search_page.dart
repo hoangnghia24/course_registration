@@ -297,15 +297,29 @@ class _PaginationBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  tooltip: 'Trang đầu',
+                  onPressed: page > 1 ? () => onPageChanged(1) : null,
+                  icon: const Icon(Icons.first_page),
+                ),
+                IconButton(
+                  tooltip: 'Trang trước',
                   onPressed: page > 1 ? () => onPageChanged(page - 1) : null,
                   icon: const Icon(Icons.chevron_left),
                 ),
                 Text('Trang $page'),
                 IconButton(
+                  tooltip: 'Trang sau',
                   onPressed: page * pageSize < itemCount
                       ? () => onPageChanged(page + 1)
                       : null,
                   icon: const Icon(Icons.chevron_right),
+                ),
+                IconButton(
+                  tooltip: 'Trang cuối',
+                  onPressed: page * pageSize < itemCount
+                      ? () => onPageChanged((itemCount + pageSize - 1) ~/ pageSize)
+                      : null,
+                  icon: const Icon(Icons.last_page),
                 ),
               ],
             ),

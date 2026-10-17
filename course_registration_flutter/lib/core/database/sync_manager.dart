@@ -255,14 +255,14 @@ class SyncManager {
   Future<void> _refreshRoleCaches(AppUser user) async {
     if (user.role == UserRole.student) {
       try {
-        await _refreshRegistrationCache();
+        await _refreshRegistrationCache(user);
       } catch (_) {
         // A closed semester does not invalidate profile synchronization.
       }
     }
   }
 
-  Future<void> _refreshRegistrationCache() async {
+  Future<void> _refreshRegistrationCache(AppUser user) async {
     final semester = await _request(
       _client.courseRegistration.getCurrentSemester(),
     );
@@ -275,11 +275,11 @@ class SyncManager {
     );
     await _database.cacheCurrentSemester(jsonEncode(semester.toJson()));
     await _database.cacheOpenClasses(
-      semesterId.toString(),
+      '${user.authUserId}:$semesterId',
       jsonEncode(classes.map((item) => item.toJson()).toList()),
     );
     await _database.cacheRegisteredCourses(
-      semesterId.toString(),
+      '${user.authUserId}:$semesterId',
       jsonEncode(registrations.map((item) => item.toJson()).toList()),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:course_registration_client/course_registration_client.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/database/sync_manager.dart';
@@ -17,6 +18,9 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
   final Client _client;
   final AppDatabase _database;
   final SyncManager _syncManager;
+
+  String _cacheKey(UuidValue semesterId) =>
+      '${_client.auth.authInfo?.authUserId}:$semesterId';
 
   @override
   Future<Semester> getCurrentSemester() async {
@@ -45,7 +49,7 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
 
   @override
   Future<List<OpenCourseClassDto>> getOpenClasses(UuidValue semesterId) async {
-    final key = semesterId.toString();
+    final key = _cacheKey(semesterId);
     final cached = await _database.readOpenClasses(key);
     if (cached != null) {
       unawaited(_syncManager.synchronize());
@@ -73,7 +77,7 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
   Future<List<RegisteredCourseDto>> getMyCourses(
     UuidValue semesterId,
   ) async {
-    final key = semesterId.toString();
+    final key = _cacheKey(semesterId);
     final cached = await _database.readRegisteredCourses(key);
     if (cached != null) {
       unawaited(_syncManager.synchronize());
@@ -102,16 +106,12 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
         courseClassId: courseClassId,
       );
     }
-    // Note: Offline check might be inaccurate with pagination as we only have a subset of classes cached.
-    // For simplicity, we try to find it in any cached page or assume we can't check if not found.
     final semester = await getCurrentSemester();
-    // This is a limitation of offline mode with pagination.
-    // In a real app, we might cache all classes or specific ones.
     final classesCache = await _database.readOpenClasses(
-      '${semester.id}_p1_s50',
+      _cacheKey(semester.id!),
     );
     final registeredCache = await _database.readRegisteredCourses(
-      semester.id.toString(),
+      _cacheKey(semester.id!),
     );
     if (classesCache == null || registeredCache == null) {
       throw StateError('Không có dữ liệu cache để kiểm tra offline.');

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/error_handler.dart';
+import '../../../registration/presentation/providers/course_registration_providers.dart';
+import '../../../student/presentation/providers/student_providers.dart';
 import '../../../../shared/services/providers.dart';
 import '../../../../shared/widgets/auth_shell.dart';
 
@@ -28,6 +30,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    ref.invalidate(studentProfileProvider);
+    ref.invalidate(trainingProgramProvider);
+    ref.invalidate(transcriptProvider);
+    ref.invalidate(gpaProvider);
+    ref.invalidate(openClassesProvider);
+    ref.invalidate(myRegisteredCoursesProvider);
+    ref.invalidate(availableOpenClassesProvider);
     final controller = ref.read(authStateControllerProvider);
     final success = await controller.login(_email.text, _password.text);
     if (!mounted) return;
