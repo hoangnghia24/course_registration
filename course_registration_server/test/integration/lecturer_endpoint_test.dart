@@ -8,6 +8,162 @@ import 'test_tools/serverpod_test_tools.dart';
 void main() {
   withServerpod('Lecturer endpoint', (sessionBuilder, endpoints) {
     test(
+      'capacity-only adjustment ignores existing schedule overlap',
+      () async {
+        final authUserId = UuidValue.withValidation(
+          '018f0000-0000-7000-8000-000000000311',
+        );
+        final session = sessionBuilder.build();
+        final user = await AppUser.db.insertRow(
+          session,
+          AppUser(
+            authUserId: authUserId,
+            email: 'self-conflict-lecturer@example.edu',
+            fullName: 'Giảng viên kiểm thử',
+            role: UserRole.lecturer,
+          ),
+        );
+        final lecturer = await Lecturer.db.insertRow(
+          session,
+          Lecturer(userId: user.id!, lecturerCode: 'SELF-CONFLICT'),
+        );
+        final course = await Course.db.insertRow(
+          session,
+          Course(
+            courseCode: 'SELF101',
+            courseName: 'Kiểm thử lịch',
+            credits: 3,
+            courseType: CourseType.compulsory,
+          ),
+        );
+        final semester = await Semester.db.insertRow(
+          session,
+          Semester(
+            name: 'Học kỳ kiểm thử',
+            academicYear: 2026,
+            startDate: DateTime.utc(2026, 9),
+            endDate: DateTime.utc(2027, 1),
+            status: SemesterStatus.open,
+          ),
+        );
+        await RegistrationPeriod.db.insertRow(
+          session,
+          RegistrationPeriod(
+            semesterId: semester.id!,
+            startTime: DateTime.utc(2025),
+            endTime: DateTime.utc(2028),
+            lecturerStartTime: DateTime.utc(2025),
+            lecturerEndTime: DateTime.utc(2028),
+            status: RegistrationPeriodStatus.active,
+          ),
+        );
+        final target = await CourseClass.db.insertRow(
+          session,
+          CourseClass(
+            courseId: course.id!,
+            lecturerId: lecturer.id!,
+            semesterId: semester.id!,
+            classCode: 'SELF101-01',
+            capacity: 35,
+            registeredCount: 0,
+            status: CourseClassStatus.open,
+          ),
+        );
+        final other = await CourseClass.db.insertRow(
+          session,
+          CourseClass(
+            courseId: course.id!,
+            lecturerId: lecturer.id!,
+            semesterId: semester.id!,
+            classCode: 'SELF101-02',
+            capacity: 35,
+            registeredCount: 0,
+            status: CourseClassStatus.open,
+          ),
+        );
+        await ClassSchedule.db.insert(
+          session,
+          [
+            ClassSchedule(
+              courseClassId: target.id!,
+              dayOfWeek: 2,
+              startPeriod: 1,
+              endPeriod: 3,
+              room: 'A101',
+            ),
+            ClassSchedule(
+              courseClassId: other.id!,
+              dayOfWeek: 2,
+              startPeriod: 1,
+              endPeriod: 3,
+              room: 'B201',
+            ),
+          ],
+        );
+        final authenticated = sessionBuilder.copyWith(
+          authentication: AuthenticationOverride.authenticationInfo(
+            authUserId.toString(),
+            {AppScopes.lecturer},
+          ),
+        );
+        final unchanged = [
+          ClassScheduleDto(
+            dayOfWeek: 2,
+            startPeriod: 1,
+            endPeriod: 3,
+            room: 'A101',
+          ),
+        ];
+
+        await expectLater(
+          endpoints.lecturer.updateCourseClass(
+            authenticated,
+            courseClassId: target.id!,
+            capacity: 36,
+            schedules: [
+              ClassScheduleDto(
+                dayOfWeek: 2,
+                startPeriod: 2,
+                endPeriod: 4,
+                room: 'A101',
+              ),
+            ],
+          ),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.code,
+              'code',
+              'teaching_schedule_conflict',
+            ),
+          ),
+        );
+        final request = await endpoints.lecturer.updateCourseClass(
+          authenticated,
+          courseClassId: target.id!,
+          capacity: 36,
+          schedules: unchanged,
+        );
+        expect(request.newCapacity, 36);
+        expect(request.status, ClassAdjustmentStatus.pending);
+        await expectLater(
+          endpoints.lecturer.updateCourseClass(
+            authenticated,
+            courseClassId: target.id!,
+            capacity: 37,
+            schedules: unchanged,
+          ),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.code,
+              'code',
+              'adjustment_already_pending',
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
       'creates an owned class, schedule proposal and activity log',
       () async {
         final authUserId = UuidValue.withValidation(

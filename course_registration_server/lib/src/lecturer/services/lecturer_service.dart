@@ -194,14 +194,6 @@ abstract final class LecturerService {
           message: 'Sĩ số tối đa không thể nhỏ hơn số sinh viên đã đăng ký.',
         );
       }
-      await ensureNoConflict(
-        session,
-        lecturer: lecturer,
-        semesterId: courseClass.semesterId,
-        schedules: schedules,
-        excludedClassId: courseClassId,
-        transaction: transaction,
-      );
       final pending = await ClassAdjustmentRequest.db.findFirstRow(
         session,
         transaction: transaction,
@@ -220,6 +212,19 @@ abstract final class LecturerService {
         transaction: transaction,
         where: (table) => table.courseClassId.equals(courseClassId),
       );
+      if (ClassAdjustmentService.schedulesChanged(
+        currentSchedules.map(_scheduleDto).toList(growable: false),
+        schedules,
+      )) {
+        await ensureNoConflict(
+          session,
+          lecturer: lecturer,
+          semesterId: courseClass.semesterId,
+          schedules: schedules,
+          excludedClassId: courseClassId,
+          transaction: transaction,
+        );
+      }
       final request = await ClassAdjustmentRequest.db.insertRow(
         session,
         ClassAdjustmentRequest(
