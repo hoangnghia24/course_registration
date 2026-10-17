@@ -54,8 +54,12 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
       return _decodeList(cached.payload, OpenCourseClassDto.fromJson);
     }
     try {
-      final classes = await _client.courseRegistration.getOpenClasses(
-        semesterId: semesterId,
+      final classes = await fetchAllOpenClasses(
+        (page, pageSize) => _client.courseRegistration.getOpenClasses(
+          semesterId: semesterId,
+          page: page,
+          pageSize: pageSize,
+        ),
       );
       await _database.cacheOpenClasses(
         key,
@@ -253,5 +257,19 @@ class CourseRegistrationRepositoryImpl implements CourseRegistrationRepository {
       maximumCredits: 25,
       messages: messages,
     );
+  }
+}
+
+Future<List<OpenCourseClassDto>> fetchAllOpenClasses(
+  Future<List<OpenCourseClassDto>> Function(int page, int pageSize) fetchPage,
+) async {
+  const pageSize = 100;
+  final classes = <OpenCourseClassDto>[];
+  var page = 1;
+  while (true) {
+    final batch = await fetchPage(page, pageSize);
+    classes.addAll(batch);
+    if (batch.length < pageSize) return classes;
+    page++;
   }
 }

@@ -19,6 +19,7 @@ class CourseSearchPage extends ConsumerStatefulWidget {
 class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
   final _search = TextEditingController();
   _SearchBy _searchBy = _SearchBy.code;
+  CourseClassStatus? _status;
 
   @override
   void dispose() {
@@ -107,6 +108,36 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                   );
                 },
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<CourseClassStatus?>(
+                        initialValue: _status,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Trạng thái lớp',
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: null, child: Text('Tất cả')),
+                          DropdownMenuItem(
+                            value: CourseClassStatus.open,
+                            child: Text('Còn chỗ'),
+                          ),
+                          DropdownMenuItem(
+                            value: CourseClassStatus.full,
+                            child: Text('Đã đầy'),
+                          ),
+                        ],
+                        onChanged: (value) => setState(() => _status = value),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text('${filtered.length} lớp'),
+                  ],
+                ),
+              ),
               Expanded(
                 child: filtered.isEmpty
                     ? const Center(child: Text('Không tìm thấy lớp phù hợp.'))
@@ -128,8 +159,9 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
 
   bool _matches(OpenCourseClassDto item) {
     final query = _search.text.trim().toLowerCase();
+    if (_status != null && item.status != _status) return false;
     return switch (_searchBy) {
-      _SearchBy.code => item.courseName.toLowerCase().contains(query),
+      _SearchBy.code => item.courseCode.toLowerCase().contains(query),
       _SearchBy.name => item.courseName.toLowerCase().contains(query),
       _SearchBy.credits => query.isEmpty || item.credits.toString() == query,
       _SearchBy.major => item.inTrainingProgram,
