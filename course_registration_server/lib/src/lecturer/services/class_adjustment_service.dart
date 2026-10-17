@@ -23,6 +23,11 @@ abstract final class ClassAdjustmentService {
     String snapshot,
   ) => encodeSchedules(current) == encodeSchedules(decodeSchedules(snapshot));
 
+  static bool schedulesChanged(
+    List<ClassScheduleDto> current,
+    List<ClassScheduleDto> proposed,
+  ) => encodeSchedules(current) != encodeSchedules(proposed);
+
   static Future<ClassAdjustmentRequestDto> toDto(
     Session session,
     ClassAdjustmentRequest request, {
