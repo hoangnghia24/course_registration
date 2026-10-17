@@ -6,61 +6,63 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('student schedule supports week and day selection in a grid', (
-    tester,
-  ) async {
-    final id = UuidValue.withValidation(
-      '018f0000-0000-7000-8000-000000000301',
-    );
-    final semester = Semester(
-      id: id,
-      name: 'Học kỳ 1',
-      academicYear: 2026,
-      startDate: DateTime.utc(2020),
-      endDate: DateTime.utc(2030, 12, 31),
-      status: SemesterStatus.open,
-    );
-    final course = RegisteredCourseDto(
-      registrationId: id,
-      courseClassId: id,
-      semesterId: id,
-      classCode: 'IT101-01',
-      courseCode: 'IT101',
-      courseName: 'Lập trình cơ bản',
-      credits: 3,
-      lecturerName: 'Nguyễn Văn A',
-      registeredAt: DateTime.utc(2026),
-      status: RegistrationStatus.registered,
-      schedules: [
-        ClassScheduleDto(
-          dayOfWeek: 2,
-          startPeriod: 1,
-          endPeriod: 3,
-          room: 'A101',
-        ),
-      ],
-    );
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          currentSemesterProvider.overrideWith((ref) async => semester),
-          myRegisteredCoursesProvider.overrideWith((ref) async => [course]),
+  for (final dayOfWeek in [2, 7]) {
+    testWidgets('student schedule shows Thứ $dayOfWeek in selected grid day', (
+      tester,
+    ) async {
+      final id = UuidValue.withValidation(
+        '018f0000-0000-7000-8000-000000000301',
+      );
+      final semester = Semester(
+        id: id,
+        name: 'Học kỳ 1',
+        academicYear: 2026,
+        startDate: DateTime.utc(2020),
+        endDate: DateTime.utc(2030, 12, 31),
+        status: SemesterStatus.open,
+      );
+      final course = RegisteredCourseDto(
+        registrationId: id,
+        courseClassId: id,
+        semesterId: id,
+        classCode: 'IT101-01',
+        courseCode: 'IT101',
+        courseName: 'Lập trình cơ bản',
+        credits: 3,
+        lecturerName: 'Nguyễn Văn A',
+        registeredAt: DateTime.utc(2026),
+        status: RegistrationStatus.registered,
+        schedules: [
+          ClassScheduleDto(
+            dayOfWeek: dayOfWeek,
+            startPeriod: 1,
+            endPeriod: 3,
+            room: 'A101',
+          ),
         ],
-        child: const MaterialApp(home: CourseSchedulePage()),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentSemesterProvider.overrideWith((ref) async => semester),
+            myRegisteredCoursesProvider.overrideWith((ref) async => [course]),
+          ],
+          child: const MaterialApp(home: CourseSchedulePage()),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining(' – '), findsOneWidget);
-    expect(find.byTooltip('Tuần trước'), findsOneWidget);
-    expect(find.byTooltip('Tuần sau'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('schedule-day-1')));
-    await tester.pumpAndSettle();
+      expect(find.textContaining(' – '), findsOneWidget);
+      expect(find.byTooltip('Tuần trước'), findsOneWidget);
+      expect(find.byTooltip('Tuần sau'), findsOneWidget);
+      await tester.tap(find.byKey(Key('schedule-day-${dayOfWeek - 1}')));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Tiết 1'), findsOneWidget);
-    expect(find.textContaining('IT101 - Lập trình cơ bản'), findsWidgets);
-    expect(find.textContaining('Phòng A101'), findsWidgets);
-  });
+      expect(find.text('Tiết 1'), findsOneWidget);
+      expect(find.textContaining('IT101 - Lập trình cơ bản'), findsWidgets);
+      expect(find.textContaining('Phòng A101'), findsWidgets);
+    });
+  }
 
   testWidgets('student schedule keeps week controls and grid when empty', (
     tester,
