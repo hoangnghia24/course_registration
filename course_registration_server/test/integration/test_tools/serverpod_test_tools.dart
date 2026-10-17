@@ -2124,6 +2124,36 @@ class _LecturerEndpoint {
     });
   }
 
+  _ida.Future<int> countMyCourseClasses(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'lecturer',
+            method: 'countMyCourseClasses',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'lecturer',
+          methodName: 'countMyCourseClasses',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<_ibcbukpi.LecturerCourseClassDto> createCourseClass(
     _ist.TestSessionBuilder sessionBuilder, {
     required _is.UuidValue courseId,

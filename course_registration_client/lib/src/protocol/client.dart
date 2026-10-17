@@ -817,6 +817,12 @@ class EndpointLecturer extends EndpointLecturerGuard {
     },
   );
 
+  _ida.Future<int> countMyCourseClasses() => caller.callServerEndpoint<int>(
+    'lecturer',
+    'countMyCourseClasses',
+    {},
+  );
+
   _ida.Future<_ibein0b1.LecturerCourseClassDto> createCourseClass({
     required _isc.UuidValue courseId,
     required _isc.UuidValue semesterId,

@@ -18,6 +18,9 @@ final courseClassProvider =
     FutureProvider.autoDispose<List<LecturerCourseClassDto>>(
       (ref) => ref.watch(lecturerRepositoryProvider).getClasses(),
     );
+final courseClassCountProvider = FutureProvider.autoDispose<int?>(
+  (ref) => ref.watch(lecturerRepositoryProvider).countClasses(),
+);
 final scheduleProvider =
     FutureProvider.autoDispose<List<TeachingScheduleProposal>>(
       (ref) => ref.watch(lecturerRepositoryProvider).getSchedule(),

@@ -24,6 +24,9 @@ class LecturerEndpoint extends LecturerGuard {
     pageSize: pageSize ?? 50,
   );
 
+  Future<int> countMyCourseClasses(Session session) =>
+      LecturerService.countMyClasses(session);
+
   Future<LecturerCourseClassDto> createCourseClass(
     Session session, {
     required UuidValue courseId,

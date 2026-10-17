@@ -7,6 +7,78 @@ import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
   withServerpod('Lecturer endpoint', (sessionBuilder, endpoints) {
+    test('counts all owned classes without the 50-row list limit', () async {
+      final authUserId = UuidValue.withValidation(
+        '018f0000-0000-7000-8000-000000000391',
+      );
+      final session = sessionBuilder.build();
+      final user = await AppUser.db.insertRow(
+        session,
+        AppUser(
+          authUserId: authUserId,
+          email: 'count-lecturer@example.edu',
+          fullName: 'Giảng viên kiểm thử',
+          role: UserRole.lecturer,
+        ),
+      );
+      final lecturer = await Lecturer.db.insertRow(
+        session,
+        Lecturer(
+          userId: user.id!,
+          lecturerCode: 'COUNT-LECTURER',
+        ),
+      );
+      final course = await Course.db.insertRow(
+        session,
+        Course(
+          courseCode: 'COUNT101',
+          courseName: 'Môn kiểm thử',
+          credits: 3,
+          courseType: CourseType.compulsory,
+        ),
+      );
+      final semester = await Semester.db.insertRow(
+        session,
+        Semester(
+          name: 'COUNT semester',
+          academicYear: 2026,
+          startDate: DateTime.utc(2026, 9),
+          endDate: DateTime.utc(2027, 1),
+          status: SemesterStatus.open,
+        ),
+      );
+      final authenticated = sessionBuilder.copyWith(
+        authentication: AuthenticationOverride.authenticationInfo(
+          authUserId.toString(),
+          {AppScopes.lecturer},
+        ),
+      );
+      expect(await endpoints.lecturer.countMyCourseClasses(authenticated), 0);
+      for (var index = 1; index <= 101; index++) {
+        await CourseClass.db.insertRow(
+          session,
+          CourseClass(
+            courseId: course.id!,
+            lecturerId: lecturer.id!,
+            semesterId: semester.id!,
+            classCode: 'COUNT-${index.toString().padLeft(3, '0')}',
+            capacity: 50,
+            status: CourseClassStatus.open,
+          ),
+        );
+        if (index == 50 || index == 51 || index == 101) {
+          expect(
+            await endpoints.lecturer.countMyCourseClasses(authenticated),
+            index,
+          );
+        }
+      }
+      expect(
+        await endpoints.lecturer.getMyCourseClasses(authenticated),
+        hasLength(50),
+      );
+    });
+
     test(
       'creates an owned class, schedule proposal and activity log',
       () async {

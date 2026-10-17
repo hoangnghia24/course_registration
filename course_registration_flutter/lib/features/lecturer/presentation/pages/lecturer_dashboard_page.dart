@@ -14,6 +14,7 @@ class LecturerDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(lecturerProvider);
     final classes = ref.watch(courseClassProvider);
+    final classCount = ref.watch(courseClassCountProvider);
     final schedule = ref.watch(scheduleProvider);
     return HomeBackGuard(
       child: Scaffold(
@@ -56,7 +57,7 @@ class LecturerDashboardPage extends ConsumerWidget {
                   children: [
                     _Metric(
                       label: 'Lớp đang dạy',
-                      value: '${classValues.length}',
+                      value: classCount.value?.toString() ?? '—',
                     ),
                     _Metric(label: 'Sinh viên', value: '$studentCount'),
                     _Metric(label: 'Lịch hôm nay', value: '$todayCount'),
