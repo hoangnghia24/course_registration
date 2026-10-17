@@ -53,7 +53,7 @@ class CourseRegistrationDashboardPage extends ConsumerWidget {
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: 14),
-                        Text('Tín chỉ đã đăng ký: ${credits + 2}/25'),
+                        Text('Tín chỉ đã đăng ký: $credits/25'),
                         const SizedBox(height: 10),
                         _PeriodMessage(period: period),
                         const SizedBox(height: 6),
