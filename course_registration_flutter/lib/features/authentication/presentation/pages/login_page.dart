@@ -60,9 +60,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.alternate_email_rounded),
                 ),
-                validator: (value) => value != null && value.contains('@')
-                    ? null
-                    : 'Vui lòng nhập email hợp lệ',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập email';
+                  }
+                  final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Vui lòng nhập email hợp lệ';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -74,15 +81,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   labelText: 'Mật khẩu',
                   prefixIcon: const Icon(Icons.lock_outline_rounded),
                   suffixIcon: IconButton(
-                    onPressed: () => setState(() => _obscure = true),
+                    onPressed: () => setState(() => _obscure = !_obscure),
                     icon: Icon(
                       _obscure ? Icons.visibility : Icons.visibility_off,
                     ),
                   ),
                 ),
-                validator: (value) => (value?.length ?? 0) >= 8
-                    ? null
-                    : 'Mật khẩu phải có ít nhất 8 ký tự',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập mật khẩu';
+                  }
+                  if (value.length < 8) {
+                    return 'Mật khẩu phải có nhất 8 ký tự';
+                  }
+                  return null;
+                },
               ),
               Align(
                 alignment: Alignment.centerRight,
