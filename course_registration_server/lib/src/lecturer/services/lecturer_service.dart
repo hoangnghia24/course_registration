@@ -81,6 +81,14 @@ abstract final class LecturerService {
     return result;
   }
 
+  static Future<int> countMyClasses(Session session) async {
+    final lecturer = await _authorizedLecturer(session);
+    return CourseClass.db.count(
+      session,
+      where: (table) => table.lecturerId.equals(lecturer.id),
+    );
+  }
+
   static Future<LecturerCourseClassDto> createCourseClass(
     Session session, {
     required UuidValue courseId,

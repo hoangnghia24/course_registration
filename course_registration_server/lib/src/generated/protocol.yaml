@@ -57,6 +57,7 @@ lecturer:
   - getCourses:
   - getSemesters:
   - getMyCourseClasses:
+  - countMyCourseClasses:
   - createCourseClass:
   - updateCourseClass:
   - deleteCourseClass:

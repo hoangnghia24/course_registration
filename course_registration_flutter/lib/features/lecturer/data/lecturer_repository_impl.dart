@@ -44,6 +44,15 @@ class LecturerRepositoryImpl implements LecturerRepository {
   }
 
   @override
+  Future<int?> countClasses() async {
+    try {
+      return await _client.lecturer.countMyCourseClasses();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Future<List<TeachingScheduleProposal>> getSchedule() async {
     final profile = await getProfile();
     final key = profile.lecturerId.toString();

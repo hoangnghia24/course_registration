@@ -40,6 +40,7 @@ void main() {
           await _pump(tester, mode, const LecturerDashboardPage(), [
             lecturerProvider.overrideWith((ref) async => lecturerProfile()),
             courseClassProvider.overrideWith((ref) async => [lecturerClass()]),
+            courseClassCountProvider.overrideWith((ref) async => 1),
             scheduleProvider.overrideWith((ref) async => []),
           ]);
           await _pump(tester, mode, const AdminDashboardPage(), [

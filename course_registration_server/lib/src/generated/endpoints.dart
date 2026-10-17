@@ -1352,6 +1352,16 @@ class Endpoints extends _is.EndpointDispatch {
                     pageSize: params['pageSize'],
                   ),
         ),
+        'countMyCourseClasses': _is.MethodConnector(
+          name: 'countMyCourseClasses',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['lecturer'] as _ioi4ibhi.LecturerEndpoint)
+                  .countMyCourseClasses(session),
+        ),
         'createCourseClass': _is.MethodConnector(
           name: 'createCourseClass',
           params: {

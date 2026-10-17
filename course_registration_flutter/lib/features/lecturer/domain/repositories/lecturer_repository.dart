@@ -3,6 +3,7 @@ import 'package:course_registration_client/course_registration_client.dart';
 abstract interface class LecturerRepository {
   Future<LecturerProfileDto> getProfile();
   Future<List<LecturerCourseClassDto>> getClasses();
+  Future<int?> countClasses();
   Future<List<TeachingScheduleProposal>> getSchedule();
   Future<List<ClassStudentDto>> getStudents(UuidValue courseClassId);
   Future<List<ClassDemandDto>> getDemand();

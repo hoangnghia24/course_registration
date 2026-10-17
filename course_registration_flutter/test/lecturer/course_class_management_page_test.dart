@@ -124,6 +124,8 @@ class _FakeLecturerRepository implements LecturerRepository {
   Future<List<LecturerCourseClassDto>> getClasses() =>
       throw UnimplementedError();
   @override
+  Future<int?> countClasses() => throw UnimplementedError();
+  @override
   Future<List<TeachingScheduleProposal>> getSchedule() =>
       throw UnimplementedError();
   @override
