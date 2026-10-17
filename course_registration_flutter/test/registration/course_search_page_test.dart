@@ -1,5 +1,6 @@
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:course_registration_flutter/features/registration/presentation/pages/course_search_page.dart';
+import 'package:course_registration_flutter/features/registration/data/course_registration_repository_impl.dart';
 import 'package:course_registration_flutter/features/registration/domain/repositories/course_registration_repository.dart';
 import 'package:course_registration_flutter/features/registration/presentation/providers/course_registration_providers.dart';
 import 'package:course_registration_flutter/features/student/presentation/providers/student_providers.dart';
@@ -8,6 +9,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('loads every server page before applying list filters', () async {
+    final requestedPages = <int>[];
+    final item = _courseClass();
+    final result = await fetchAllOpenClasses((page, pageSize) async {
+      requestedPages.add(page);
+      expect(pageSize, 100);
+      return page == 1 ? List.filled(100, item) : [item];
+    });
+    expect(requestedPages, [1, 2]);
+    expect(result, hasLength(101));
+  });
+
   testWidgets('course list displays open class information', (tester) async {
     final courseClass = _courseClass();
     await tester.pumpWidget(
@@ -33,6 +46,61 @@ void main() {
     expect(find.text('Còn 20 chỗ'), findsOneWidget);
     expect(find.text('ĐĂNG KÝ'), findsOneWidget);
   });
+
+  testWidgets(
+    'course code and status filters combine and clear independently',
+    (
+      tester,
+    ) async {
+      final open = _courseClass();
+      final full = _courseClass()
+        ..courseCode = 'IT102'
+        ..classCode = 'IT102-01'
+        ..courseName = 'Cấu trúc dữ liệu'
+        ..status = CourseClassStatus.full
+        ..remainingSeats = 0;
+      final other = _courseClass()
+        ..courseCode = 'MATH101'
+        ..classCode = 'MATH101-01'
+        ..courseName = 'Toán rời rạc';
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            availableOpenClassesProvider.overrideWith(
+              (ref) async => [open, full, other],
+            ),
+            registrationPeriodProvider.overrideWith(
+              (ref) async => _registrationPeriod(open.semesterId),
+            ),
+          ],
+          child: const MaterialApp(home: CourseSearchPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('course-search')), ' it10 ');
+      await tester.pumpAndSettle();
+      expect(find.text('2 lớp'), findsOneWidget);
+
+      await tester.tap(find.text('Tất cả'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Đã đầy').last);
+      await tester.pumpAndSettle();
+      expect(find.text('1 lớp'), findsOneWidget);
+      expect(find.textContaining('IT102'), findsOneWidget);
+      expect(find.textContaining('IT101'), findsNothing);
+
+      await tester.enterText(find.byKey(const Key('course-search')), '');
+      await tester.pumpAndSettle();
+      expect(find.text('1 lớp'), findsOneWidget);
+
+      await tester.tap(find.text('Đã đầy'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tất cả').last);
+      await tester.pumpAndSettle();
+      expect(find.text('3 lớp'), findsOneWidget);
+    },
+  );
 
   for (final seatCase in [(0, 35, 35), (1, 1, 0)]) {
     testWidgets(

@@ -51,7 +51,9 @@ abstract final class CourseRegistrationService {
     final window = Pagination.window(page: page, pageSize: pageSize);
     final classes = await CourseClass.db.find(
       session,
-      where: (table) => table.semesterId.equals(semesterId),
+      where: (table) =>
+          table.semesterId.equals(semesterId) &
+          table.status.notEquals(CourseClassStatus.closed),
       orderBy: (table) => table.classCode,
       limit: window.limit,
       offset: window.offset,
@@ -59,7 +61,7 @@ abstract final class CourseRegistrationService {
     final result = await _openClassDtos(
       session,
       student.trainingProgramId,
-      classes.where((item) => item.status != CourseClassStatus.closed).toList(),
+      classes,
     );
     result.sort((a, b) => a.courseCode.compareTo(b.courseCode));
     return result;

@@ -19,6 +19,7 @@ class CourseSearchPage extends ConsumerStatefulWidget {
 class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
   final _search = TextEditingController();
   _SearchBy _searchBy = _SearchBy.code;
+  CourseClassStatus? _status;
 
   @override
   void dispose() {
@@ -31,7 +32,7 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
     final classes = ref.watch(availableOpenClassesProvider);
     final registrationOpen =
         ref.watch(registrationPeriodProvider).asData?.value.isOpen ?? false;
-    
+
     final page = ref.watch(openClassesPageNumberProvider);
     final pageSize = ref.watch(openClassesPageSizeProvider);
 
@@ -53,6 +54,10 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
         ),
         data: (items) {
           final filtered = items.where(_matches).toList();
+          final pageItems = filtered
+              .skip((page - 1) * pageSize)
+              .take(pageSize)
+              .toList();
           return Column(
             children: [
               LayoutBuilder(
@@ -62,7 +67,8 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                     key: const Key('course-search'),
                     controller: _search,
                     onChanged: (value) {
-                      ref.read(openClassesPageNumberProvider.notifier).state = 1;
+                      ref.read(openClassesPageNumberProvider.notifier).state =
+                          1;
                       setState(() {});
                     },
                     decoration: const InputDecoration(
@@ -76,7 +82,8 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                     decoration: const InputDecoration(labelText: 'Tìm theo'),
                     onChanged: (value) {
                       setState(() => _searchBy = value!);
-                      ref.read(openClassesPageNumberProvider.notifier).state = 1;
+                      ref.read(openClassesPageNumberProvider.notifier).state =
+                          1;
                     },
                     items: const [
                       DropdownMenuItem(
@@ -117,14 +124,50 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
                   );
                 },
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<CourseClassStatus?>(
+                        initialValue: _status,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Trạng thái lớp',
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: null, child: Text('Tất cả')),
+                          DropdownMenuItem(
+                            value: CourseClassStatus.open,
+                            child: Text('Còn chỗ'),
+                          ),
+                          DropdownMenuItem(
+                            value: CourseClassStatus.full,
+                            child: Text('Đã đầy'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() => _status = value);
+                          ref
+                                  .read(openClassesPageNumberProvider.notifier)
+                                  .state =
+                              1;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text('${filtered.length} lớp'),
+                  ],
+                ),
+              ),
               Expanded(
                 child: filtered.isEmpty
                     ? const Center(child: Text('Không tìm thấy lớp phù hợp.'))
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
-                        itemCount: filtered.length,
+                        itemCount: pageItems.length,
                         itemBuilder: (context, index) => _CourseClassCard(
-                          courseClass: filtered[index],
+                          courseClass: pageItems[index],
                           registrationOpen: registrationOpen,
                         ),
                       ),
@@ -132,7 +175,7 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
               _PaginationBar(
                 page: page,
                 pageSize: pageSize,
-                itemCount: items.length,
+                itemCount: filtered.length,
                 onPageChanged: (p) =>
                     ref.read(openClassesPageNumberProvider.notifier).state = p,
                 onPageSizeChanged: (s) {
@@ -149,6 +192,7 @@ class _CourseSearchPageState extends ConsumerState<CourseSearchPage> {
 
   bool _matches(OpenCourseClassDto item) {
     final query = _search.text.trim().toLowerCase();
+    if (_status != null && item.status != _status) return false;
     return switch (_searchBy) {
       _SearchBy.code => item.courseCode.toLowerCase().contains(query),
       _SearchBy.name => item.courseName.toLowerCase().contains(query),
@@ -219,7 +263,9 @@ class _PaginationBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: SafeArea(
@@ -230,7 +276,12 @@ class _PaginationBar extends StatelessWidget {
             DropdownButton<int>(
               value: pageSize,
               items: [10, 20, 50, 100]
-                  .map((s) => DropdownMenuItem(value: s, child: Text('$s dòng/trang')))
+                  .map(
+                    (s) => DropdownMenuItem(
+                      value: s,
+                      child: Text('$s dòng/trang'),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) => v != null ? onPageSizeChanged(v) : null,
             ),
@@ -242,7 +293,9 @@ class _PaginationBar extends StatelessWidget {
                 ),
                 Text('Trang $page'),
                 IconButton(
-                  onPressed: itemCount == pageSize ? () => onPageChanged(page + 1) : null,
+                  onPressed: page * pageSize < itemCount
+                      ? () => onPageChanged(page + 1)
+                      : null,
                   icon: const Icon(Icons.chevron_right),
                 ),
               ],

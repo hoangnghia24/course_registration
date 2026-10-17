@@ -1,5 +1,6 @@
 import 'package:course_registration_client/course_registration_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/database/app_database.dart';
 import '../../../../shared/services/providers.dart';
@@ -27,7 +28,9 @@ final registrationPeriodProvider =
           .getRegistrationPeriod(semester.id!);
     });
 
-final openClassesPageNumberProvider = StateProvider.autoDispose<int>((ref) => 1);
+final openClassesPageNumberProvider = StateProvider.autoDispose<int>(
+  (ref) => 1,
+);
 final openClassesPageSizeProvider = StateProvider.autoDispose<int>((ref) => 50);
 
 final openClassesProvider =
@@ -35,12 +38,9 @@ final openClassesProvider =
       ref,
     ) async {
       final semester = await ref.watch(currentSemesterProvider.future);
-      final page = ref.watch(openClassesPageNumberProvider);
-      final pageSize = ref.watch(openClassesPageSizeProvider);
-      
       return ref
           .watch(courseRegistrationRepositoryProvider)
-          .getOpenClasses(semester.id!, page: page, pageSize: pageSize);
+          .getOpenClasses(semester.id!);
     });
 
 final myRegisteredCoursesProvider =
