@@ -258,13 +258,13 @@ class _ClassApprovalPageState extends ConsumerState<ClassApprovalPage>
   }
 
   Future<String?> _rejectReason() async {
-    final controller = TextEditingController();
-    final value = await showDialog<String>(
+    var reason = '';
+    return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Lý do từ chối'),
         content: TextField(
-          controller: controller,
+          onChanged: (value) => reason = value.trim(),
           maxLines: 3,
           decoration: const InputDecoration(
             hintText: 'Nhập lý do để giảng viên biết cần điều chỉnh gì',
@@ -277,7 +277,6 @@ class _ClassApprovalPageState extends ConsumerState<ClassApprovalPage>
           ),
           FilledButton(
             onPressed: () {
-              final reason = controller.text.trim();
               if (reason.isNotEmpty) Navigator.pop(context, reason);
             },
             child: const Text('Từ chối'),
@@ -285,8 +284,6 @@ class _ClassApprovalPageState extends ConsumerState<ClassApprovalPage>
         ],
       ),
     );
-    controller.dispose();
-    return value;
   }
 
   static String _schedule(dynamic schedule) =>
