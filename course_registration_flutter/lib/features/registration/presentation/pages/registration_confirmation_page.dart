@@ -30,7 +30,7 @@ class RegistrationConfirmationPage extends ConsumerWidget {
                   '${courseClass.courseCode} - ${courseClass.courseName}',
                 ),
                 subtitle: Text(
-                  '${courseClass.courseCode} • ${courseClass.credits} tín chỉ\nGV ${courseClass.lecturerName}',
+                  '${courseClass.classCode} • ${courseClass.credits} tín chỉ\nGV ${courseClass.lecturerName}',
                 ),
               ),
             ),
