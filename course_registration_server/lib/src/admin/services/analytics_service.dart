@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
 import '../../lecturer/services/class_demand_service.dart';
+import '../../student/services/grade_point_normalizer.dart';
 
 abstract final class ReportCalculator {
   static double average(Iterable<double> values) {
@@ -48,7 +49,9 @@ abstract final class AnalyticsService {
       if (item.status == TranscriptStatus.failed) {
         failed.update(item.courseId, (value) => value + 1, ifAbsent: () => 1);
       }
-      scores.putIfAbsent(item.courseId, () => []).add(item.score);
+      scores
+          .putIfAbsent(item.courseId, () => [])
+          .add(GradePointNormalizer.fromTranscript(item));
     }
     final failedCourses = <NamedCountDto>[];
     for (final entry in failed.entries) {
